@@ -14,6 +14,8 @@ export interface AppConfig {
   todayOverride: DayString | null;
   maxUploadBytes: number;
   mode: 'development' | 'production' | 'test';
+  /** Public hostname of a hosted demo (e.g. scc-demo.onrender.com), also accepted as `Host`; unset locally. */
+  publicHost?: string;
 }
 
 export class ConfigError extends Error {}
@@ -58,5 +60,20 @@ export function loadConfig(env: Record<string, string | undefined>, argv: readon
 
   const mode: AppConfig['mode'] = argv.includes('--dev') ? 'development' : 'production';
 
-  return { port, host, seed, todayOverride, maxUploadBytes, mode };
+  const publicHost = readPublicHost(env);
+  return { port, host, seed, todayOverride, maxUploadBytes, mode, ...(publicHost === undefined ? {} : { publicHost }) };
+}
+
+const HOSTNAME = /^(?=.{1,253}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/;
+
+/** SCC_PUBLIC_HOST, else Render's RENDER_EXTERNAL_HOSTNAME: a bare hostname, lower-cased (no scheme, port or path). */
+function readPublicHost(env: Record<string, string | undefined>): string | undefined {
+  const key = readEnv(env, 'SCC_PUBLIC_HOST') !== undefined ? 'SCC_PUBLIC_HOST' : 'RENDER_EXTERNAL_HOSTNAME';
+  const raw = readEnv(env, key);
+  if (raw === undefined) return undefined;
+  const value = raw.toLowerCase();
+  if (!HOSTNAME.test(value)) {
+    throw new ConfigError(`Invalid ${key} "${raw}": expected a hostname such as scc-demo.onrender.com (no scheme, port or path).`);
+  }
+  return value;
 }

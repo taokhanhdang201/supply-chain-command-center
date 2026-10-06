@@ -130,8 +130,10 @@ export function decodeUtf8Strict(bytes: Uint8Array): string | null {
  * rebinding). Without this, a page served from an attacker-controlled domain that later resolves to
  * 127.0.0.1 (DNS rebinding) would send a matching `Host`/`Origin` pair (both the attacker's domain), which
  * `assertSameOriginMutation`'s same-origin check alone cannot distinguish from a legitimate same-origin request.
+ * `publicHost` is the one public hostname a hosted demo is served under (behind a TLS proxy, so browsers send it
+ * without a port); it is matched exactly, like the others.
  */
-export function assertAllowedHost(req: IncomingMessage, config: { host: string; port: number }): void {
+export function assertAllowedHost(req: IncomingMessage, config: { host: string; port: number; publicHost?: string }): void {
   const host = req.headers.host;
   if (typeof host !== 'string' || host.length === 0) {
     throw new HttpError(421, 'MISDIRECTED_REQUEST', 'Missing or invalid Host header.');
@@ -142,6 +144,7 @@ export function assertAllowedHost(req: IncomingMessage, config: { host: string; 
     `[::1]:${config.port}`,
     `${config.host}:${config.port}`
   ]);
+  if (config.publicHost !== undefined) allowedHosts.add(config.publicHost);
   if (!allowedHosts.has(host)) {
     throw new HttpError(421, 'MISDIRECTED_REQUEST', 'This server does not respond to that Host.');
   }

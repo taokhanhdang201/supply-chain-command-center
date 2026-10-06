@@ -1,0 +1,20 @@
+# Render Blueprint for the public demo: one free Node web service built from this repo (step by step: docs/DEPLOY.md).
+# Render sets PORT (10000) and RENDER_EXTERNAL_HOSTNAME (the service's onrender.com name); the server reads both.
+services:
+  - type: web
+    name: supply-chain-command-center
+    runtime: node
+    plan: free
+    branch: main
+    # The build needs devDependencies (TypeScript, Vite). Tests are not run on Render.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: NODE_ENV
+        value: production
+      # Render sends traffic to 0.0.0.0; the server's own default is 127.0.0.1
+      - key: HOST
+        value: 0.0.0.0

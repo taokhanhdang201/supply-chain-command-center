@@ -27,7 +27,7 @@ export function createAppServer(opts: CreateAppServerOptions): http.Server {
     void (async () => {
       try {
         applySecurityHeaders(res, { csp: opts.config.mode !== 'development' });
-        assertAllowedHost(req, { host: opts.config.host, port: boundPort });
+        assertAllowedHost(req, { host: opts.config.host, port: boundPort, publicHost: opts.config.publicHost });
         const url = new URL(req.url ?? '/', 'http://localhost');
 
         if (url.pathname.startsWith('/api/')) {
