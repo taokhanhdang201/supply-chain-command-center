@@ -32,6 +32,10 @@ shipments to chase, which lanes are slipping, and what to reorder first.
 
 To go back, click **Restore sample data** at the bottom of Data Import.
 
+The online demo shares one copy of the data between all visitors, so the figures can differ from the screenshots if
+someone has just imported a file; **Restore sample data** brings the sample back, and the sample also refreshes
+itself every day.
+
 ![Data Import at the preview step: every row checked before anything changes](docs/screenshots/import-preview-1440.jpg)
 
 ## How it works
@@ -70,7 +74,9 @@ purpose so that every alert type appears. Its dates are counted from today, so i
   next to a text label or a legend.
 - **Strict TypeScript.** `tsc --noEmit` runs as part of every build.
 
-<img src="docs/screenshots/home-phone-390.jpg" alt="Dashboard on a 390px-wide phone" width="300">
+<img src="docs/screenshots/home-phone-390.jpg" alt="Dashboard on a 390px-wide phone: on-time delivery rate, the lane map and the figures that need attention" width="300">
+
+_Dashboard at 390px wide._
 
 ## Why I built this
 
@@ -136,6 +142,8 @@ To put the demo online: [docs/DEPLOY.md](docs/DEPLOY.md).
 **Đăng Tạo**, Supply Chain student, University of North Texas ·
 [linkedin.com/in/dangtao-scm](https://www.linkedin.com/in/dangtao-scm)
 
+**License:** [MIT](LICENSE)
+
 ---
 
 <a name="tieng-viet"></a>
@@ -171,6 +179,9 @@ lô nào cần theo sát, tuyến nào đang trễ, và mặt hàng nào cần �
    còn 50.
 
 Muốn quay lại, bấm **Restore sample data** ở cuối trang Data Import.
+
+Bản demo online dùng chung một bộ dữ liệu cho mọi người xem, nên số liệu có thể khác ảnh nếu ai đó vừa import file;
+bấm **Restore sample data** để về dữ liệu mẫu, và dữ liệu mẫu cũng tự làm mới mỗi ngày.
 
 ## Cách hoạt động
 
@@ -233,3 +244,5 @@ Mở http://127.0.0.1:3000. Bản production: `npm run build` rồi `npm start`.
 
 **Đăng Tạo**, sinh viên ngành Supply Chain, University of North Texas ·
 [linkedin.com/in/dangtao-scm](https://www.linkedin.com/in/dangtao-scm)
+
+**Giấy phép:** [MIT](LICENSE)
