@@ -1,428 +1,235 @@
-# Supply Chain Command Center (SCC)
+<a name="english"></a>
 
-A single-process, full-stack TypeScript app for monitoring inventory, shipments, routes and supply-chain KPIs.
-The server is the single source of truth: it generates deterministic sample data, accepts CSV imports, derives
-every business flag (stock status, delivery state, cost anomalies, alerts) and serves a JSON snapshot that a
-React SPA renders. Nothing sensitive or destructive happens client-side — the browser never sends structured
-data rows, only raw CSV text for imports.
+# Supply Chain Command Center
 
-## Features
+**English** · [Tiếng Việt](#tieng-viet)
 
-- **Dashboard** with KPI cards, a date-range selector, shipment-status/cost/on-time charts, and recent-activity
-  and top-alert panels.
-- **Inventory** table with search, warehouse/category/stock-status/stockout-risk filters, sorting and pagination.
-- **Shipments** table with search, status/carrier/flag filters (delayed, missing dates, unusual cost, data
-  issues), sorting and pagination.
-- **Routes** page with a schematic US route map (warehouses and cities, color/width-coded lanes), a route list,
-  a selected-route detail panel, and an "unmapped routes" table.
-- **Analytics** page with warehouse/category/status/cost/on-time/route charts, computed supply-chain metrics
-  (turnover, DIO, utilization, stockout risk), and a "how these are calculated" formula reference.
-- **Alerts** page listing every derived alert (low stock, delayed shipments, cost anomalies, data issues,
-  missing info) with severity/type/search filters and links back to the source record.
-- **CSV import** for inventory and shipments, with server-side validation, an all-or-nothing replace policy, and
-  row/column-level error reporting.
-- **Deterministic sample data** (360 inventory records, 480 shipments) with intentionally injected anomalies so
-  every alert and edge case is exercised out of the box.
-- **Accessible, responsive UI**: keyboard-operable charts and route map, off-canvas nav drawer below 1024px,
-  hand-written SVG charts and map (no chart/mapping dependency), and hash-linked filters that survive navigation.
-- **Security-first design**: server-authoritative validation, strict CSP, no CORS, same-origin checks on every
-  mutating request, and no runtime dependencies beyond React.
+A web dashboard that turns shipment and inventory data into the daily calls a supply chain team makes: which
+shipments to chase, which lanes are slipping, and what to reorder first.
 
-## Architecture
+**Live demo:** _the link goes here after the first deploy ([docs/DEPLOY.md](docs/DEPLOY.md))._
 
-```
-Browser (React SPA, hash routing)  --HTTP JSON / raw text/csv-->  Node server (node:http, no framework)
-        |  renders + filters/sorts server-derived data                |  source of truth, in-memory store
-        |  NEVER computes business flags                              |  parses + validates CSV, derives flags,
-        v                                                             v  alerts, KPIs, metrics
-               src/shared  (pure TypeScript domain: parsing, validation, rules, analytics, sample data)
-```
+![Dashboard at 1440px: on-time delivery rate, the lane map and the figures that need attention](docs/screenshots/home-1440.jpg)
 
-- **`src/shared/`** — pure, framework-free, deterministic functions. No `Date.now()`, no I/O; "today" is always
-  a parameter, so every rule is fully unit-testable in Node.
-- **`src/server/`** — a `node:http` server (no Express/Fastify — five endpoints don't justify a framework's
-  dependency surface). Holds the dataset in memory, exposes a small JSON API, accepts CSV uploads as raw
-  `text/csv` bodies, re-validates everything server-side, and builds a `Snapshot` (rows + derived flags + alerts
-  + KPIs + metrics). In dev it mounts Vite in middleware mode (one process, one port); in production it serves
-  the built SPA from `dist/client`.
-- **`src/client/`** — a React 19 SPA that fetches the `Snapshot` and renders it. Table search/filter/sort/
-  pagination and chart date-range aggregation run client-side over already server-derived rows (the dataset is
-  capped at 20,000 rows per type, so this is cheap and never duplicates business logic).
+## What it does
 
-**Trust boundary:** the backend is authoritative and the browser is untrusted. All CSV parsing, validation,
-derivation of flags, alerts and metrics happen on the server. Client-side checks on upload (extension, size,
-emptiness) are UX conveniences only — the server repeats every one of them. Mutating endpoints are protected
-against cross-site requests with a custom header plus an `Origin` check (see Security notes below).
+| Page | The decision it supports |
+| --- | --- |
+| Dashboard | Is the network on track today? On-time rate against a 90% target, delayed lanes on a US map, and the counts that need attention. |
+| Inventory | What to reorder first: stock status and stockout risk for every SKU in every warehouse. |
+| Shipments | Which shipments to chase: delayed, overdue, missing dates, unusual cost or bad data. |
+| Routes | Which lanes to raise with the carrier: share of late shipments and average cost per lane. |
+| Analytics | Whether things are getting better: on-time vs delayed by month, shipping cost over time, inventory value and turnover. |
+| Alerts | What to fix first: every problem in one list, Critical first, each linked to the record behind it. |
+| Data Import | How the picture changes with your own data: load a shipments or inventory file, check every row, then import it or go back to the sample. |
 
-**Persistence:** in-memory only. On start the server generates deterministic sample data; an import replaces the
-corresponding dataset (inventory or shipments) in memory; a restart resets to sample data. See Known limitations.
+## Try it in 3 clicks
 
-## Tech stack
+1. Open **Data Import**, click **Try a sample** and choose **Shipments sample**.
+2. Read the preview (480 rows, 0 errors) and click **Import 480 shipments**.
+3. Open **Dashboard**. The figures now come from the new file: on-time delivery moves from 85.6% to 91.0%, and
+   delayed shipments from 73 to 50.
 
-| Concern | Choice | Justification |
-|---|---|---|
-| Language | TypeScript (strict) | Type safety across the whole stack. |
-| Runtime | Node 22, ESM | Given environment; developed against Windows as the primary desktop target. |
-| HTTP server | `node:http` (built-in) | Five endpoints; a framework adds dependency surface for no real gain. |
-| UI | `react`, `react-dom` | The only two runtime dependencies. A component model for a reusable UI. |
-| Routing | Hand-written hash router | Seven static routes; hash routing needs no server-side fallback route. |
-| Charts | Hand-written SVG components | Avoids a heavy chart library; full control of accessibility and CSP. |
-| Map | Hand-written SVG schematic (lat/lon → x/y) | No API key required, works fully offline. |
-| CSV parsing | Hand-written RFC 4180 parser | Small, linear-time, fully testable, no unsafe regex/eval features. |
-| Styles | Plain CSS with custom properties | No Tailwind/CSS-in-JS dependency; CSP-friendly (no inline styles needed). |
-| Build/dev | `vite`, `@vitejs/plugin-react` | Fast dev server + production bundle; also bundles the server. |
-| TS runner (dev) | `tsx` | Runs `src/server/index.ts` directly with watch mode, cross-platform. |
-| Tests | `vitest`, `jsdom`, Testing Library (`react`/`dom`/`user-event`/`jest-dom`) | Fast, Vite-native test stack. |
-| Types | `typescript`, `@types/node`, `@types/react`, `@types/react-dom` | Static typechecking. |
+To go back, click **Restore sample data** at the bottom of Data Import.
 
-No other packages are used. There is no ESLint; `tsc --noEmit` is the static gate.
+![Data Import at the preview step: every row checked before anything changes](docs/screenshots/import-preview-1440.jpg)
 
-## Requirements
+## How it works
 
-- Node.js 22 or later
-- npm (bundled with Node)
+- **Stack.** React and TypeScript in the browser, built with Vite. A small Node.js server (`node:http`, no
+  framework) keeps the data in memory and serves a JSON API. Charts and the map are hand-written SVG. The only
+  runtime dependencies are React and two self-hosted fonts.
+- **Import.** The browser reads the file (CSV, TSV, TXT or gzip), matches its columns to the fields SCC needs and
+  shows a preview with every problem listed by line and column. The server checks every row again. If any row
+  fails, nothing is imported.
+- **On-time rate.** Of the delivered shipments with known dates, the share that arrived on or before the
+  estimated delivery day.
+- **Cost anomaly.** Each shipment is compared with similar shipments: the same route and carrier, or a wider group
+  when there are fewer than 8. It is flagged only when it is a statistical outlier (modified z-score above 3.5)
+  and also costs at least 1.5 times the group's median, so ordinary price variation is not reported.
+- **Stockout risk.** Days of supply = units on hand ÷ average daily usage. High when the item is out of stock or
+  its days of supply are shorter than the supplier lead time; Medium within 7 days of the lead time; Low
+  otherwise; Unknown when there is no usage data.
 
-## Installation
+The sample data (seed 42) has 360 inventory records in 5 warehouses and 480 shipments, with problems placed on
+purpose so that every alert type appears. Its dates are counted from today, so it always looks current.
 
-```
-npm install
-```
+![Shipments: status counts, the shipments that need attention, and the ledger](docs/screenshots/shipments-1440.jpg)
 
-## Running
+![Routes: lanes coloured by their share of late shipments, with the lane list](docs/screenshots/routes-1440.jpg)
 
-### Development
+## Quality
 
-```
+- **2,146 automated tests** (Vitest) cover the calculations, the import pipeline, the server and every page.
+  9 of them compare against the private development history and are skipped in this repository.
+- **41 browser tests** drive real Chromium against the built app. They check that no page scrolls sideways
+  from 360px to 1440px wide, that the dashboard text meets WCAG AA contrast, that focus moves to the page heading
+  after each navigation, and that reduced-motion settings are respected. Playwright is not a project dependency;
+  see Run locally.
+- **Colour carries meaning only.** Red is kept for critical and late, amber for warnings, and colours always sit
+  next to a text label or a legend.
+- **Strict TypeScript.** `tsc --noEmit` runs as part of every build.
+
+<img src="docs/screenshots/home-phone-390.jpg" alt="Dashboard on a 390px-wide phone" width="300">
+
+## Why I built this
+
+SCC is a personal project. I built it to learn things I wanted to get better at: analyzing operations data,
+designing dashboards that lead to a decision, and building a complete web application from the data to the
+screen. It is also a foundation I can build on in the next steps of my supply chain studies and career. All data
+in it is generated sample data, not data from a real company.
+
+## How it was built
+
+SCC was developed with an AI coding assistant, Claude Code, which wrote the code. My part was the product
+direction, the design decisions and the supply chain logic behind each page: I reviewed every plan before work
+started and checked every result before accepting it.
+
+## Run locally
+
+Requires Node.js 22 or later.
+
+```bash
+npm ci
 npm run dev
 ```
 
-Starts the server with Vite mounted in middleware mode (hot reload) at **http://127.0.0.1:3000**.
+Then open http://127.0.0.1:3000. For a production build:
 
-### Production
-
-```
+```bash
 npm run build
 npm start
 ```
 
-`npm run build` typechecks, builds the client bundle to `dist/client`, and bundles the server to
-`dist/server/index.js`. `npm start` runs the built server (defaults to http://127.0.0.1:3000).
-
-### Environment variables
-
-All are optional; copy `.env.example` to `.env` to override any of them, or set them directly in your shell.
+To use another port: `PORT=4000 npm start` (macOS, Linux), `$env:PORT=4000; npm start` (PowerShell) or
+`set "PORT=4000" && npm start` (Windows cmd).
 
 | Variable | Default | Meaning |
-|---|---|---|
-| `PORT` | `3000` | TCP port (1–65535). |
-| `HOST` | `127.0.0.1` | Bind address. Requests are only answered for the `Host` names listed under "Host allowlist" in Security notes; with `HOST=0.0.0.0` you must browse to `0.0.0.0:<port>` itself, so other machines on your LAN get `421` (see below). |
-| `SCC_SEED` | `42` | PRNG seed for generated sample data. |
-| `SCC_TODAY` | (server's local date) | Fixes "today" (`YYYY-MM-DD`) for demos/tests. |
-| `SCC_MAX_UPLOAD_BYTES` | `2097152` (2 MiB) | Max CSV upload size in bytes (1024–10,485,760). |
+| --- | --- | --- |
+| `PORT` | `3000` | Port to listen on |
+| `HOST` | `127.0.0.1` | Address to listen on |
+| `SCC_SEED` | `42` | Seed for the sample data |
+| `SCC_TODAY` | today | Fixes "today" (`YYYY-MM-DD`) |
+| `SCC_MAX_UPLOAD_BYTES` | `2097152` | Largest accepted upload |
+| `SCC_PUBLIC_HOST` | (none) | Public hostname of a hosted demo |
 
-**PowerShell:**
+Tests:
 
-```powershell
-$env:PORT=4000; npm start
+```bash
+npm test
+npm run typecheck
 ```
 
-**Windows cmd:**
+Browser tests need Playwright and Chromium, installed separately:
 
-```cmd
-set "PORT=4000" && npm start
+```bash
+npm install --no-save playwright
+npx playwright install chromium
+npm run build
+npm run test:browser
 ```
 
-(Quote the whole `NAME=value` assignment. Without the quotes, cmd.exe includes the space before `&&` in the
-value — `PORT` becomes `"4000 "` with a trailing space — which fails validation and crashes the server.)
+To put the demo online: [docs/DEPLOY.md](docs/DEPLOY.md).
 
-**`.env` file** (any OS): copy `.env.example` to `.env` and edit the values; the server loads it automatically
-on startup if present.
+## Author
 
-## Running tests
+**Đăng Tạo**, Supply Chain student, University of North Texas ·
+[linkedin.com/in/dangtao-scm](https://www.linkedin.com/in/dangtao-scm)
 
-```
-npm test           # run once (CI mode)
-npm run test:watch # watch mode
-npm run typecheck  # tsc --noEmit only
-```
+---
 
-The test suite covers: date/money/formatting edge cases (leap years, timezone-safety, rejected numeric/date
-forms); the hand-written CSV parser and every field validator and its exact error codes/messages; every pure
-domain rule (stock status, stockout risk, location resolution, delivery state, cost-anomaly scoring, KPIs,
-metrics, alerts, analytics series, snapshot assembly); deterministic sample-data generation; the HTTP server
-(config, security headers, same-origin checks, all five endpoints, static file serving including path-traversal
-attempts); and the client (table/router helpers, UI primitives, charts, the app shell, and every page).
+<a name="tieng-viet"></a>
 
-## CSV format
+# Supply Chain Command Center (Tiếng Việt)
 
-Imports are **all-or-nothing**: if any row or file-level error is found, nothing is imported, the existing
-dataset is left untouched, and every error is reported back (up to 500, with a total count). A successful
-import **replaces** the entire dataset of that kind (inventory or shipments) — it does not merge or upsert.
+[English](#english) · **Tiếng Việt**
 
-Numbers must be plain digits with an optional decimal point (no thousands separators, currency symbols,
-scientific notation, or leading `+`). Dates must be `YYYY-MM-DD` and a real calendar date between 2000 and 2100.
+Một dashboard web biến dữ liệu lô hàng và tồn kho thành những quyết định hằng ngày của một đội supply chain:
+lô nào cần theo sát, tuyến nào đang trễ, và mặt hàng nào cần đặt thêm trước.
 
-> **Excel warning:** opening a CSV in Excel and saving it again rewrites `2026-08-15` as `8/15/2026` (on US
-> Windows). Such files are rejected. The error for each slash date says Excel likely changed it and shows the
-> `YYYY-MM-DD` equivalent. Upload the original file, or save dates as text in `YYYY-MM-DD`.
+**Bản demo:** _link sẽ được thêm sau lần deploy đầu tiên ([docs/DEPLOY.md](docs/DEPLOY.md))._
 
-### Flexible column mapping (V1.5)
+Ảnh chụp màn hình nằm ở phần tiếng Anh phía trên và trong thư mục [docs/screenshots](docs/screenshots).
 
-Files that already use SCC's column names import exactly as before, with no extra step (matching ignores case,
-spaces and hyphens, and unknown extra columns are still ignored with a warning). Otherwise the Import page opens a
-mapping step before anything is uploaded:
+## Ứng dụng làm gì
 
-- Suggestions come from a fixed alias list (below). Matching is an **exact** match after normalizing case, spaces and
-  punctuation. There is no fuzzy matching, and nothing is guessed.
-- **Ambiguous** headers (`Cost`, `Avg Usage`; for shipments also `Date` and `Location`) are never auto-mapped: you
-  must choose the SCC field. Two columns that both suggest the same field are also left for you to decide.
-- You can change any mapping with the dropdown next to each column, and see a preview of the mapped rows.
-- A **duplicate** mapping, a missing **required** field, or a column still undecided blocks the import.
-- Columns set to "Do not import" are ignored (with an `Ignored unmapped column(s)` warning) and never read.
-- Values are never changed: mapping only decides which column feeds which SCC field.
-- All existing validation still runs, in the browser preview and again on the server, including the Excel
-  `M/D/YYYY` date check.
-- Shipments still require all nine columns (`estimated_delivery` and `actual_delivery` may have blank values).
-- The mapping is used for that one upload and is not stored.
+| Trang | Quyết định trang này hỗ trợ |
+| --- | --- |
+| Dashboard | Mạng lưới hôm nay có ổn không? Tỷ lệ giao đúng hẹn so với mục tiêu 90%, các tuyến trễ trên bản đồ Mỹ, và những con số cần chú ý. |
+| Inventory | Cần đặt thêm gì trước: tình trạng tồn kho và rủi ro hết hàng của từng SKU ở từng kho. |
+| Shipments | Lô nào cần theo sát: trễ, quá hạn, thiếu ngày, chi phí bất thường hoặc dữ liệu sai. |
+| Routes | Tuyến nào cần trao đổi với hãng vận chuyển: tỷ lệ lô trễ và chi phí trung bình của từng tuyến. |
+| Analytics | Tình hình có đang tốt lên không: đúng hẹn và trễ theo tháng, chi phí vận chuyển theo thời gian, giá trị và vòng quay tồn kho. |
+| Alerts | Sửa gì trước: mọi vấn đề trong một danh sách, Critical đứng đầu, mỗi dòng dẫn tới bản ghi gốc. |
+| Data Import | Bức tranh thay đổi ra sao với dữ liệu của bạn: nạp file lô hàng hoặc tồn kho, kiểm tra từng dòng, rồi nhập hoặc quay về dữ liệu mẫu. |
 
-Inventory aliases (each canonical name is also accepted, e.g. `Unit Cost`, `unit-cost`):
+## Dùng thử trong 3 bước
 
-| SCC field | Accepted alternative headers |
-|---|---|
-| `sku` | Item Code, Product ID, Material Number, Material Code |
-| `product_name` | Product, Item Description, Product Description |
-| `category` | Product Category |
-| `warehouse` | WH, Plant, Plant Code, Location |
-| `quantity` | Qty, On Hand, On Hand Qty, Available Qty, Stock Qty, Inventory Balance, Available Stock |
-| `reorder_point` | Reorder Level, ROP |
-| `unit_cost` | Unit Price, Price, Standard Cost |
-| `avg_daily_usage` | Daily Usage, Daily Consumption, Average Daily Demand, Average Daily Usage |
-| `lead_time_days` | Lead Time, Supplier Lead Time |
+1. Mở **Data Import**, bấm **Try a sample** và chọn **Shipments sample**.
+2. Xem bản xem trước (480 dòng, 0 lỗi) rồi bấm **Import 480 shipments**.
+3. Mở **Dashboard**. Số liệu giờ lấy từ file mới: tỷ lệ giao đúng hẹn đổi từ 85,6% thành 91,0%, số lô trễ từ 73
+   còn 50.
 
-Shipment aliases:
+Muốn quay lại, bấm **Restore sample data** ở cuối trang Data Import.
 
-| SCC field | Accepted alternative headers |
-|---|---|
-| `shipment_id` | Shipment Number, Load ID |
-| `origin` | Origin Location, From |
-| `destination` | Destination Location, To |
-| `carrier` | Transporter, Logistics Provider |
-| `status` | Shipment Status |
-| `ship_date` | Shipping Date, Dispatch Date |
-| `estimated_delivery` | ETA, Expected Delivery |
-| `actual_delivery` | Delivery Date, Delivered Date |
-| `shipping_cost` | Freight Cost, Transport Cost |
+## Cách hoạt động
 
-### Inventory columns (`public/templates/inventory-template.csv`)
+- **Công nghệ.** Giao diện React và TypeScript, build bằng Vite. Một server Node.js nhỏ (`node:http`, không dùng
+  framework) giữ dữ liệu trong bộ nhớ và trả về JSON API. Biểu đồ và bản đồ được vẽ bằng SVG tự viết. Thư viện
+  chạy thực tế chỉ có React và hai font tự host.
+- **Nhập dữ liệu.** Trình duyệt đọc file (CSV, TSV, TXT hoặc gzip), ghép các cột với trường SCC cần, rồi hiện bản
+  xem trước liệt kê mọi lỗi theo dòng và cột. Server kiểm tra lại từng dòng. Chỉ cần một dòng sai là không có gì
+  được nhập.
+- **Tỷ lệ giao đúng hẹn.** Trong các lô đã giao có đủ ngày, tỷ lệ lô đến vào hoặc trước ngày giao dự kiến.
+- **Chi phí bất thường.** Mỗi lô được so với các lô tương tự: cùng tuyến và cùng hãng vận chuyển, hoặc nhóm rộng
+  hơn khi nhóm đó có dưới 8 lô. Lô chỉ bị đánh dấu khi vừa là điểm ngoại lai thống kê (modified z-score trên 3,5)
+  vừa tốn ít nhất 1,5 lần trung vị của nhóm, để những dao động giá bình thường không bị báo.
+- **Rủi ro hết hàng.** Số ngày đủ hàng = số lượng tồn ÷ lượng dùng trung bình mỗi ngày. Cao khi đã hết hàng hoặc số
+  ngày đủ hàng ngắn hơn thời gian chờ nhà cung cấp; Trung bình khi chỉ dư dưới 7 ngày so với thời gian chờ; Thấp
+  trong các trường hợp còn lại; Chưa rõ khi không có dữ liệu lượng dùng.
 
-| Column | Required | Format | Example |
-|---|---|---|---|
-| sku | yes | letters, digits or hyphens (3–32 chars) | `ELC-9001` |
-| product_name | yes | text, up to 120 characters | `Wireless Barcode Scanner` |
-| category | yes | text, up to 60 characters | `Electronics` |
-| warehouse | yes | a known warehouse code | `WH-DFW` |
-| quantity | yes | whole number, 0–10,000,000 | `120` |
-| reorder_point | yes | whole number, 0–10,000,000 | `40` |
-| unit_cost | yes | decimal dollars, 0–1,000,000.00 | `89.50` |
-| avg_daily_usage | optional | decimal, 0–1,000,000, up to 2 decimals | `6.5` |
-| lead_time_days | optional (default 14) | whole number, 1–365 | `14` |
+Dữ liệu mẫu (seed 42) có 360 dòng tồn kho ở 5 kho và 480 lô hàng, có cài sẵn các vấn đề để loại cảnh báo nào cũng
+xuất hiện. Ngày tháng được tính từ hôm nay nên dữ liệu luôn trông như hiện tại.
 
-Duplicate `SKU + warehouse` pairs are rejected; the same SKU in different warehouses is allowed.
+## Chất lượng
 
-### Shipment columns (`public/templates/shipments-template.csv`)
+- **2.146 test tự động** (Vitest) cho phần tính toán, quy trình nhập, server và từng trang. 9 test trong số đó so
+  với lịch sử phát triển riêng nên được bỏ qua trong repo này.
+- **41 test trình duyệt** chạy Chromium thật trên bản đã build. Các test kiểm tra không trang nào cuộn ngang từ
+  360px đến 1440px, chữ trên dashboard đạt độ tương phản WCAG AA, focus chuyển tới tiêu đề trang sau mỗi lần
+  chuyển trang, và tôn trọng thiết lập giảm chuyển động. Playwright không nằm trong dependency của dự án; xem phần
+  Chạy trên máy.
+- **Màu chỉ dùng để mang ý nghĩa.** Đỏ dành cho nghiêm trọng và trễ, hổ phách cho cảnh báo, và màu luôn đi kèm
+  nhãn chữ hoặc chú giải.
+- **TypeScript strict.** `tsc --noEmit` chạy trong mỗi lần build.
 
-| Column | Required | Format | Example |
-|---|---|---|---|
-| shipment_id | yes | letters, digits or hyphens (3–32 chars) | `SHP-900001` |
-| origin | yes | text, up to 64 characters | `WH-DFW` |
-| destination | yes | text, up to 64 characters | `HOU` |
-| carrier | yes | text, up to 60 characters | `Northstar Freight` |
-| status | yes | `pending`, `in_transit`, `delivered` or `cancelled` | `delivered` |
-| ship_date | yes | date, `YYYY-MM-DD` | `2026-03-02` |
-| estimated_delivery | optional | date, `YYYY-MM-DD` | `2026-03-05` |
-| actual_delivery | optional | date, `YYYY-MM-DD` | `2026-03-04` |
-| shipping_cost | yes | decimal dollars, 0–1,000,000.00 | `812.40` |
+## Vì sao mình làm dự án này
 
-Duplicate `shipment_id` values (case-insensitive) are rejected. Logically inconsistent rows (e.g. an actual
-delivery date before the ship date) are **accepted** on import — they surface as `invalid_data` alerts instead
-of being silently dropped, so bad data stays visible.
+SCC là dự án cá nhân. Mình làm để học những điều mình muốn giỏi hơn: phân tích dữ liệu vận hành, thiết kế
+dashboard giúp ra quyết định, và xây một ứng dụng web hoàn chỉnh từ dữ liệu tới màn hình. Đây cũng là nền tảng để
+mình tiếp tục phát triển trong các bước tiếp theo của việc học và sự nghiệp supply chain. Toàn bộ dữ liệu trong ứng
+dụng là dữ liệu mẫu được tạo ra, không phải dữ liệu của công ty thật.
 
-### Example error messages
+## Cách xây dựng
 
-```
-Line 4, column quantity: "1,234" is not a valid number. Use digits with an optional decimal point, e.g. 1250.50
-(no currency symbols, thousands separators or spaces).
-Line 7, column warehouse: Unknown warehouse "WH-XXX". Valid codes: WH-ATL, WH-DFW, WH-EWR, WH-LAX, WH-ORD.
-Line 1: Missing required column(s): sku. Found columns: product_name, category, warehouse.
-Line 9, column sku: Duplicate SKU + warehouse "ELC-9001 @ WH-DFW" (first seen on line 2).
+SCC được phát triển cùng trợ lý lập trình AI Claude Code, công cụ viết phần code. Phần của mình là định hướng sản
+phẩm, các quyết định thiết kế và nghiệp vụ supply chain đằng sau từng trang: mình duyệt từng kế hoạch trước khi bắt
+đầu và kiểm tra từng kết quả trước khi chấp nhận.
+
+## Chạy trên máy
+
+Cần Node.js 22 trở lên. Các lệnh giống phần tiếng Anh:
+
+```bash
+npm ci
+npm run dev
 ```
 
-Limits: 20,000 data rows and 50 columns per file, 2 MiB upload by default (configurable), and at most 500
-errors returned (the response also reports the true total count).
+Mở http://127.0.0.1:3000. Bản production: `npm run build` rồi `npm start`. Test: `npm test` và
+`npm run typecheck`. Test trình duyệt cần cài Playwright và Chromium riêng (lệnh ở phần
+[Run locally](#run-locally)). Đưa demo lên mạng: [docs/DEPLOY.md](docs/DEPLOY.md).
 
-## Analytics formulas
+## Tác giả
 
-All money is stored as integer cents; ratios are `0..1` displayed as percentages.
-
-- **Inventory value** = `quantity × unit cost`. **Stock status**: `out_of_stock` at quantity 0, `low_stock` at
-  or below the reorder point, else `in_stock`. **Days of supply** = `quantity / avgDailyUsage` (`null` when
-  usage is unknown or 0). **Stockout risk**, evaluated in this order: `high` at zero quantity (regardless of
-  usage); `unknown` when usage is unknown; `low` when usage is exactly 0 but the item is in stock; otherwise
-  from days of supply vs. lead time — `high` when days of supply is under the lead time, `medium` within a
-  7-day safety buffer of the lead time, `low` otherwise.
-- **Delivery state**: `on_time` when a delivered shipment arrived on or before its ETA, `late` when it arrived
-  after; an open shipment past its ETA (vs. today) is `overdue`; missing dates or an actual delivery before the
-  ship date make the state `unknown` (excluded from on-time accounting). Comparisons are whole-day granular —
-  arriving exactly on the ETA day counts as on time.
-- **Cost anomaly** uses a **modified z-score (Iglewicz–Hoaglin)** on median and MAD, upper-tail only (flagging
-  only abnormally *expensive* shipments). Shipments are grouped by **route + carrier** first (different carriers
-  can legitimately charge quite different per-mile rates on the same route, so mixing carriers into one peer
-  group could flag a shipment as anomalous just for using a pricier carrier); a route/carrier pair with fewer
-  than 8 shipments falls back to the route alone, and a route with fewer than 8 shipments falls back to a
-  per-mile peer group; when even that is too small, no assessment is made. When MAD is 0 the score falls back to
-  a mean-absolute-deviation scale. A shipment is flagged only when **both** its score is above 3.5 **and** its
-  cost is at least **1.5× the peer median** (`COST_ANOMALY_MIN_RATIO` in `src/shared/constants.ts`; per-mile
-  rate for the per-mile group). The second condition matters because a very tight peer group makes even a few
-  percent of excess look statistically extreme: without it, ordinary ±10% price noise would be reported as
-  "abnormally expensive" on roughly one dataset in three.
-- **On-time delivery rate** = `onTime / (onTime + late)`, restricted to delivered shipments with a known
-  on-time/late state; `null` when there is no denominator. **Average shipping cost/delivery time** exclude
-  cancelled shipments and are `null` with zero eligible shipments.
-- **Inventory turnover (annualized, estimated)** = `Σ(avgDailyUsage × 365 × unitCost) / Σ(inventory value)`,
-  counting only items with recorded usage in the numerator, but **the whole inventory's value in the
-  denominator** (not just the items with usage). This is an **honest approximation**: COGS is estimated from
-  currently recorded daily usage at the current unit cost (not true historical cost of goods sold), and the
-  current snapshot's inventory value stands in for average inventory, since no inventory history is stored. One
-  consequence of the denominator's broader scope: when usage-data coverage is below 100%, the reported number
-  reads lower than a turnover computed only over usage-covered items would. The Analytics page always shows the
-  usage-data coverage ("n of m items") alongside the number so this is never a hidden discrepancy.
-  **Days inventory outstanding** = `365 / turnover` (`null` when turnover is `null` or 0).
-- **Warehouse utilization** = `units stored / warehouse capacity` (capacity from the static reference location
-  list); it can exceed 100%, which is flagged both as a metric tone and as an `invalid_data` alert.
-- **Time-series charts & recent activity**: "Shipping cost over time" and "Recent shipment activity" only ever
-  show activity that has actually happened as of `today` — a delivered shipment's date is its `actualDelivery`,
-  an in-transit shipment's is its `shipDate`, and a pending shipment only counts once its (possibly
-  future-scheduled) `shipDate` has arrived. Future-dated shipments never appear, and the cost-over-time series
-  never emits a month later than `today`'s; the current month is labeled "(MTD)" since it is necessarily partial (on chart axes it is shown as "Sep*" with a note under the chart).
-
-## Alert rules
-
-Every alert has a severity (`critical`/`warning`/`info`), a type, a title, a message, and a link back to its
-source entity. Rules, in brief:
-
-- **Low stock**: `critical` when a SKU@warehouse record is out of stock, `warning` when at or below its
-  reorder point.
-- **Shipment delayed**: `critical` when overdue by 7+ days, else `warning`; a shipment delivered late within the
-  last 14 days gets an `info` "delivered late" alert.
-- **Cost anomaly**: `critical` when the actual cost is 3× or more the expected baseline, else `warning`.
-- **Missing info**: `warning` for a missing estimated or actual delivery date, `info` for inventory with no
-  recorded average daily usage (excluded from stockout risk and turnover).
-- **Invalid data**: one `warning` per data-consistency issue found on a shipment (e.g. actual delivery before
-  ship date, same origin and destination, a $0 cost on a non-cancelled shipment), plus a `warning` for any
-  warehouse over 100% utilization.
-
-## Sample data & intentional anomalies
-
-On first start (and on "restore sample data") the server deterministically generates 360 inventory records
-across 5 warehouses/6 categories and 480 shipments across 30 fixed lanes, seeded by `SCC_SEED` (default 42).
-Generation never depends on the current date — only the dates it produces shift with "today," so the same seed
-always produces the same quantities, costs, carriers and anomaly placements.
-
-Each lane has a single carrier (assigned deterministically per lane, not per shipment), because real lanes are
-mostly single-carrier; drawing a carrier per shipment would let differences between carriers' per-mile rates
-masquerade as cost anomalies. Shipments are spread evenly over the 30 lanes (15-16 each), so the "Top shipping
-routes" chart by shipment count shows near-equal bars; that evenness is an artifact of the generator, not of real
-data.
-
-Per-shipment cost carries plain random variation of about ±10% around the lane's rate, and it is left as
-generated: no step adjusts the sample data to keep the cost detector quiet. The detector itself is what keeps
-that variation from being reported (a flagged shipment must also cost at least 1.5× its peers, see Analytics
-formulas), and a test checks that seeds 0-999 produce no cost alerts beyond the injected ones.
-
-A fixed set of anomalies is injected on top of that distribution so every alert type and edge case is
-exercised out of the box: out-of-stock and low-stock items, items with no usage data, misconfigured reorder
-points, overdue shipments (a mix of critical/warning), unusually expensive shipments, shipments missing an
-actual or estimated delivery date, an actual-delivery-before-ship-date inconsistency, an in-transit shipment
-that already has an actual delivery date, a $0-cost shipment, a same-origin-destination route, and two shipments
-to unmapped locations (so the Routes page's "unmapped routes" table is never empty by default).
-
-## Security notes
-
-- **Trust boundary**: the server is authoritative; the client never sends structured data rows, only raw CSV
-  text for imports, optionally with an `X-SCC-Column-Map` header (a comma list of canonical field names,
-  whitelisted, 1024-char cap, never JSON) that only selects which column feeds which field; all values are then
-  validated server-side exactly as before, regardless of what the client already checked.
-- **Uploads**: raw request body, never written to disk or executed; `Content-Type` must be `text/csv`; size is
-  enforced both by a `Content-Length` precheck and a streaming byte counter; strict UTF-8 decoding with NUL-byte
-  rejection; row (20,000) and column (50) caps; per-field length caps; the filename is only ever used as a
-  sanitized display label.
-- **Parsing safety**: a hand-written linear-time CSV parser; all validation regexes are anchored with no nested
-  quantifiers (no ReDoS); numbers are parsed via a whitelist regex plus integer-string arithmetic — never
-  `eval`/`Function`; header-to-index mapping uses a `Map` (no prototype pollution risk).
-- **XSS/injection**: React renders all text; there is no `dangerouslySetInnerHTML`, `innerHTML`, `eval`, or
-  `new Function` anywhere in `src/` (checked by grep on every build/release). A strict
-  Content-Security-Policy, `X-Content-Type-Options: nosniff` and `X-Frame-Options: DENY` are sent on every
-  production response.
-- **CSV/formula injection**: the app has no CSV export today; the bundled templates are static files we author.
-  Any future export feature must prefix cells starting with `= + - @ \t \r` with a leading `'`.
-- **Cross-site requests**: the server binds to `127.0.0.1` by default; every mutating endpoint requires a
-  custom `X-SCC-Request: 1` header (which forces a CORS preflight that always fails, since no CORS headers are
-  ever sent) plus a matching `Origin` header when one is present.
-- **Host allowlist (DNS rebinding)**: before routing, every request's `Host` header must be `127.0.0.1:<port>`,
-  `localhost:<port>`, `[::1]:<port>`, or exactly the configured `HOST:<port>`; anything else gets a JSON `421`.
-  Consequence: if you bind to all interfaces (`HOST=0.0.0.0`), the app is only reachable using the address you
-  configured (`0.0.0.0:<port>`); a browser on another machine that sends `Host: 192.168.x.y:<port>` is refused
-  with `421`. The check is strict, not a bug: it is what stops a malicious web page from reaching the local
-  server through a rebound DNS name. Also, `Host` must include the port, so a server on port 80 needs the
-  port to be explicit, and names are compared as-is (lowercase).
-- **Static files**: path traversal is prevented by resolving and prefix-checking every requested path, and
-  rejecting NUL bytes, backslashes and non-regular-file targets.
-- **Errors**: unexpected failures return a generic 500 body; stack traces are only ever logged server-side.
-  Validation error messages echo at most 40 characters of the offending value.
-- **Dependencies**: the only runtime dependencies are `react` and `react-dom`.
-- **Browser storage**: none is used anywhere in the app.
-
-## Project structure
-
-```
-public/                       favicon, CSV import templates
-src/
-  shared/                     pure domain logic (parsing, validation, rules, analytics, sample data)
-    csv/                      RFC 4180 parser, column schemas, field parsers, import functions
-    mapping/                  column alias dictionary, mapping suggestions/validation
-    domain/                   inventory/shipment enrichment, cost anomaly, metrics, alerts, analytics, snapshot
-    reference/                warehouse/city/carrier/lane reference data, US outline polygon
-    sample/                   PRNG and deterministic sample-data generator
-  server/                     node:http server: config, http helpers, in-memory store, API, static files, app
-  client/                     React SPA
-    api/                      HTTP API client
-    components/               layout, UI primitives, charts, the route map
-    hooks/, lib/               table state helpers
-    pages/                    the seven routed pages
-    state/                    DataContext (snapshot loading/refresh)
-    styles/                   design tokens, base styles, layout, component styles
-tests/                         mirrors src/ (shared, server, client) plus shared test helpers
-```
-
-## Known limitations
-
-- Data is in-memory only; it resets to freshly generated sample data on every restart.
-- Single-user, no authentication — intended as a local tool bound to `127.0.0.1`.
-- Inventory turnover is estimated from a current usage snapshot, not true historical cost of goods sold.
-- The route map is a coarse schematic of the continental US; locations outside the reference list are listed
-  separately as "unmapped" rather than drawn.
-- Importing a file replaces the entire dataset of that kind rather than merging or upserting rows.
-- All table search/filter/sort/pagination runs client-side over an already-capped dataset (20,000 rows/type).
-- There is no CSV export feature.
-
-## Future improvements
-
-- A persistent database (SQLite or Postgres) instead of the in-memory store.
-- Authentication and role-based access.
-- Server-side pagination for very large datasets.
-- Historical inventory snapshots to compute true turnover instead of a current-snapshot proxy.
-- Merge/upsert import semantics as an alternative to full replace.
-- CSV export, with formula-injection escaping for spreadsheet-unsafe leading characters.
-- Per-lane carrier SLA tracking.
-- Optional AI-assisted mapping suggestions behind the `MappingSuggester` interface (human confirmation and server validation still required).
-- Real geocoding instead of the static reference location list.
+**Đăng Tạo**, sinh viên ngành Supply Chain, University of North Texas ·
+[linkedin.com/in/dangtao-scm](https://www.linkedin.com/in/dangtao-scm)
