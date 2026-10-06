@@ -1,0 +1,150 @@
+/* Design tokens: colors, spacing scale, radii, shadows, type. Every other stylesheet reads these variables
+   instead of hard-coding values, so the theme lives in exactly one place (plan §8.9, V1.6 §4).
+   Surface model: a dark frame (sidebar, topbar, page stage) over a warm light floor of paper sheets. */
+
+:root {
+  color-scheme: light;
+
+  /* Stage primitives (the dark frame) */
+  --ink-1000: #05080d;
+  --stage-bg: #0a0f16;
+  --stage-raised: #111823;
+  --stage-field: #0f1520;
+  --map-field: #0c121b;
+  --stage-line: rgba(214, 224, 238, 0.1);
+  --stage-line-strong: rgba(214, 224, 238, 0.22);
+  --stage-grid: rgba(237, 233, 224, 0.035);
+  --stage-text: #ede9e0;
+  --stage-text-2: #a9b3c1;
+  --stage-text-3: #7d8898;
+  --stage-text-4: #5e6878; /* decorative large text only */
+
+  /* Floor surfaces */
+  --color-bg: #ecebe6;
+  --color-surface: #faf9f6;
+  --color-field: #ffffff;
+  --color-border: #8a9099;
+  --color-border-subtle: #e2e0d9;
+  --color-line-strong: #c9c6bd;
+
+  /* Text */
+  --color-text: #11161d;
+  --color-text-muted: #4a5360;
+  --color-text-subtle: #5f6875;
+  --color-text-inverse: #ffffff;
+
+  /* Sidebar */
+  --color-sidebar-bg: #05080d;
+  --color-sidebar-bg-active: rgba(237, 233, 224, 0.05);
+  --color-sidebar-text: #a9b3c1;
+  --color-sidebar-text-active: #ede9e0;
+  --color-sidebar-border: rgba(214, 224, 238, 0.1);
+
+  /* The single operational blue */
+  --color-accent: #2552c4;
+  --color-accent-hover: #1c43a6;
+  --color-focus: #2552c4;
+
+  /* Semantic tones */
+  --good: #1b6e44;
+  --good-bg: #e6f2ea;
+  --good-border: #b5d9c3;
+  --warning: #9a5200;
+  --warning-bg: #fbefd9;
+  --warning-border: #ebc98f;
+  --critical: #b42318;
+  --critical-bg: #fbe7e4;
+  --critical-border: #f0b8b1;
+  --info: #2552c4;
+  --info-bg: #e6ecfc;
+  --info-border: #b9c8f2;
+  --neutral: #4a5360;
+  --neutral-bg: #ecebe6;
+  --neutral-border: #cfccc4;
+  --muted: #8f8c84;
+
+  /* Chart palette */
+  /* Ordinary data is ink gray; the accent is kept for the hovered or focused mark (components.css). */
+  --chart-1: var(--neutral);
+  --chart-2: #7c8ba3;
+  --chart-3: #1b6e44;
+  --chart-4: #9a5200;
+  --chart-5: #b42318;
+  --chart-6: #4a5360;
+  --route: #5b6b80;
+
+  /* Spacing (4px scale) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Layout */
+  --gutter: clamp(16px, 3.2vw, 48px);
+  --content-max: 1360px;
+  --sidebar-width: 240px;
+  --topbar-height: 56px;
+
+  /* Radii (industrial, near-square) & shadows */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --shadow-sm: 0 1px 0 rgba(17, 22, 29, 0.04);
+  --shadow-md: 0 12px 32px rgba(5, 8, 13, 0.18);
+
+  /* Type */
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Archivo Variable', 'Archivo', 'Inter Variable', system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-size-xs: 0.6875rem;
+  --font-size-sm: 0.8125rem;
+  --font-size-md: 0.9375rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --tracking-label: 0.005em;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 420ms;
+}
+
+/* Stage scope: re-declares the same names for dark surfaces, so every component placed inside turns dark. */
+.surface-stage {
+  color-scheme: dark;
+  color: var(--stage-text);
+  --color-surface: transparent;
+  --color-field: var(--stage-field);
+  --color-border: rgba(214, 224, 238, 0.3);
+  --color-border-subtle: var(--stage-line);
+  --color-line-strong: var(--stage-line-strong);
+  --color-text: var(--stage-text);
+  --color-text-muted: var(--stage-text-2);
+  --color-text-subtle: var(--stage-text-3);
+  --color-accent: #6e97ff;
+  --color-accent-hover: #93b1ff;
+  --color-focus: #8db0ff;
+  --good: #4cc38a;
+  --warning: #f0a43a;
+  --critical: #f2645a;
+  --info: #6e97ff;
+  --neutral: #a9b3c1;
+  --good-bg: rgba(76, 195, 138, 0.12);
+  --good-border: rgba(76, 195, 138, 0.35);
+  --warning-bg: rgba(240, 164, 58, 0.12);
+  --warning-border: rgba(240, 164, 58, 0.35);
+  --critical-bg: rgba(242, 100, 90, 0.14);
+  --critical-border: rgba(242, 100, 90, 0.4);
+  --info-bg: rgba(110, 151, 255, 0.12);
+  --info-border: rgba(110, 151, 255, 0.35);
+  --neutral-bg: rgba(237, 233, 224, 0.06);
+  --neutral-border: rgba(237, 233, 224, 0.18);
+}

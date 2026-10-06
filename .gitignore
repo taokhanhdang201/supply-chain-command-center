@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.env
+
+# Local agent tooling: never committed
+.claude/
+.serena/
+.agents/
+.codex/
+skills-lock.json
+AGENTS.md

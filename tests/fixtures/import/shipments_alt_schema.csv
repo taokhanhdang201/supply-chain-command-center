@@ -1,0 +1,4 @@
+Load ID,Origin Location,Destination Location,Transporter,Shipment Status,Dispatch Date,ETA,Delivered Date,Freight Cost
+LD-50001,WH-DFW,HOU,Northstar Freight,Delivered,2026-03-02,2026-03-05,2026-03-04,812.40
+LD-50002,WH-LAX,"Seattle, WA",Summit Express,In Transit,2026-03-10,2026-03-15,,2410.00
+LD-50003,WH-EWR,WH-ATL,Keystone Logistics,Pending,2026-06-01,2026-06-08,,1500.00

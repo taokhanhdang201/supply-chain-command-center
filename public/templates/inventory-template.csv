@@ -1,0 +1,3 @@
+sku,product_name,category,warehouse,quantity,reorder_point,unit_cost,avg_daily_usage,lead_time_days
+ELC-9001,Wireless Barcode Scanner,Electronics,WH-DFW,120,40,89.50,6.5,14
+PKG-9002,"Corrugated Box, 12x12x12",Packaging,WH-ATL,5000,1500,0.85,210,7

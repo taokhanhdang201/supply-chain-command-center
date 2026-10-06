@@ -1,0 +1,193 @@
+/* App shell layout: fixed sidebar >=1024px, off-canvas drawer below that; topbar; page grids (plan §8.1/§8.9, V1.6 §5.0). */
+
+html,
+body {
+  background: var(--color-bg);
+}
+
+.app-shell {
+  min-height: 100%;
+  overflow-x: clip;
+}
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sidebar-width);
+  height: 100%;
+  background: var(--color-sidebar-bg);
+  color: var(--color-sidebar-text);
+  border-right: 1px solid var(--color-sidebar-border);
+  scrollbar-color: var(--stage-line-strong) transparent;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 50;
+  transform: translateX(-100%);
+  /* Closed drawer must not be reachable by keyboard: hide it after the slide-out finishes. */
+  visibility: hidden;
+  transition: transform var(--dur-2) var(--ease-out), visibility 0s linear var(--dur-2);
+}
+
+.sidebar.is-open {
+  visibility: visible;
+  transition-delay: 0s;
+  transform: translateX(0);
+  box-shadow: var(--shadow-md);
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 13, 0.6);
+  z-index: 40;
+}
+
+.app-shell__content {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--topbar-height);
+  padding: var(--space-2) var(--gutter);
+  background: var(--stage-bg);
+  border-bottom: 1px solid var(--stage-line);
+  flex-wrap: wrap;
+}
+
+/* The page stage is full-bleed, so the main column carries no padding of its own; each page sets its gutters. */
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.main > .banner {
+  margin: var(--space-4) var(--gutter) 0;
+}
+
+.main > .loading-state,
+.main > .error-state {
+  padding: var(--space-10) var(--gutter);
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    transform: none;
+    visibility: visible;
+  }
+
+  .drawer-backdrop {
+    display: none;
+  }
+
+  .app-shell__content {
+    margin-left: var(--sidebar-width);
+  }
+
+  .sidebar-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .app-shell__content {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    padding: 6px var(--space-4);
+    gap: 6px var(--space-3);
+  }
+
+  .topbar__sources {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.kpi-grid--secondary {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* The Dashboard's 8 KPI cards (used only there until the stage composition lands): a fixed column count at desktop
+   widths instead of auto-fit, so they form two clean rows of 4 (R-14). */
+@media (min-width: 900px) {
+  .kpi-grid--dashboard {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1340px) {
+  .chart-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-6);
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  align-items: flex-end;
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+@media (max-width: 640px) {
+  .filter-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filter-bar .search-input {
+    grid-column: 1 / -1;
+  }
+
+  .filter-bar :is(.search-input__field, .select-field__control) {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.table-scroll {
+  overflow-x: auto;
+}

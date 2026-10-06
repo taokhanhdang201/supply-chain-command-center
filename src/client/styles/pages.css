@@ -1,0 +1,1503 @@
+/* Page skeleton and page compositions (V1.6 §5). Loaded after components.css. Everything inside `.page-stage`
+   inherits the dark stage tokens from `.surface-stage`; everything inside `.page-floor` sits on warm paper. */
+
+.page {
+  min-width: 0;
+}
+
+/* Stage: the dark headline band. One cool light top-right and a faint 12-column rhythm, nothing else. */
+.page-stage {
+  background-color: var(--stage-bg);
+  background-image:
+    radial-gradient(120% 90% at 88% -20%, rgba(110, 151, 255, 0.1), transparent 60%),
+    linear-gradient(to right, var(--stage-grid) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    calc(100% / 12) 100%;
+  border-bottom: 1px solid var(--stage-line);
+  padding: var(--space-12) var(--gutter);
+}
+
+.page-stage--compact {
+  padding: var(--space-10) var(--gutter);
+}
+
+@media (max-width: 640px) {
+  .page-stage,
+  .page-stage--compact {
+    padding: var(--space-8) var(--gutter);
+  }
+}
+
+.page-stage__inner {
+  max-width: var(--content-max);
+  margin-inline: auto;
+  container-type: inline-size;
+}
+
+.page-stage__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* The h1 is the functional page label (focus target); the display lines below are an aria-hidden restatement. */
+.page-stage__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  color: var(--stage-text);
+}
+
+.page-stage__title::before {
+  content: '';
+  width: 24px;
+  height: 2px;
+  background: var(--color-accent);
+}
+
+.page-stage__display {
+  margin: var(--space-6) 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.125rem, 5.5vw, 5.5rem);
+  font-size: clamp(2.125rem, 6.4cqi, 5.5rem);
+  font-weight: 700;
+  font-stretch: 112%;
+  line-height: 0.95;
+  letter-spacing: -0.015em;
+  color: var(--stage-text);
+}
+
+@media (max-width: 480px) {
+  .page-stage__display {
+    font-stretch: 104%;
+  }
+}
+
+.page-stage__line {
+  display: block;
+}
+
+.page-stage__line--dim {
+  color: var(--stage-text-4);
+}
+
+.page-stage__body {
+  margin-top: var(--space-10);
+}
+
+.page-stage--compact .page-stage__body {
+  margin-top: var(--space-8);
+}
+
+/* Floor: paper sheets on a warm grey canvas. */
+.page-floor {
+  max-width: calc(var(--content-max) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding: var(--space-10) var(--gutter) var(--space-16);
+}
+
+.page-floor > * + * {
+  margin-top: var(--space-8);
+}
+
+/* Section bar: label with an ink rule (an h2). */
+.section-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-text);
+}
+
+.section-label {
+  font: 600 var(--font-size-xs) / 1.2 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+  color: var(--color-text);
+}
+
+.sheet--quiet {
+  background: transparent;
+  border-style: dashed;
+}
+
+/* Table summary line: the display numeral above a table. */
+.table-summary {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 600;
+  font-stretch: 106%;
+  line-height: 1.2;
+}
+
+/* IDs (SHP-100138, APP-0005, WH-ORD) never break at their hyphen. */
+.id-code {
+  white-space: nowrap;
+}
+
+.code-tag {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 1px 6px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2px;
+  font: 600 0.6875rem / 1.5 var(--font-sans);
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.code-cell {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.text-link {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 500;
+  color: var(--color-accent);
+}
+
+.route-arrow {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* ---------- Alerts: a read-only ledger ---------- */
+
+/* Five type figures sit on one row from 1100px (the shared figure grid has four columns from 768px). */
+@media (min-width: 1100px) {
+  .figure-stage__figures.figure-stage__figures--five {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.alerts-ledger {
+  border-top: 1px solid var(--color-text);
+  padding-top: var(--space-6);
+}
+
+.alerts-ledger__clear {
+  align-self: flex-end;
+}
+
+/* A severity rule on each row's left edge, in the same tokens as the badges: red, amber, neutral gray. */
+.alert-row {
+  --alert-rule: var(--neutral);
+}
+
+.alert-row--critical {
+  --alert-rule: var(--critical);
+}
+
+.alert-row--warning {
+  --alert-rule: var(--warning);
+}
+
+.data-table tr.alert-row > td:first-child {
+  background-image: linear-gradient(var(--alert-rule), var(--alert-rule));
+  background-repeat: no-repeat;
+  background-size: 3px 100%;
+}
+
+/* 1100-1279px: the shared stacked-record rules (components.css) end at 1099px; Alerts repeats them here. Measured:
+   the five-column table still scrolled sideways up to ~1230px, so Alerts stacks up to 1279px. */
+@media (min-width: 1100px) and (max-width: 1279px) {
+  .alerts-ledger .data-table--stack,
+  .alerts-ledger .data-table--stack tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .alerts-ledger .data-table--stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .alerts-ledger .data-table--stack tbody tr {
+    display: grid;
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .alerts-ledger .data-table--stack tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+    text-align: left;
+  }
+}
+
+/* Below 1280px each alert is a stacked record: severity and type, title, message, entity. The rule moves to the
+   record's left edge. */
+@media (max-width: 1279px) {
+  .alerts-ledger .table-scroll {
+    background: none;
+  }
+
+  .alerts-ledger .data-table--stack tbody tr {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'severity type'
+      'title title'
+      'message message'
+      'entity entity';
+    gap: var(--space-1) var(--space-3);
+    align-items: center;
+    padding-left: var(--space-3);
+    box-shadow: inset 3px 0 0 var(--alert-rule);
+  }
+
+  .alerts-ledger .data-table--stack tr.alert-row > td:first-child {
+    background-image: none;
+  }
+
+  .alerts-ledger .data-table--stack td.data-table__col--severity {
+    grid-area: severity;
+  }
+
+  .alerts-ledger .data-table--stack td.data-table__col--type {
+    grid-area: type;
+    color: var(--color-text-muted);
+  }
+
+  .alerts-ledger .data-table--stack td.data-table__col--title {
+    grid-area: title;
+    font-weight: 600;
+  }
+
+  .alerts-ledger .data-table--stack td.data-table__col--message {
+    grid-area: message;
+  }
+
+  .alerts-ledger .data-table--stack td.data-table__col--entity {
+    grid-area: entity;
+  }
+}
+
+/* Routes: control rail and detail readout */
+.control-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4) 0;
+  margin-bottom: var(--space-6);
+  border-block: 1px solid var(--color-border-subtle);
+}
+
+@media (max-width: 640px) {
+  .control-rail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .control-rail :is(.search-input__field, .select-field__control) {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.route-detail {
+  margin-top: var(--space-6);
+}
+
+.route-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+@media (max-width: 640px) {
+  .route-detail__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.route-detail__grid dt {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-text-subtle);
+}
+
+.route-detail__grid dd {
+  margin-left: 0;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  font-stretch: 106%;
+  line-height: 1.05;
+  color: var(--color-text);
+}
+
+.route-detail p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Analytics sections */
+.page-section > .chart-grid {
+  margin-bottom: 0;
+}
+
+/* Analytics: inventory turnover as a figure on the paper (the other averages lead the page, on the stage). */
+.analytics-figure {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.analytics-figure p {
+  margin: 0;
+}
+
+.analytics-figure__value {
+  font: 600 clamp(2rem, 1vw + 1.5rem, 2.75rem) / 1.1 var(--font-display);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.analytics-figure__label {
+  font-weight: 600;
+}
+
+.analytics-figure__detail {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Chart controls (e.g. "Sort by") sit under the chart title, so the title keeps its line. */
+.chart-frame__controls {
+  margin-bottom: var(--space-3);
+}
+
+.metrics-panels {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .metrics-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Analytics: range figures and open panels ---------- */
+
+/* The Range control sits above the figures it scopes; the figures share the shared figure-stage type. */
+.analytics-stage {
+  --stage-figure-size: clamp(2rem, 1vw + 1.5rem, 2.75rem);
+  display: grid;
+  gap: var(--space-6);
+  justify-items: start;
+}
+
+.analytics-stage > .figure-stage__group {
+  justify-self: stretch;
+}
+
+/* The on-time gauge, as on the Dashboard hero: the delivered share in ink, the remainder carrying the tone (dim when
+   on target, amber below the target, red below the floor). */
+.stage-gauge {
+  display: block;
+  width: min(100%, 220px);
+  height: 2px;
+  margin: var(--space-2) 0 var(--space-1);
+  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--stage-text-3) var(--rate) 100%);
+}
+
+.stage-gauge--warning {
+  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--warning) var(--rate) 100%);
+}
+
+.stage-gauge--critical {
+  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--critical) var(--rate) 100%);
+}
+
+/* Metrics panels and the formula reference sit on the floor under a hairline, like the chart sections. */
+.analytics-panel {
+  border-top: 1px solid var(--color-line-strong);
+  padding-top: var(--space-4);
+}
+
+.analytics-panel__title {
+  margin: 0 0 var(--space-3);
+  font: 600 var(--font-size-md) / 1.4 var(--font-sans);
+}
+
+.analytics-formulas {
+  margin-top: var(--space-10);
+}
+
+/* Shipment status as one 100% bar plus a labelled legend (count and share per status). */
+.share-bar__track {
+  display: flex;
+  height: 14px;
+  overflow: hidden;
+  background: var(--color-border-subtle);
+}
+
+.share-bar__segment {
+  display: block;
+  height: 100%;
+}
+
+.share-bar__track > .share-bar__segment + .share-bar__segment {
+  box-shadow: inset 2px 0 0 var(--color-surface);
+}
+
+.share-bar__segment--ink {
+  background: var(--neutral);
+}
+
+.share-bar__segment--accent {
+  background: var(--color-accent);
+}
+
+.share-bar__segment--soft {
+  background: var(--chart-2);
+}
+
+.share-bar__segment--muted {
+  background: var(--muted);
+}
+
+.share-bar__legend {
+  display: grid;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.share-bar__item {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto 3.5em;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.share-bar__swatch {
+  width: 10px;
+  height: 10px;
+}
+
+.share-bar__value {
+  font-weight: 600;
+}
+
+.share-bar__share {
+  text-align: right;
+  color: var(--color-text-muted);
+}
+
+/* Data Import composition */
+.import-stage {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--space-8);
+}
+
+.import-stage__sources {
+  --stage-figure-size: clamp(2rem, 1vw + 1.5rem, 2.75rem);
+  grid-column: 1 / span 6;
+}
+
+/* Two datasets, two figures side by side (the shared figure grid has four columns from 768px). */
+.figure-stage__figures.import-sources {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* The floor's import cards sit open on the paper under a hairline, like the other ledgers; nested panels keep their
+   own surfaces. */
+.import-floor > .card {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--color-text);
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--space-6) 0 0;
+}
+
+/* Column reference: a short lookup list, so each column is a stacked record at every width (name and required, then
+   format, then example) and never scrolls sideways inside a half-width card. The table keeps explicit roles. */
+.import-reference {
+  margin: var(--space-4) 0;
+}
+
+.page-floor .import-reference .table-scroll {
+  background: none;
+}
+
+.import-reference .data-table--stack,
+.import-reference .data-table--stack tbody {
+  display: block;
+  width: 100%;
+}
+
+.import-reference .data-table--stack thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.import-reference .data-table--stack tbody tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'column required'
+    'format format'
+    'example example';
+  gap: var(--space-1) var(--space-3);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.import-reference .data-table--stack tbody td {
+  display: block;
+  padding: 0;
+  border: 0;
+  white-space: normal;
+  text-align: left;
+}
+
+.import-reference .data-table--stack td.data-table__col--column {
+  grid-area: column;
+  font-weight: 600;
+}
+
+.import-reference .data-table--stack td.data-table__col--required {
+  grid-area: required;
+}
+
+.import-reference .data-table--stack td.data-table__col--format {
+  grid-area: format;
+}
+
+.import-reference .data-table--stack td.data-table__col--example {
+  grid-area: example;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.import-reference .data-table--stack .data-table__phone-label {
+  display: inline;
+  margin-right: var(--space-1);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 899px) {
+  .import-stage__sources {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- Data Import: one way in, four steps ---------- */
+
+/* The steps, in sentence case: done ones in ink with a check, the current one marked by the accent rule. */
+.import-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  margin: 0 0 var(--space-4);
+  padding: 0 0 var(--space-3);
+  list-style: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle);
+}
+
+.import-steps__step {
+  position: relative;
+  padding-bottom: 2px;
+}
+
+.import-steps__step + .import-steps__step::before {
+  content: '→';
+  position: absolute;
+  left: calc(-1 * var(--space-6) + 4px);
+  color: var(--color-text-subtle);
+}
+
+.import-steps__step.is-done {
+  color: var(--color-text-muted);
+}
+
+.import-steps__step.is-done::after {
+  content: ' ✓';
+}
+
+.import-steps__step.is-current {
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--color-accent);
+}
+
+.ingest-intro {
+  color: var(--color-text-muted);
+}
+
+/* The drop area reads "Drop a CSV here or choose a file"; on a phone it is a plain "Choose CSV file" button. */
+.dropzone__narrow {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .ingest-card .dropzone {
+    flex-direction: row;
+    min-height: 0;
+    padding: var(--space-3) var(--space-4);
+    border-style: solid;
+  }
+
+  .ingest-card .dropzone__wide {
+    display: none;
+  }
+
+  .ingest-card .dropzone__narrow {
+    display: inline;
+  }
+}
+
+/* Try a sample · Download templates · Paste data instead: three small links under the drop area. */
+.ingest-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+.ingest-links .ingest-paste {
+  display: contents;
+}
+
+.ingest-links .ingest-paste > .button,
+.ingest-menu > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font: 500 var(--font-size-sm) / 1.5 var(--font-sans);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.ingest-links .ingest-paste > div {
+  flex-basis: 100%;
+  margin-top: 0;
+}
+
+.ingest-menu {
+  position: relative;
+}
+
+.ingest-menu > summary {
+  list-style: none;
+}
+
+.ingest-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ingest-menu > summary::after {
+  content: '▾';
+  text-decoration: none;
+}
+
+.ingest-menu__list {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  min-width: 260px;
+  margin: 0;
+  padding: var(--space-1) 0;
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(17, 22, 29, 0.14));
+}
+
+.ingest-menu__option {
+  display: grid;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ingest-menu__option:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+}
+
+.ingest-menu__label {
+  font-weight: 600;
+}
+
+.ingest-menu__note {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Phones: the menus open in place (full width) instead of floating, so nothing runs off the screen. */
+@media (max-width: 767px) {
+  .ingest-menu {
+    flex-basis: 100%;
+  }
+
+  .ingest-menu__list {
+    position: static;
+    min-width: 0;
+    margin-top: var(--space-2);
+    box-shadow: none;
+  }
+}
+
+/* Preview: the one-line answer, then the details. */
+.ingest-headline {
+  margin: var(--space-2) 0 0;
+  font: 600 var(--font-size-lg) / 1.4 var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+.ingest-columns-ok {
+  margin: var(--space-4) 0;
+}
+
+.ingest-columns-ok__line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-weight: 600;
+}
+
+.ingest-columns-ok__line svg {
+  color: var(--good);
+}
+
+/* Errors grouped by column: the column and where, then one short fix. */
+.ingest-error-groups {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ingest-error-groups li {
+  display: grid;
+}
+
+.ingest-error-groups__hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.ingest-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0 0;
+}
+
+/* Rows with problems: a list of records at every width (values never break mid-word), the problem across the record. */
+.ingest-records {
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.ingest-record {
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.ingest-record__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.ingest-record__fields dt {
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--color-text-muted);
+}
+
+.ingest-record__fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ingest-record__problem {
+  grid-column: 1 / -1;
+}
+
+/* The other preview tables (first rows, the full problem list) stay tables from 1280px; below, each row becomes a record
+   of labelled values (the label is the column name, hidden from assistive tech, which keeps the explicit table roles). */
+/* These tables never scroll sideways, so the floor's scroll-edge shadows would only smudge their right edge. */
+.page-floor .ingest-card .table-scroll:has(> .ingest-table--records) {
+  background: none;
+}
+
+@media (max-width: 1279px) {
+
+  .ingest-card .ingest-table--records,
+  .ingest-card .ingest-table--records tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .ingest-card .ingest-table--records thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .ingest-card .ingest-table--records tbody tr {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-2) var(--space-4);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .ingest-card .ingest-table--records tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .ingest-card .ingest-table--records tbody td::before {
+    content: attr(data-label) / '';
+    display: block;
+    font-size: var(--font-size-xs);
+    letter-spacing: var(--tracking-label);
+    color: var(--color-text-muted);
+  }
+
+  /* the problem text spans the whole record */
+  .ingest-card .ingest-table--records tbody td[data-label='Problem'] {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Column guide: closed by default; two tabs, each with its dataset's columns, template and direct upload. */
+.column-guide {
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--color-text);
+  padding-top: var(--space-4);
+}
+
+.column-guide__summary {
+  font: 600 var(--font-size-md) / 1.4 var(--font-sans);
+  cursor: pointer;
+}
+
+.column-guide__tabs {
+  display: flex;
+  gap: var(--space-6);
+  margin: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.column-guide__tab {
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.column-guide__tab[aria-selected='true'] {
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--color-accent);
+}
+
+/* Only the selected tab's panel shows (display: none also removes the other from the accessibility tree). */
+.column-guide__panel:not(.is-active) {
+  display: none;
+}
+
+.column-guide [role='tabpanel'] > .card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.restore-note {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Sheets: dense tables sit on one paper sheet with tighter cell padding, headers that may wrap, and a visible
+   scroll affordance (edge shadows) where the table is still wider than the sheet. */
+.sheet {
+  padding: var(--space-6) var(--space-4);
+}
+
+.sheet .data-table th,
+.sheet .data-table td {
+  padding-inline: 6px;
+}
+
+.sheet .data-table th {
+  letter-spacing: var(--tracking-label);
+  white-space: normal;
+  vertical-align: bottom;
+}
+
+.sheet .data-table__sort-button {
+  text-align: left;
+}
+
+.sheet .data-table .badge {
+  letter-spacing: 0.04em;
+  padding-inline: 6px;
+  gap: 5px;
+}
+
+.page-floor .table-scroll {
+  background:
+    linear-gradient(to right, var(--color-surface) 30%, transparent) left center / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--color-surface) 30%, transparent) right center / 28px 100% no-repeat local,
+    linear-gradient(to right, rgba(17, 22, 29, 0.16), transparent) left center / 10px 100% no-repeat scroll,
+    linear-gradient(to left, rgba(17, 22, 29, 0.16), transparent) right center / 10px 100% no-repeat scroll;
+}
+
+/* ---------- Shipments: a triaged ledger ---------- */
+
+/* Stage: two rows of figures (by status, needs attention). Each figure links to the filter it counts. The figure size
+   matches the Dashboard's figures. */
+.figure-stage {
+  --stage-figure-size: clamp(2rem, 1vw + 1.5rem, 2.75rem);
+  display: grid;
+  gap: var(--space-8);
+}
+
+.figure-stage__label {
+  margin: 0 0 var(--space-3);
+  font: 500 var(--font-size-sm) / 1.4 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+  color: var(--stage-text-2);
+}
+
+.figure-stage__figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage-figure {
+  display: grid;
+  color: var(--stage-text);
+  text-decoration: none;
+}
+
+.stage-figure__value {
+  font: 600 var(--stage-figure-size) / 1.1 var(--font-display);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.stage-figure__label {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  text-decoration: underline transparent;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--dur-1) var(--ease-out);
+}
+
+/* Each figure is a link: the label underlines and gains the same arrow as the KPI cards on hover and keyboard focus,
+   and focus keeps the global ring a little away from the figure. */
+a.stage-figure:hover .stage-figure__label,
+a.stage-figure:focus-visible .stage-figure__label {
+  text-decoration-color: currentColor;
+}
+
+a.stage-figure .stage-figure__label::after {
+  content: ' →';
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease-out);
+}
+
+a.stage-figure:hover .stage-figure__label::after,
+a.stage-figure:focus-visible .stage-figure__label::after {
+  opacity: 1;
+}
+
+.stage-figure:focus-visible {
+  outline-offset: 4px;
+}
+
+.stage-figure__detail {
+  font-size: var(--font-size-sm);
+  color: var(--stage-text-2);
+}
+
+/* Red only for what is late; amber for the other flags; a zero stays plain ink. */
+.stage-figure--critical .stage-figure__value {
+  color: var(--critical);
+}
+
+.stage-figure--warning .stage-figure__value {
+  color: var(--warning);
+}
+
+@media (min-width: 768px) {
+  .figure-stage__figures {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Ledger: on the paper floor, no card; hairline rows as in the Dashboard's activity ledger. */
+.shipments-ledger,
+.inventory-ledger {
+  border-top: 1px solid var(--color-text);
+  padding-top: var(--space-6);
+}
+
+.shipments-ledger__clear,
+.inventory-ledger__clear {
+  align-self: flex-end;
+}
+
+/* Long route labels and the Flags column (several badges) wrap instead of widening the table. */
+.shipments-ledger .data-table td.data-table__col--route {
+  white-space: normal;
+  min-width: 150px;
+  max-width: 220px;
+}
+
+/* Several flags may wrap onto more lines, but each flag stays whole on one line ("Missing delivery date"). */
+.shipments-ledger .data-table td.data-table__col--flags {
+  white-space: normal;
+}
+
+.shipments-ledger .data-table td.data-table__col--flags .badge {
+  white-space: nowrap;
+}
+
+/* The carrier copy under the route exists only for 1100-1439px, below. */
+.shipments-route__carrier {
+  display: none;
+}
+
+/* 1100-1439px: nine columns do not fit, so the carrier moves under the route. Its own column stays in the table and
+   the accessibility tree (visually hidden, never display: none). */
+@media (min-width: 1100px) and (max-width: 1439px) {
+  /* Tighter cells and a narrower route column so nine columns fit without scrolling sideways. */
+  .shipments-ledger .data-table :is(th, td) {
+    padding-inline: var(--space-2);
+  }
+
+  .shipments-ledger .data-table td.data-table__col--route {
+    min-width: 0;
+    max-width: 180px;
+  }
+
+  .shipments-route__carrier {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .shipments-ledger .data-table :is(th, td).data-table__col--carrier {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* The short form of the Delayed detail on phones ("61 late" instead of "61 delivered late"). */
+@media (max-width: 767px) {
+  .stage-figure__long {
+    display: none;
+  }
+}
+
+/* Phones and tablets (below 1100px): each shipment is a stacked record: id and status, route, carrier, the three
+   dates (labelled), cost and flags. Same data, no sideways scroll. */
+@media (max-width: 1099px) {
+  /* Stacked records never scroll sideways, so the floor's scroll-edge shadows would only smudge the right edge. */
+  .shipments-ledger .table-scroll {
+    background: none;
+  }
+
+  .shipments-ledger .data-table--stack tbody tr {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-areas:
+      'id id id status status status'
+      'route route route route route route'
+      'carrier carrier carrier carrier carrier carrier'
+      'ship ship eta eta delivered delivered'
+      'cost cost flags flags flags flags';
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .shipments-ledger .data-table--stack td.data-table__col--id {
+    grid-area: id;
+    font-weight: 600;
+  }
+
+  .shipments-ledger .data-table--stack td.data-table__col--status {
+    grid-area: status;
+    justify-self: end;
+  }
+
+  .shipments-ledger .data-table--stack td.data-table__col--route {
+    grid-area: route;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .shipments-ledger .data-table--stack td.data-table__col--carrier {
+    grid-area: carrier;
+    color: var(--color-text-muted);
+  }
+
+  .shipments-ledger .data-table--stack td.data-table__col--shipDate {
+    grid-area: ship;
+  }
+
+  .shipments-ledger .data-table--stack td.data-table__col--eta {
+    grid-area: eta;
+  }
+
+  .shipments-ledger .data-table--stack td.data-table__col--delivered {
+    grid-area: delivered;
+  }
+
+  .shipments-ledger .data-table--stack td.data-table__col--cost {
+    grid-area: cost;
+  }
+
+  .shipments-ledger .data-table--stack td.data-table__col--flags {
+    grid-area: flags;
+    justify-self: end;
+    max-width: none;
+  }
+
+  .shipments-ledger .data-table--stack :is(td.data-table__col--shipDate, td.data-table__col--eta, td.data-table__col--delivered) .data-table__phone-label {
+    display: block;
+    margin-right: 0;
+  }
+}
+
+/* ---------- Inventory: the same ledger ---------- */
+
+/* The category copy under the product exists only for 1200-1599px, below. */
+.inventory-product__category {
+  display: none;
+}
+
+/* 1200-1599px: eleven columns do not fit, so the category moves under the product and the cells tighten. The Category
+   column stays in the table and the accessibility tree (visually hidden, never display: none). Measured: even merged,
+   the table still scrolled sideways up to ~1170px, so Inventory stacks up to 1199px (below). */
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .inventory-ledger .data-table :is(th, td) {
+    padding-inline: var(--space-2);
+  }
+
+  .inventory-ledger .data-table td.data-table__col--product {
+    white-space: normal;
+    max-width: 180px;
+  }
+
+  .inventory-product__category {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .inventory-ledger .data-table :is(th, td).data-table__col--category {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* 1100-1199px: the shared stacked-record rules (components.css) end at 1099px; Inventory repeats them here. */
+@media (min-width: 1100px) and (max-width: 1199px) {
+  .inventory-ledger .data-table--stack,
+  .inventory-ledger .data-table--stack tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .inventory-ledger .data-table--stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .inventory-ledger .data-table--stack tbody tr {
+    display: grid;
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .inventory-ledger .data-table--stack tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+  }
+
+  .inventory-ledger .data-table--stack .data-table__phone-label {
+    font-size: var(--font-size-xs);
+    letter-spacing: var(--tracking-label);
+    color: var(--color-text-muted);
+  }
+}
+
+/* Below 1200px: each item is a stacked record: SKU and stock, product, category and warehouse, then the six numbers
+   (labelled) in two rows of three. */
+@media (max-width: 1199px) {
+  /* Stacked records never scroll sideways, so the floor's scroll-edge shadows would only smudge the right edge. */
+  .inventory-ledger .table-scroll {
+    background: none;
+  }
+
+  .inventory-ledger .data-table--stack tbody tr {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-areas:
+      'sku sku sku stock stock stock'
+      'product product product product product product'
+      'category category category warehouse warehouse warehouse'
+      'qty qty reorder reorder days days'
+      'unit unit value value risk risk';
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .inventory-ledger .data-table--stack td {
+    text-align: left;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--sku {
+    grid-area: sku;
+    font-weight: 600;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--stock {
+    grid-area: stock;
+    justify-self: end;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--product {
+    grid-area: product;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--category {
+    grid-area: category;
+    color: var(--color-text-muted);
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--warehouse {
+    grid-area: warehouse;
+    justify-self: end;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--quantity {
+    grid-area: qty;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--reorderPoint {
+    grid-area: reorder;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--daysOfSupply {
+    grid-area: days;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--unitCost {
+    grid-area: unit;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--value {
+    grid-area: value;
+  }
+
+  .inventory-ledger .data-table--stack td.data-table__col--risk {
+    grid-area: risk;
+  }
+
+  .inventory-ledger .data-table--stack td .data-table__phone-label {
+    display: block;
+    margin-right: 0;
+  }
+}
+
+/* ---------- Routes: lane figures, the map, and the unmapped-routes ledger ---------- */
+
+.routes__clear {
+  align-self: flex-end;
+}
+
+/* On Routes the controls follow the figures on the stage; give the figures room before the rail's rule. */
+.page-stage__body > .figure-stage + .control-rail {
+  margin-top: var(--space-8);
+}
+
+.routes__summary {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--stage-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.routes-ledger {
+  border-top: 1px solid var(--color-text);
+  padding-top: var(--space-6);
+}
+
+.routes-ledger__title {
+  margin: 0;
+  font: 600 var(--font-size-lg) / 1.3 var(--font-display);
+}
+
+.routes-ledger__note {
+  margin: var(--space-1) 0 var(--space-4);
+  color: var(--color-text-muted);
+}
+
+/* Below 1100px each unmapped route is a stacked record: the route, then shipments and average cost (labelled). */
+@media (max-width: 1099px) {
+  .routes-ledger .table-scroll {
+    background: none;
+  }
+
+  .routes-ledger .data-table--stack tbody tr {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'route route'
+      'count avg';
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .routes-ledger .data-table--stack td.data-table__col--route {
+    grid-area: route;
+    font-weight: 600;
+  }
+
+  .routes-ledger .data-table--stack td.data-table__col--count {
+    grid-area: count;
+  }
+
+  .routes-ledger .data-table--stack td.data-table__col--avgCost {
+    grid-area: avg;
+  }
+
+  .routes-ledger .data-table--stack td .data-table__phone-label {
+    display: block;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .sheet {
+    padding: var(--space-4);
+  }
+}
+
+/* Analytics chart sections: charts sit directly on the floor under a hairline rule instead of each in a boxed
+   card, so the section reads as an editorial spread rather than six identical white cards. */
+.page-section .chart-grid > .card {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--color-line-strong);
+  border-radius: 0;
+  padding: var(--space-4) 0 0;
+}
+
+/* Column-reference tables (Data Import cards) wrap their text cells so the Example column stays in view; column
+   names stay on one line. */
+.data-table--compact th,
+.data-table--compact td {
+  white-space: normal;
+}
+
+.data-table--compact td.code-cell {
+  white-space: nowrap;
+}
+
+/* Import page V2: the universal "Import any file" card sits above the two per-kind cards, over the full floor width. */
+.ingest-card {
+  max-width: none;
+}
+
+.ingest-card .dropzone {
+  min-height: 96px;
+}
+
+.ingest-card .ingest-stack > .ingest-panel:first-child {
+  margin-top: 0;
+}

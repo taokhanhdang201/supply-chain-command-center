@@ -1,0 +1,18 @@
+# Text files are stored and checked out with LF on every OS
+* text=auto eol=lf
+
+# Binary files: never converted
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.gz binary
+*.pdf binary
+
+# Import fixtures that must keep their exact bytes (CRLF line endings, ISO-8859-1 text)
+tests/fixtures/import/shipments_test_v2.excel-resaved.csv -text
+tests/fixtures/import/shipments_test_v2.iso.csv -text

@@ -1,0 +1,4 @@
+Shipment Number,From,To,Logistics Provider,Shipment Status,Shipping Date,Expected Delivery,Delivery Date,Freight Cost,Driver Notes
+SHP-700001,WH-DFW,HOU,Northstar Freight,Delivered,2026-05-02,2026-05-05,2026-05-04,812.40,dock 4
+SHP-700002,WH-LAX,"Seattle, WA",Summit Express,In Transit,2026-06-10,2026-06-18,,2410.00,
+SHP-700003,WH-EWR,WH-ATL,Keystone Logistics,Pending,2026-06-14,2026-06-20,,1500.00,call ahead

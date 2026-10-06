@@ -1,0 +1,51 @@
+shipment_id,origin,destination,carrier,status,ship_date,estimated_delivery,actual_delivery,shipping_cost
+SHP-000001,WH-DFW,HOU,Northstar Freight,delivered,8/15/2026,8/18/2026,8/18/2026,620
+SHP-000002,WH-DFW,ATL,Summit Express,delivered,8/17/2026,8/20/2026,8/20/2026,740
+SHP-000003,WH-ATL,HOU,Redwood Transport,delivered,8/19/2026,8/22/2026,8/22/2026,810
+SHP-000004,WH-LAX,"Seattle, WA",Cascade Carriers,delivered,8/21/2026,8/25/2026,8/27/2026,690
+SHP-000005,WH-ORD,"Boston, MA",Northstar Freight,delivered,8/23/2026,8/26/2026,8/26/2026,620
+SHP-000006,WH-EWR,"Boston, MA",Summit Express,delivered,8/25/2026,8/28/2026,8/28/2026,740
+SHP-000007,WH-EWR,"Miami, FL",Redwood Transport,delivered,8/27/2026,8/30/2026,8/30/2026,810
+SHP-000008,WH-DFW,"Denver, CO",Cascade Carriers,delivered,8/29/2026,9/1/2026,9/1/2026,690
+SHP-000009,WH-DFW,HOU,Northstar Freight,delivered,8/31/2026,9/3/2026,9/3/2026,620
+SHP-000010,WH-DFW,ATL,Summit Express,delivered,9/2/2026,9/5/2026,9/5/2026,740
+SHP-000011,WH-ATL,HOU,Redwood Transport,delivered,9/4/2026,9/7/2026,9/7/2026,810
+SHP-000012,WH-LAX,"Seattle, WA",Cascade Carriers,delivered,9/6/2026,9/10/2026,9/12/2026,690
+SHP-000013,WH-ORD,"Boston, MA",Northstar Freight,delivered,9/8/2026,9/11/2026,9/11/2026,620
+SHP-000014,WH-EWR,"Boston, MA",Summit Express,delivered,9/10/2026,9/13/2026,9/13/2026,740
+SHP-000015,WH-EWR,"Miami, FL",Redwood Transport,delivered,9/12/2026,9/15/2026,9/15/2026,810
+SHP-000016,WH-DFW,"Denver, CO",Cascade Carriers,delivered,9/14/2026,9/17/2026,9/17/2026,690
+SHP-000017,WH-DFW,HOU,Northstar Freight,delivered,9/16/2026,9/19/2026,9/19/2026,620
+SHP-000018,WH-DFW,ATL,Summit Express,delivered,9/18/2026,9/21/2026,9/21/2026,740
+SHP-000019,WH-ATL,HOU,Redwood Transport,delivered,9/20/2026,9/23/2026,9/23/2026,810
+SHP-000020,WH-LAX,"Seattle, WA",Cascade Carriers,delivered,9/22/2026,9/26/2026,9/28/2026,690
+SHP-000021,WH-ORD,"Boston, MA",Northstar Freight,delivered,9/24/2026,9/27/2026,9/27/2026,620
+SHP-000022,WH-EWR,"Boston, MA",Summit Express,delivered,9/26/2026,9/29/2026,9/29/2026,740
+SHP-000023,WH-EWR,"Miami, FL",Redwood Transport,delivered,9/28/2026,10/1/2026,10/1/2026,810
+SHP-000024,WH-DFW,"Denver, CO",Cascade Carriers,delivered,9/30/2026,10/3/2026,10/3/2026,690
+SHP-000025,WH-DFW,HOU,Northstar Freight,delivered,10/2/2026,10/5/2026,10/5/2026,620
+SHP-000026,WH-DFW,ATL,Summit Express,delivered,10/4/2026,10/7/2026,10/7/2026,740
+SHP-000027,WH-ATL,HOU,Redwood Transport,delivered,10/6/2026,10/9/2026,10/9/2026,810
+SHP-000028,WH-LAX,"Seattle, WA",Cascade Carriers,delivered,10/8/2026,10/12/2026,10/14/2026,690
+SHP-000029,WH-ORD,"Boston, MA",Northstar Freight,delivered,10/10/2026,10/13/2026,10/13/2026,620
+SHP-000030,WH-EWR,"Boston, MA",Summit Express,delivered,10/12/2026,10/15/2026,10/15/2026,740
+SHP-000031,WH-EWR,"Miami, FL",Redwood Transport,delivered,10/14/2026,10/17/2026,10/17/2026,810
+SHP-000032,WH-DFW,"Denver, CO",Cascade Carriers,delivered,10/16/2026,10/19/2026,10/19/2026,690
+SHP-000033,WH-DFW,HOU,Northstar Freight,delivered,10/18/2026,10/21/2026,10/21/2026,620
+SHP-000034,WH-DFW,ATL,Summit Express,delivered,10/20/2026,10/23/2026,10/23/2026,740
+SHP-000035,WH-ATL,HOU,Redwood Transport,delivered,10/22/2026,10/25/2026,10/25/2026,810
+SHP-000036,WH-LAX,"Seattle, WA",Cascade Carriers,delivered,10/24/2026,10/28/2026,10/30/2026,690
+SHP-000037,WH-ORD,"Boston, MA",Northstar Freight,delivered,10/26/2026,10/29/2026,10/29/2026,620
+SHP-000038,WH-EWR,"Boston, MA",Summit Express,delivered,10/28/2026,10/31/2026,10/31/2026,740
+SHP-000039,WH-EWR,"Miami, FL",Redwood Transport,delivered,10/30/2026,11/2/2026,11/2/2026,810
+SHP-000040,WH-DFW,"Denver, CO",Cascade Carriers,delivered,11/1/2026,11/4/2026,11/4/2026,690
+SHP-000041,WH-DFW,HOU,Northstar Freight,delivered,11/3/2026,11/6/2026,11/6/2026,620
+SHP-000042,WH-DFW,ATL,Summit Express,delivered,11/5/2026,11/8/2026,11/8/2026,740
+SHP-000043,WH-ATL,HOU,Redwood Transport,delivered,11/7/2026,11/10/2026,11/10/2026,810
+SHP-000044,WH-LAX,"Seattle, WA",Cascade Carriers,delivered,11/9/2026,11/13/2026,11/15/2026,690
+SHP-000045,WH-ORD,"Boston, MA",Northstar Freight,cancelled,11/11/2026,11/14/2026,,620
+SHP-000046,WH-EWR,"Boston, MA",Summit Express,delivered,11/13/2026,11/16/2026,11/16/2026,740
+SHP-000047,WH-EWR,"Miami, FL",Redwood Transport,in_transit,11/15/2026,11/18/2026,,810
+SHP-000048,WH-DFW,"Denver, CO",Cascade Carriers,in_transit,11/17/2026,11/20/2026,,690
+SHP-000049,WH-DFW,HOU,Northstar Freight,in_transit,11/19/2026,11/22/2026,,620
+SHP-000050,WH-DFW,ATL,Summit Express,in_transit,11/21/2026,11/24/2026,,740
