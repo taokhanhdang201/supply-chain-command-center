@@ -46,6 +46,8 @@ Every push to `main` redeploys the service automatically.
   takes about a minute, so the first page load is slow.
 - **Every start resets the data.** Waking up, redeploying or restarting rebuilds the sample data with seed 42.
   Imported data is not kept.
+- **The sample refreshes each day.** The first visit of a new day rebuilds the sample data for that day, so its
+  dates stay current. Imported data stays as it is until the server restarts.
 - **Dates follow the calendar.** "Today" is the server's current date, so the sample shipments move with real
   time. To freeze the dates, set `SCC_TODAY` (format `YYYY-MM-DD`) under *Environment* on the service.
 - **Monthly hours.** Render gives each workspace 750 free instance hours per month, enough for one service

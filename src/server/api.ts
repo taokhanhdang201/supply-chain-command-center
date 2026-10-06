@@ -17,7 +17,10 @@ export interface ApiDeps {
   config: AppConfig;
   store: DataStore;
   getToday: () => DayString;
-  createSampleDataset: () => Dataset;
+  /** Builds the sample dataset for `today` (default: the caller's own today). */
+  createSampleDataset: (today?: DayString) => Dataset;
+  /** The day the store's initial sample was built for (default: `getToday()` when the handler is created). */
+  sampleDay?: DayString;
   now?: () => Date;
   /** Effective import limits (rows, columns); default = today's constants exactly. */
   ingestLimits?: IngestLimits;
@@ -36,6 +39,20 @@ export function createApiHandler(deps: ApiDeps): Handler {
   let cachedVersion: number | null = null;
   let cachedToday: DayString | null = null;
   let cachedSnapshot: Snapshot | null = null;
+
+  // The sample's dates are relative to the day it was built, so on the first API request of a new day (same
+  // `getToday` as the snapshot) it is rebuilt for that day. Only while BOTH sources are still the sample: once
+  // either was imported, neither is touched.
+  let sampleDay = deps.sampleDay ?? deps.getToday();
+
+  function refreshSampleForToday(): void {
+    const today = deps.getToday();
+    if (today === sampleDay) return;
+    const { sources } = deps.store.getDataset();
+    if (sources.inventory.kind !== 'sample' || sources.shipments.kind !== 'sample') return;
+    deps.store.replaceAll(deps.createSampleDataset(today));
+    sampleDay = today;
+  }
 
   function getSnapshot(): Snapshot {
     const version = deps.store.getVersion();
@@ -120,6 +137,8 @@ export function createApiHandler(deps: ApiDeps): Handler {
     const method = req.method ?? 'GET';
 
     try {
+      refreshSampleForToday();
+
       if (pathname === '/api/health') {
         if (method !== 'GET') throw methodNotAllowed(['GET']);
         sendJson(res, 200, { status: 'ok' });
@@ -145,7 +164,9 @@ export function createApiHandler(deps: ApiDeps): Handler {
       if (pathname === '/api/reset') {
         if (method !== 'POST') throw methodNotAllowed(['POST']);
         assertSameOriginMutation(req);
-        deps.store.replaceAll(deps.createSampleDataset());
+        const today = deps.getToday();
+        deps.store.replaceAll(deps.createSampleDataset(today));
+        sampleDay = today;
         sendJson(res, 200, { ok: true });
         return;
       }

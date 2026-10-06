@@ -42,11 +42,13 @@ async function main(): Promise<void> {
   for (const warning of ingestLimits.warnings) console.warn(warning);
 
   const getToday = (): string => config.todayOverride ?? localToday(new Date());
-  const buildSample = (): ReturnType<typeof createSampleDataset> =>
-    createSampleDataset(config.seed, getToday(), new Date().toISOString());
+  const buildSample = (today: string = getToday()): ReturnType<typeof createSampleDataset> =>
+    createSampleDataset(config.seed, today, new Date().toISOString());
 
-  const store = createDataStore(buildSample());
-  const api = createApiHandler({ config, store, getToday, createSampleDataset: buildSample, ingestLimits });
+  // The API rebuilds the sample when the day changes; it compares against the exact day this one was built for.
+  const sampleDay = getToday();
+  const store = createDataStore(buildSample(sampleDay));
+  const api = createApiHandler({ config, store, getToday, createSampleDataset: buildSample, sampleDay, ingestLimits });
 
   const opts: Parameters<typeof createAppServer>[0] = { config, api };
   const server = createAppServer(opts);
