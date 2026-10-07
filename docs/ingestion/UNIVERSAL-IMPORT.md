@@ -1,7 +1,9 @@
 # Universal Import: audit and design (G0)
 
 Status: **G1 is built** (dates per column, Undo, the seven states, More, "No file? Try one."); section 11 says what was
-built and where it differs from this design. G2 to G4 are design only. Baseline of the audit: `main` at `bd820d6`. Code is the source of truth; where
+built and where it differs from this design. G2 and G3 are design only and were cut down after G1; G4 is deferred
+(section 12 is the current scope and overrides the phases named elsewhere in this file). Baseline of the audit: `main` at
+`bd820d6`. Code is the source of truth; where
 the existing docs say something else, section 1.2 lists it. "Probe" below means the current engine run on synthetic files
 (`analyzeFile` with the default registry) during G0; the probe was a temporary test and is not part of the repository.
 
@@ -65,19 +67,19 @@ guessing.
 | Pasted from Excel | High | Read (tab) | High | both | No | | done |
 | XLSX | Very high | Refused | High for plain sheets | both | No: ZIP directory + `DecompressionStream('deflate-raw')` + own XML tokenizer | Dates are numbers with a date format; formulas (use the cached value); merged cells; several sheets (ask) | G2 |
 | XLS (binary, pre-2007) | Medium, falling | Refused | Medium | both | Realistically yes | Large binary format, password files | keep the refusal (decision c) |
-| JSON | High in TMS and API exports | Refused | High for arrays of flat objects; nested data flattened by `flatten/records.ts` | both | No (`JSON.parse`) | Deep nesting, very large numbers, duplicate keys | G2 |
-| JSONL | Medium | Refused | High | both | No | Lines with different shapes | G2 |
-| XML (generic) | High in ERP and TMS | Refused | Medium | both | No: own tokenizer, no DTD, no entities | Entity expansion, namespaces | G4 |
-| cXML | High in procurement | Refused | High for recognition | Orders and invoices: nothing (polite refusal); ship notices: shipments (later) | No | | G4 |
-| GS1 XML (despatch advice) | Medium in retail | Refused | Medium | Shipments | No | Depth of the schema | G4 |
-| Fixed-width text | Medium (legacy reports) | Misread | Medium: column edges from blank columns shared by every line, then confirm | both | No | Ambiguous edges (ask) | G4 |
+| JSON | High in TMS and API exports | Refused | High for arrays of flat objects; nested data flattened by `flatten/records.ts` | both | No (`JSON.parse`) | Deep nesting, very large numbers, duplicate keys | deferred (§12) |
+| JSONL | Medium | Refused | High | both | No | Lines with different shapes | deferred (§12) |
+| XML (generic) | High in ERP and TMS | Refused | Medium | both | No: own tokenizer, no DTD, no entities | Entity expansion, namespaces | deferred (§12) |
+| cXML | High in procurement | Refused | High for recognition | Orders and invoices: nothing (polite refusal); ship notices: shipments (later) | No | | deferred (§12) |
+| GS1 XML (despatch advice) | Medium in retail | Refused | Medium | Shipments | No | Depth of the schema | deferred (§12) |
+| Fixed-width text | Medium (legacy reports) | Misread | Medium: column edges from blank columns shared by every line, then confirm | both | No | Ambiguous edges (ask) | deferred (§12) |
 | X12 214 status | Very high (carriers) | Misread | High | Shipment status updates (decision a) | No | Partner variations; carrier codes (SCAC) instead of names | G3 |
-| X12 856 ship notice | Very high | Misread | High to read; no cost (decision b) | Shipments | No | HL hierarchy | G3 |
-| X12 846 inventory | High | Misread | High to read; no price, category, reorder point (decision b) | Inventory quantities | No | Quantity qualifiers and units | G3 |
-| X12 945 warehouse ship advice | High (3PLs) | Misread | High to read; no cost | Shipments | No | | G3 |
+| X12 856 ship notice | Very high | Misread | High to read; no cost (decision b) | Shipments | No | HL hierarchy | deferred (§12) |
+| X12 846 inventory | High | Misread | High to read; no price, category, reorder point (decision b) | Inventory quantities | No | Quantity qualifiers and units | deferred (§12) |
+| X12 945 warehouse ship advice | High (3PLs) | Misread | High to read; no cost | Shipments | No | | deferred (§12) |
 | X12 850, 810, 997 and others | Very high | Misread | Certain recognition, then a polite refusal | none | No | | G3 |
 | EDIFACT (IFTSTA, DESADV, INVRPT) | High outside the US | Not recognized | | | No | | later (document only) |
-| ZIP with several files | Medium | Refused | Per-file result | both | No (same ZIP reader as XLSX) | Zip bombs (limit layer b exists), file names | G4 |
+| ZIP with several files | Medium | Refused | Per-file result | both | No (same ZIP reader as XLSX) | Zip bombs (limit layer b exists), file names | deferred (§12) |
 | gzip | Low | Read | High | both | No | | done |
 | PDF with text | High (bills of lading, PODs) | Refused | Low to medium | some | Yes (pdf.js) | Tables in PDF have no structure | later |
 | Scans and photos (OCR) | High | Refused | Low | | Yes | | not doing |
@@ -272,3 +274,28 @@ Data Import is a slim band (`PageStage variant="slim"`), since it holds only the
 Known limits of G1: Undo lives in the card, so it is gone once the user leaves Data Import (Restore sample data stays the
 fallback); the rows-to-fix file lists at most the first 500 problems (`MAX_ERRORS_RETURNED`); the date question names the
 column, not the row.
+
+## 12. Scope after G1 (owner decision, 2026-10-07)
+
+**Why:** fewer formats, each read with complete accuracy. A format SCC reads must never import a wrong value; a format it
+does not read yet is refused politely, which is the safe outcome ("not imported but right" beats "imported but wrong").
+Every format left out below stays refused as it is today. This section overrides the phases in sections 2, 3 and 10; the
+design notes for the deferred formats stay in this file for later.
+
+| Phase | In scope | Deferred |
+|---|---|---|
+| G2 | The adapter foundation (registry entries for container formats, shared ZIP directory and `deflate-raw` reading); **XLSX** (own reader, decision c, golden files for the 1900 and 1904 date systems); source files up to **10 MB** (decision d) | JSON, JSONL |
+| G3 | **EDI X12 214** only: status updates through the update endpoint (decision a), with an EDI sample whose shipment IDs match the seed-42 sample; certain recognition and a polite refusal for **850, 810 and 997** | 856, 846, 945 |
+| G4 | Nothing | All of it: generic XML, cXML, GS1 XML, fixed-width text, ZIP with several files |
+
+Consequences: decision (b) about 846 (unknown SKUs stop the file) waits with 846; the 846 and 945 rows of section 3.2 are
+design notes only. Proposed for G3, to confirm then: 856, 846 and 945 files are recognized by the same ISA envelope check
+and refused with the same polite text as 850, so they are never misread as plain text.
+
+### Later (engineering)
+
+- The wall-clock-sensitive test "2 MB single token" in `tests/shared/ingest/pipelineLimits.test.ts` has no timeout of its
+  own and sometimes passes the 5 s limit when the machine is busy (5.1 to 5.4 s seen during G1; under 4 s alone). Consider
+  running it apart, the way `tests/shared/ingest/performance.test.ts` runs alone after every other test (`vitest.config.ts`,
+  the `performance` project). A few jsdom UI tests showed the same under load during G1, and once the conformance kit's
+  "handles the hostile pack" (`tests/ingest-kit/conformance.ts`, 15 s timeout, 18.3 s under load).
