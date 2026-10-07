@@ -22,7 +22,10 @@ export interface BuildInput {
   /** Canonical field -> column index in `structured.headers`. */
   assignment: ReadonlyMap<string, number>;
   numberPreset: NumberPreset;
+  /** Date format of a column that has none in `datePresets`. */
   datePreset: DatePreset;
+  /** Date format per column (canonical field name): each date column is read in its own format. */
+  datePresets?: ReadonlyMap<string, DatePreset>;
   /** The user's choices: trimmed source word -> canonical status / warehouse code (they win over the known words). */
   statusChoices: ReadonlyMap<string, string>;
   warehouseChoices: ReadonlyMap<string, string>;
@@ -94,7 +97,7 @@ function cook(field: FieldInfo, cell: RawCell | undefined, input: BuildInput, st
   }
   if (isDateField(field)) {
     if (cell.t === 'date') return { value: cell.v.slice(0, 10), raw };
-    const r = normalizeDate(raw, input.datePreset, dateContext(field));
+    const r = normalizeDate(raw, input.datePresets?.get(field.name) ?? input.datePreset, dateContext(field));
     if (!r.ok) return { value: raw, raw };
     if (r.blank === 'placeholder') stats.placeholders++;
     if (r.timeStripped) stats.timestampsStripped++;

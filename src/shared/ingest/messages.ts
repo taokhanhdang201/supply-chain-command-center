@@ -50,7 +50,6 @@ export const MESSAGE_CATALOGUE = {
   CURRENCY_UNSUPPORTED: (p) => `This file's amounts are in ${str(p, 'markers')}. SCC only supports US dollars, so the file cannot be imported. Convert the amounts to USD and upload again.`,
   CURRENCY_MIXED: (p) => `This column mixes currencies (${str(p, 'markers')}). SCC only supports US dollars, so the file cannot be imported. Convert all amounts to USD and upload again.`,
   CHOOSE_NUMBER_FORMAT: () => 'Choose the number format of this file: for example 1,234.56 (comma thousands) or 1.234,56 (dot thousands, decimal comma).',
-  CHOOSE_DATE_FORMAT: () => 'Choose the date format of this file: for example 8/15/2026 (month first) or 15/8/2026 (day first).',
   NO_READABLE_TEXT: () => 'This file has no readable text content (it looks like a scanned image). SCC reads text-based tables only. Export the data from the source system instead.',
   NO_TABLE: () => 'No table could be found in this document. Export the data as a plain table from the source system.',
   SINGLE_COLUMN: () => 'This file has only one column, so it cannot be an inventory or shipments file.',

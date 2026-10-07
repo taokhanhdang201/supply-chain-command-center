@@ -94,7 +94,9 @@ describe('blocking states', { timeout: 15_000 }, () => {
     expect(radios.length).toBeGreaterThanOrEqual(2);
     expect(radios.every((x) => !x.checked)).toBe(true);
     expect(confirmButton()).toBeDisabled();
-    expect(screen.getAllByText(/Choose the date format of this file/).length).toBeGreaterThan(0);
+    // G1: dates are settled per column, so the reason names the column and a real value from it (it used to say "Choose
+    // the date format of this file"); the file-wide choice below still answers every open column at once.
+    expect(screen.getAllByText(/The column "ship_date" has dates that read two ways \(for example 03\/04\/2026/).length).toBeGreaterThan(0);
     await r.user.click(within(group).getByRole('radio', { name: /15\/8\/2026 \(day\/month\/year\)/ }));
     await settled();
     expect(screen.queryByRole('group', { name: /Date format/ })).not.toBeInTheDocument();

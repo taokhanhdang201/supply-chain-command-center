@@ -39,7 +39,10 @@ export interface DryRunInput {
   canonicalRows: ReadonlyArray<readonly string[]>;
   rawRows: ReadonlyArray<readonly string[]>;
   numberPreset: NumberPreset;
+  /** Date format of a column that has none in `datePresets`. */
   datePreset: DatePreset;
+  /** Date format per column (canonical field name), as used to build the canonical CSV. */
+  datePresets?: ReadonlyMap<string, DatePreset>;
   limits: ResolvedLimits;
   /** Rows left out of the CSV because their width differs from the header (reported as FIELD_COUNT, like V1 does). */
   ragged?: ReadonlyArray<RaggedRow>;
@@ -72,8 +75,9 @@ function translate(issue: ImportIssue, input: DryRunInput, rowOfLine: ReadonlyMa
     if (info !== undefined && raw !== '') {
       if ((info.valueKind === 'integer' || info.valueKind === 'decimal' || info.valueKind === 'money') && NUMBER_CODES.has(issue.code) && input.numberPreset !== 'plain') {
         message += ` Number format: ${NUMBER_PRESET_EXAMPLE[input.numberPreset]} (${NUMBER_NOTE[input.numberPreset]}).`;
-      } else if (info.valueKind === 'date' && DATE_CODES.has(issue.code) && input.datePreset !== 'iso') {
-        message += ` Date format: ${DATE_PRESET_EXAMPLE[input.datePreset]}.`;
+      } else if (info.valueKind === 'date' && DATE_CODES.has(issue.code)) {
+        const datePreset = input.datePresets?.get(info.name) ?? input.datePreset;
+        if (datePreset !== 'iso') message += ` Date format: ${DATE_PRESET_EXAMPLE[datePreset]}.`;
       }
     }
   }

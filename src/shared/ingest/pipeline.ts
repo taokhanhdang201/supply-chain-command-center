@@ -37,7 +37,7 @@ import { normalizeHeader } from './mapping/normalizeHeader';
 import { distinctValues, mapStatusValues, mapWarehouseValues, summarizeLocations, type ValueMapEntry } from './mapping/valueMaps';
 import { detectDatePreset, detectNumberPreset, type PresetOutcome } from './normalize/detectPreset';
 import { NUMBER_PRESET_LABEL, decideCurrency, scanCurrency, type NumberPreset } from './normalize/numbers';
-import { DATE_PRESET_EXAMPLE, type DatePreset } from './normalize/dates';
+import { DATE_PRESETS, DATE_PRESET_EXAMPLE, type DatePreset } from './normalize/dates';
 import { fieldsOf, isDateField, isNumberField, type FieldInfo } from './canonical/schemaRegistry';
 import { buildCanonicalCsv, type BuildOutput } from './canonical/buildCsv';
 import { dryRun, type DryRunResult } from './validate/dryRun';
@@ -74,7 +74,10 @@ export interface Decisions {
   /** CHECK columns the user acknowledged ("Looks right"). */
   acknowledgedColumns?: readonly number[];
   numberPreset?: NumberPreset;
+  /** One date format for every date column (an answer for the whole file). */
   datePreset?: DatePreset;
+  /** Date format per column, keyed by canonical field name; wins over `datePreset` for that column. */
+  datePresets?: ReadonlyMap<string, DatePreset>;
   statusChoices?: ReadonlyMap<string, string>;
   warehouseChoices?: ReadonlyMap<string, string>;
   /** File-wide constants for fields whose policy allows one. */
@@ -122,7 +125,7 @@ function emptyPreview(base: Pick<PreviewModel, 'file' | 'choices'> & Partial<Pre
     dataset: { kind: null, chosenByUser: false, scores: [] },
     columns: [],
     fields: [],
-    presets: { number: null, date: null, currency: { kind: 'ok', markers: [], message: null }, timestampsStripped: 0, placeholders: 0, markersStripped: 0 },
+    presets: { number: null, date: null, dateColumns: [], currency: { kind: 'ok', markers: [], message: null }, timestampsStripped: 0, placeholders: 0, markersStripped: 0 },
     valueMaps: { status: null, warehouse: null, locations: null },
     constants: [],
     notImported: [],
@@ -153,6 +156,75 @@ function presetView<P extends string>(outcome: PresetOutcome<P>, override: P | u
     case 'none':
       return { view: { kind: 'none', preset: defaultPreset, chosenByUser: false, note: 'Nothing to convert.' }, effective: defaultPreset };
   }
+}
+
+interface DateColumnResolution {
+  field: string;
+  header: string;
+  view: PresetView<DatePreset>;
+  /** A value from the column, for the question shown to the user. */
+  example: string;
+}
+
+interface DateColumnsResolved {
+  /** The format of every column that is settled. */
+  byField: Map<string, DatePreset>;
+  /** The answer for the whole file, or ISO: used for a column that is not in `byField`. */
+  fallback: DatePreset;
+  columns: DateColumnResolution[];
+  /** Columns SCC will not settle on its own: every value ambiguous, or values that need two different formats. */
+  open: DateColumnResolution[];
+  /** One view for the whole file (the format panel): the first open column, else the common format, else a summary. */
+  view: PresetView<DatePreset> | null;
+}
+
+/**
+ * One date format per column, inferred from that column's own unambiguous values (03/04/2026 is settled by 3/15/2026 in the
+ * same column, never by another column). The user's answer for a column wins, then an answer for the whole file. A column
+ * whose values fit no common format (conflicting evidence, or two styles) stays open: SCC never picks one.
+ */
+function resolveDateColumns(columns: ReadonlyArray<{ field: string; header: string; texts: string[] }>, decisions: Decisions): DateColumnsResolved {
+  const perColumn = new Map<string, DatePreset>();
+  for (const [field, preset] of decisions.datePresets ?? new Map<string, DatePreset>()) if (DATE_PRESETS.includes(preset)) perColumn.set(field, preset);
+  const fileWide = decisions.datePreset;
+  const out: DateColumnsResolved = { byField: new Map(), fallback: fileWide ?? 'iso', columns: [], open: [], view: null };
+  for (const c of columns) {
+    const answer = perColumn.get(c.field) ?? fileWide;
+    if (c.texts.length === 0 && answer === undefined) continue;
+    const { view, effective } = presetView(detectDatePreset(c.texts), answer, 'iso' as DatePreset, (p) => DATE_PRESET_EXAMPLE[p]);
+    const entry = { field: c.field, header: c.header, view, example: c.texts[0] ?? '' };
+    out.columns.push(entry);
+    if (effective === null) out.open.push(entry);
+    else out.byField.set(c.field, effective);
+  }
+  const first = out.open[0];
+  if (first !== undefined) {
+    out.view = { ...first.view, note: `${first.header}: ${first.view.note}` };
+    return out;
+  }
+  const settled = out.columns.filter((c) => c.view.kind === 'unique' || c.view.kind === 'equivalent');
+  const formats = [...new Set(settled.map((c) => c.view.preset as DatePreset))];
+  if (formats.length <= 1) {
+    out.view = (settled.find((c) => c.view.kind === 'unique') ?? settled[0] ?? out.columns[0])?.view ?? null;
+    return out;
+  }
+  out.view = {
+    kind: 'unique',
+    preset: formats[0] as DatePreset,
+    needsNormalization: true,
+    chosenByUser: settled.some((c) => c.view.chosenByUser),
+    note: `Each date column has its own format: ${settled.map((c) => `${c.header} ${DATE_PRESET_EXAMPLE[c.view.preset as DatePreset]}`).join('; ')}.`
+  };
+  return out;
+}
+
+/** The question for a date column SCC will not settle on its own, with real values from that column. */
+function dateBlockerMessage(c: DateColumnResolution): string {
+  if (c.view.kind === 'mixed') {
+    const examples = c.view.groups.map((g) => g.examples[0]).filter((e): e is string => e !== undefined).slice(0, 2);
+    return `The column "${c.header}" has dates in more than one format (for example ${examples.join(' and ')}). Fix the file, or choose the format most of them use.`;
+  }
+  return `The column "${c.header}" has dates that read two ways (for example ${c.example}: month first or day first). Choose which.`;
 }
 
 function textsOf(structured: StructuredTable, index: number): string[] {
@@ -401,19 +473,18 @@ export async function analyzeFile(input: PipelineInput, env: PipelineEnv): Promi
   // ---- presets, currency, value maps ------------------------------------------------------------------------------------------
   progress('normalize', 0.7);
   const numberTexts: string[] = [];
-  const dateTexts: string[] = [];
+  const dateColumns: Array<{ field: string; header: string; texts: string[] }> = [];
   for (const f of schema) {
     const idx = assignment.get(f.name);
     if (idx === undefined) continue;
     if (isNumberField(f)) numberTexts.push(...textsOf(structured, idx));
-    if (isDateField(f)) dateTexts.push(...textsOf(structured, idx));
+    if (isDateField(f)) dateColumns.push({ field: f.name, header: label(structured.headers[idx] ?? ''), texts: textsOf(structured, idx) });
   }
   const numberOutcome = detectNumberPreset(numberTexts);
-  const dateOutcome = detectDatePreset(dateTexts);
   const numberResolved = presetView(numberOutcome, decisions.numberPreset, 'plain' as NumberPreset, (p) => NUMBER_PRESET_LABEL[p]);
-  const dateResolved = presetView(dateOutcome, decisions.datePreset, 'iso' as DatePreset, (p) => DATE_PRESET_EXAMPLE[p]);
+  const dates = resolveDateColumns(dateColumns, decisions);
   if (numberResolved.effective === null) blockers.push({ code: 'choose-number-format', message: messageText('CHOOSE_NUMBER_FORMAT'), fatal: false });
-  if (dateResolved.effective === null) blockers.push({ code: 'choose-date-format', message: messageText('CHOOSE_DATE_FORMAT'), fatal: false });
+  for (const c of dates.open) blockers.push({ code: 'choose-date-format', message: dateBlockerMessage(c), fatal: false, field: c.field, columnIndex: assignment.get(c.field) });
 
   const currencyMarkers: string[] = [];
   let currencyKind = 'ok' as 'ok' | 'foreign' | 'mixed';
@@ -471,7 +542,8 @@ export async function analyzeFile(input: PipelineInput, env: PipelineEnv): Promi
     structured,
     assignment,
     numberPreset: numberResolved.effective ?? 'plain',
-    datePreset: dateResolved.effective ?? 'iso',
+    datePreset: dates.fallback,
+    datePresets: dates.byField,
     statusChoices,
     warehouseChoices,
     constants,
@@ -493,7 +565,8 @@ export async function analyzeFile(input: PipelineInput, env: PipelineEnv): Promi
       canonicalRows: build.canonicalRows,
       rawRows: build.rawRows,
       numberPreset: numberResolved.effective ?? 'plain',
-      datePreset: dateResolved.effective ?? 'iso',
+      datePreset: dates.fallback,
+      datePresets: dates.byField,
       limits,
       ragged: build.ragged,
       sourceRowIndex: build.sourceRowIndex,
@@ -550,7 +623,8 @@ export async function analyzeFile(input: PipelineInput, env: PipelineEnv): Promi
     fields: fieldStatuses,
     presets: {
       number: numberTexts.length === 0 && decisions.numberPreset === undefined ? null : numberResolved.view,
-      date: dateTexts.length === 0 && decisions.datePreset === undefined ? null : dateResolved.view,
+      date: dates.view,
+      dateColumns: dates.columns.map((c) => ({ field: c.field, header: c.header, view: c.view })),
       currency: { kind: currencyKind, markers: currencyMarkers, message: currencyMessage },
       timestampsStripped: build.stats.timestampsStripped,
       placeholders: build.stats.placeholders,
