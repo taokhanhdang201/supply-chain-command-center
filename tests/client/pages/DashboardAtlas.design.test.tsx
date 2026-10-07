@@ -133,7 +133,7 @@ describe('Dashboard V2: keyboard order equals reading order', () => {
       '#/routes',
       '#/shipments',
       '#/shipments?flag=delayed',
-      '#/alerts',
+      '#/alerts?kind=any', // the "Alerts needing attention" tile opens only those alerts (it was '#/alerts')
       '#/inventory?stock=low_or_out',
       '#/shipments?status=pending',
       '#/shipments?status=in_transit',

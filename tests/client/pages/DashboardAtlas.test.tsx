@@ -57,7 +57,9 @@ describe('Dashboard (Atlas): numbers and links are unchanged', () => {
     const attention = snapshot.alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;
     const info = snapshot.alerts.filter((a) => a.severity === 'info').length;
     const alerts = screen.getByRole('link', { name: `Alerts needing attention ${attention} ${snapshot.alerts.length} total · ${info} info` });
-    expect(alerts).toHaveAttribute('href', '#/alerts');
+    // the tile counts only the alerts that need attention, so it opens only those (kind=any, no info); it was '#/alerts',
+    // which listed all of them, info included, under a "57"
+    expect(alerts).toHaveAttribute('href', '#/alerts?kind=any');
 
     expect(screen.getByRole('link', { name: /^Total inventory value \$/ })).toHaveAttribute('href', '#/inventory');
     expect(screen.getByText('Total shipping cost')).toBeInTheDocument();
@@ -140,6 +142,16 @@ describe('Dashboard (Atlas): derived views trace back to existing data', () => {
   // The total row closes the kinds list: the number it shows is the sum of the counts above it, read from the page. It
   // reads "Need attention", not "All alerts": the KPI tile above says "67 total", so "All alerts 57" said the wrong thing
   // (docs/DASHBOARD-ALERTS.md §10); it opens the Alerts page with exactly those alerts (`kind=any`, no info).
+  // Two ways to the same 57: the KPI tile and the total row show the same count and open the same filter (kind=any).
+  it('opens the same alerts from the KPI tile and from the total row', async () => {
+    await renderWithData(<DashboardPage />, { snapshot: scenario() });
+    const tile = document.querySelector('.signals a.figure[href^="#/alerts"]') as HTMLElement;
+    const total = document.querySelector('.kind-row--total') as HTMLElement;
+    expect(tile.getAttribute('href')).toBe('#/alerts?kind=any');
+    expect(total.getAttribute('href')).toBe(tile.getAttribute('href'));
+    expect(total.querySelector('.kind-row__count')?.textContent).toBe(tile.querySelector('.figure__value')?.textContent);
+  });
+
   it('shows a total row whose number is the sum of the kind rows above it', async () => {
     await renderWithData(<DashboardPage />, { snapshot: scenario() });
     const counts = [...document.querySelectorAll('.kind-list .kind-row__count')].map((n) => Number(n.textContent));

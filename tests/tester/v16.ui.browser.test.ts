@@ -203,6 +203,23 @@ describe('V1.6 redesign (real Chromium)', () => {
     await ctx.close();
   });
 
+  // The "Alerts needing attention" tile and the "Need attention" total row both open the Alerts page with exactly the
+  // number they show (kind=any: no info alerts), clicked in a real browser (docs/DASHBOARD-ALERTS.md §10).
+  it('atlas dashboard: the attention tile and the Need attention row open exactly their count of alerts', async () => {
+    const { ctx, page } = await open(1440, '', { reducedMotion: 'reduce' });
+    for (const link of ['.signals a.figure[href^="#/alerts"]', '.attention .kind-row--total']) {
+      await page.goto(`${base}/#/`);
+      await page.waitForSelector(link);
+      const shown = (await page.locator(link).locator('.figure__value, .kind-row__count').first().innerText()).trim();
+      await page.locator(link).click();
+      await page.waitForSelector('.table-summary');
+      expect(page.url(), link).toContain('#/alerts?kind=any');
+      expect((await page.locator('.table-summary').innerText()).replace(/\s+/g, ' '), link).toContain(`${shown} alerts`);
+      expect(await page.locator('.alerts-ledger tbody tr.alert-row--info').count(), link).toBe(0);
+    }
+    await ctx.close();
+  });
+
   // The Top alerts head (docs/DASHBOARD-ALERTS.md §10): the title a step above the other section titles (600, one line
   // on a phone); the kinds as one column of whole-row links, 40px tall (44px on a phone), within 22rem, the counts in one
   // right-aligned tabular column; the total row's rule never level with a rule of the five rows beside it.

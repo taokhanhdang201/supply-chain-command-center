@@ -220,7 +220,8 @@ C, the block on paper. The owner chose C, because dark is the situation and pape
   named "57 need attention, view in Alerts"; 57 is the sum of the kind rows (tested). First drafted as "All alerts 57",
   renamed before shipping: the KPI tile right above says "67 total · 10 info", so "All alerts 57" said the wrong thing.
   It opens the Alerts page with `kind=any` ("Any problem" in its Problem filter): every kind together, exactly the 57,
-  none of the 10 info alerts (`#/alerts` alone shows all 67).
+  none of the 10 info alerts (`#/alerts` alone shows all 67). The "Alerts needing attention" KPI tile opens the same
+  filter (it opened `#/alerts`, 67 rows under a "57"); both clicks are tested in a real browser.
 - **One line per kind at every width.** From 1100 px the head spans five grid columns (it was four) and a row's gaps are
   8 px: with four columns "Incomplete or wrong records" wrapped below 1440 px (the 1280 px demo video showed it). The
   rows still start on column 6. Tested at 1440, 1280, 1100 and 390.

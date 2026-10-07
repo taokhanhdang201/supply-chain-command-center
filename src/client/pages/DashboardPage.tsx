@@ -239,7 +239,7 @@ export function DashboardPage() {
               label="Alerts needing attention"
               value={alertsNeedingAttention.toLocaleString('en-US')}
               detail={`${snapshot.alerts.length.toLocaleString('en-US')} total · ${infoAlertCount.toLocaleString('en-US')} info`}
-              href={buildHash('alerts')}
+              href={buildHash('alerts', { kind: 'any' })}
             />
             <Figure label="Low-stock items" value={kpis.lowStockCount.toLocaleString('en-US')} detail={`${kpis.outOfStockCount} out of stock`} href={buildHash('inventory', { stock: 'low_or_out' })} />
             {totalShipments > 0 && (
