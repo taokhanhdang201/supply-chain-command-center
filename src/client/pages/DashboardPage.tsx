@@ -317,7 +317,8 @@ export function DashboardPage() {
                   Short before restock: what usage will ask for before a reorder placed today can arrive, minus what is on hand, valued at unit
                   cost: (daily usage × lead time − on hand) × unit cost. SCC has no selling prices, so this is not lost revenue. Billed above
                   typical: the cost over the usual cost for the same route and carrier. Late deliveries have no money figure. Rows are ordered by
-                  money, with at most three stock rows and the latest carrier last; colour shows severity.
+                  money, with at most three stock rows; the carrier with the most shipments 7 or more days late comes last. Colour shows
+                  severity.
                 </p>
               </details>
             </>

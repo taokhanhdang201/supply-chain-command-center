@@ -1,7 +1,8 @@
 # Dashboard: "Do these first" (redesign of Top alerts)
 
-Status: **approved 2026-10-07** with the seven recommended options and four adjustments (section 8); being built in small
-commits. Measured on the seed-42 sample dated 2026-10-07 with the code at `630d2b9` (a temporary probe, deleted after use).
+Status: **built** (approved 2026-10-07 with the seven recommended options and four adjustments, section 8): `a2aba22` the
+queue as pure functions (`src/client/lib/attention.ts`), `9183987` the Alerts page `kind=` filter, `071ebf2` the Dashboard
+scene. Measured on the seed-42 sample dated 2026-10-07 with the code at `630d2b9` (a temporary probe, deleted after use).
 Goal: a manager sees in five seconds what to do first this morning. One sentence per row, no table, no jargon.
 
 ## 1. What the code does today (checked)
@@ -101,7 +102,11 @@ Pattern: **what · where** · **damage** · **action**, then the arrow. Money us
 "Short before restock: what usage will ask for before a reorder placed today can arrive, minus what is on hand, valued at
 unit cost: (daily usage × lead time − on hand) × unit cost. SCC has no selling prices, so this is not lost revenue. Billed
 above typical: the cost over the usual cost for the same route and carrier. Late deliveries have no money figure. Rows are
-ordered by money; colour shows severity."
+ordered by money, with at most three stock rows; the carrier with the most shipments 7 or more days late comes last. Colour
+shows severity."
+
+On the Alerts page the kinds are the **Problem** filter (next to Severity and Type), so the reason a list is filtered is
+always visible and Clear filters removes it.
 
 ## 5. Kinds line and the counts (adjustments 3 and 4)
 
