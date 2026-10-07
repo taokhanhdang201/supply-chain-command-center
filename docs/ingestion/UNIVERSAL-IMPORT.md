@@ -289,8 +289,19 @@ design notes for the deferred formats stay in this file for later.
 | G4 | Nothing | All of it: generic XML, cXML, GS1 XML, fixed-width text, ZIP with several files |
 
 Consequences: decision (b) about 846 (unknown SKUs stop the file) waits with 846; the 846 and 945 rows of section 3.2 are
-design notes only. Proposed for G3, to confirm then: 856, 846 and 945 files are recognized by the same ISA envelope check
-and refused with the same polite text as 850, so they are never misread as plain text.
+design notes only.
+
+**Decided for G3 (owner, 2026-10-07): two kinds of polite refusal.** Every X12 file is recognized by the same ISA envelope
+check and its ST01, so none is ever misread as plain text; what SCC says depends on whether the document is about data SCC
+keeps.
+
+| Sets | Meaning | Text (state 6: sentence, then line) |
+|---|---|---|
+| 850, 810, 997 and any other unrelated set | Not about shipments or inventory | "This is an EDI 850 purchase order." / "SCC tracks shipments and inventory, so there is nothing to import." |
+| 856, 846, 945 | About shipments or inventory, not supported yet | "This is an EDI 856 ship notice." / "SCC reads EDI 214 status updates today; ship notices are not supported yet." (846: "inventory reports"; 945: "warehouse shipping advices") |
+
+Both name the document type from ST01 and import nothing; the second says what SCC reads today, so the user knows which
+EDI file to send instead. Tests in G3: one per set listed here, plus an unknown set.
 
 ### Later (engineering)
 
