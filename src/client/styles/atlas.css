@@ -1346,7 +1346,7 @@
   }
 }
 
-/* ---------- 4  ATTENTION (dark) ---------- */
+/* ---------- 4  ATTENTION (dark): "Do these first" ---------- */
 
 .atlas-page .attention__head {
   display: grid;
@@ -1360,93 +1360,116 @@
   min-width: 0;
 }
 
-.atlas-page .alert-counts {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--dash-gap);
-  row-gap: 8px;
+/* The alerts that need attention, by kind: each a link to the Alerts page filtered to exactly those rows. The spaces
+   around each dot let the line wrap between kinds, never inside one. */
+.atlas-page .attention__kinds {
   margin: var(--title-gap) 0 0;
-}
-
-.atlas-page .alert-counts > div {
-  display: flex;
-  flex-direction: column-reverse;
-  justify-content: flex-end;
-  gap: 8px;
-  margin: 0;
-  min-width: 0;
-}
-
-.atlas-page .alert-counts dt {
-  font: 500 var(--fs-lead) / 24px var(--font-sans);
+  font: 400 var(--fs-lead) / 32px var(--font-sans);
   color: var(--stage-text-2);
 }
 
-.atlas-page .alert-counts dd {
-  margin: 0;
-  font: 500 var(--fs-figure) / 44px var(--font-display);
-  font-stretch: 100%;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums lining-nums;
+.atlas-page .attention__kinds a {
   color: var(--stage-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--dash-line);
+  text-underline-offset: 5px;
 }
 
-.atlas-page .alert-counts__critical {
-  grid-column: 1 / span 6;
-  grid-row: 1 / span 2;
+.atlas-page .attention__kinds a:hover {
+  text-decoration-color: currentColor;
 }
 
-.atlas-page .alert-counts__critical dt {
-  color: var(--stage-text);
-}
-
-.atlas-page .alert-counts__critical dd {
-  font-size: var(--fs-display);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--signal);
-}
-
-/* Phone: the two smaller counts sit beside the big one, each as "value  label" on one baseline. */
-.atlas-page .alert-counts > .alert-counts__warning,
-.atlas-page .alert-counts > .alert-counts__info {
-  grid-column: 7 / span 6;
-  flex-direction: row-reverse;
-  justify-content: flex-end;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.atlas-page .alert-counts__info dd {
+.atlas-page .attention__sep,
+.atlas-page .queue-row__sep {
   color: var(--stage-text-3);
 }
 
 .atlas-page .attention__head .dash-link {
   justify-self: start;
-  margin-top: 40px;
+  margin-top: 32px;
 }
 
 .atlas-page .attention__list {
   margin-top: var(--title-gap);
 }
 
-.atlas-page .alert-row {
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr);
-  column-gap: 16px;
-  padding: 20px 0;
-  border-top: 1px solid var(--dash-line);
+.atlas-page .queue {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.atlas-page .alert-row:last-child {
+/* One row is one link: the severity glyph, one sentence (what and where, the damage, the next step) and an arrow. */
+.atlas-page .queue-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 20px;
+  column-gap: 16px;
+  align-items: start;
+  margin: 0 -12px;
+  padding: 20px 12px;
+  border-top: 1px solid var(--dash-line);
+  color: var(--stage-text);
+  text-decoration: none;
+}
+
+.atlas-page .queue > li:last-child .queue-row {
   border-bottom: 1px solid var(--dash-line);
+}
+
+.atlas-page .queue-row:hover {
+  background: color-mix(in srgb, var(--stage-text) 7%, transparent);
+}
+
+.atlas-page .queue-row:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.atlas-page .queue-row__text {
+  font: 400 var(--fs-lead) / 26px var(--font-sans);
+  color: var(--stage-text-2);
+}
+
+.atlas-page .queue-row__what {
+  font-weight: 500;
+  color: var(--stage-text);
+}
+
+.atlas-page .queue-row__damage {
+  font-variant-numeric: tabular-nums;
+}
+
+.atlas-page .queue-row__action {
+  font-weight: 500;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.atlas-page .queue-row__arrow {
+  width: 20px;
+  height: 20px;
+  margin-top: 3px;
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.75;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .atlas-page .queue-row__arrow {
+    transition: transform var(--dur-1) var(--ease-out);
+  }
+
+  .atlas-page .queue-row:hover .queue-row__arrow {
+    transform: translateX(3px);
+  }
 }
 
 .atlas-page .alert-glyph {
   width: 8px;
   height: 8px;
-  margin-top: 8px;
+  margin-top: 9px;
   overflow: visible;
 }
 
@@ -1464,21 +1487,30 @@
   stroke-width: 1.5;
 }
 
-.atlas-page .alert-row__title {
-  font: 500 var(--fs-lead) / 24px var(--font-sans);
-  color: var(--stage-text);
-}
-
-.atlas-page .alert-row__message {
-  margin-top: 4px;
-  font: 400 var(--fs-small) / 20px var(--font-sans);
-  letter-spacing: 0.005em;
-  color: var(--stage-text-2);
-}
-
 .atlas-page .attention__empty {
   font: 400 var(--fs-lead) / 24px var(--font-sans);
   color: var(--stage-text-2);
+}
+
+/* How these are counted: closed by default; the valuation and the formulas live here, not in the rows. */
+.atlas-page .attention__how {
+  margin-top: 20px;
+  font: 400 var(--fs-small) / 20px var(--font-sans);
+  color: var(--stage-text-2);
+}
+
+.atlas-page .attention__how > summary {
+  width: fit-content;
+  color: var(--stage-text);
+  text-decoration: underline;
+  text-decoration-color: var(--dash-line);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.atlas-page .attention__how > p {
+  max-width: 72ch;
+  margin: 8px 0 0;
 }
 
 @media (min-width: 768px) {
@@ -1486,76 +1518,19 @@
     grid-column: 1 / -1;
     grid-template-columns: repeat(12, minmax(0, 1fr));
   }
-
-  .atlas-page .alert-counts {
-    align-items: end;
-  }
-
-  .atlas-page .alert-counts > div {
-    grid-column: span 4;
-    grid-row: 1;
-  }
-
-  .atlas-page .alert-counts > .alert-counts__warning,
-  .atlas-page .alert-counts > .alert-counts__info {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .atlas-page .alert-counts > .alert-counts__critical,
-  .atlas-page .alert-counts > .alert-counts__warning,
-  .atlas-page .alert-counts > .alert-counts__info {
-    grid-row: 1;
-  }
-
-  .atlas-page .alert-counts > .alert-counts__critical {
-    grid-column: 1 / span 4;
-  }
-
-  .atlas-page .alert-counts > .alert-counts__warning {
-    grid-column: 5 / span 4;
-  }
-
-  .atlas-page .alert-counts > .alert-counts__info {
-    grid-column: 9 / span 4;
-  }
 }
 
 @media (min-width: 1100px) {
   .atlas-page .attention__head {
     grid-column: 1 / span 4;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .atlas-page .alert-counts {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    row-gap: 40px;
-  }
-
-  .atlas-page .alert-counts > .alert-counts__critical {
-    grid-column: 1 / span 4;
     grid-row: 1;
-  }
-
-  .atlas-page .alert-counts > .alert-counts__warning {
-    grid-column: 1 / span 2;
-    grid-row: 2;
-  }
-
-  .atlas-page .alert-counts > .alert-counts__info {
-    grid-column: 3 / span 2;
-    grid-row: 2;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .atlas-page .attention__list {
     grid-column: 6 / span 7;
     grid-row: 1;
     margin-top: 0;
-  }
-
-  .atlas-page .attention__head {
-    grid-row: 1;
   }
 }
 

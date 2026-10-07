@@ -1,14 +1,15 @@
 // The Dashboard (V2): five scenes on one twelve-column grid, alternating dark and paper in hard cuts.
 //   Situation  (dark)   the lane map is the stage (width = traffic, dashed red = late); 85.6% sits inside it at display
 //                       size from 1100px, above it on narrower screens; four figures sit at the foot
-//   Attention  (dark)   the critical count at display size, then the top alerts (what needs action comes second)
+//   Attention  (dark)   "Do these first": the alerts that need attention by kind, then at most five rows ranked by money
+//                       (what needs action comes second)
 //   Flow       (paper)  the monthly on-time vs delayed bars, then cost
 //   Nodes      (dark)   five identical racks, one system
 //   Movement   (paper)  recent shipment activity as a ledger
 // Every number is the one the previous Dashboard showed, from the same snapshot fields and shared functions; only the
 // way it is drawn changed. Red ("signal") means late or critical and nothing else.
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { DateRange, RouteSummary } from '../../shared/domain/analytics';
 import { filterShipmentsByRange, recentActivity, shippingCostByMonth, onTimeVsDelayedByMonth, summarizeRoutes } from '../../shared/domain/analytics';
@@ -35,6 +36,7 @@ import { WarehouseRacks } from '../components/atlas/WarehouseRacks';
 import { RouteLabel } from '../components/ui/RouteLabel';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { ON_TIME_FLOOR, ON_TIME_TARGET, onTimeTone, type TargetTone } from '../lib/targets';
+import { buildQueue, kindCounts } from '../lib/attention';
 
 const RANGE_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'All' },
@@ -67,6 +69,18 @@ function SeverityGlyph({ severity }: { severity: string }) {
     <svg className={`alert-glyph alert-glyph--${severity}`} viewBox="0 0 8 8" aria-hidden="true" focusable="false">
       {severity === 'warning' ? <polygon points="4,0 8,8 0,8" /> : <circle cx="4" cy="4" r={severity === 'info' ? 3.25 : 4} />}
     </svg>
+  );
+}
+
+/** " · " between the parts of one sentence: a dot for the eye (its spaces let the line wrap), a comma for screen readers. */
+function Separator({ className }: { className: string }) {
+  return (
+    <>
+      <span className="visually-hidden">,</span>
+      <span className={className} aria-hidden="true">
+        {' · '}
+      </span>
+    </>
   );
 }
 
@@ -155,14 +169,14 @@ export function DashboardPage() {
   const onTimeMonthLabels = monthAxisLabels(onTimeByMonth.map((d) => d.month));
   const rangeLabel = RANGE_OPTIONS.find((o) => o.value === range)?.label;
 
-  const topAlerts = snapshot.alerts.slice(0, 5);
   const activity = recentActivity(snapshot.shipments, snapshot.today, 10);
   // "Needs attention" = critical + warning (matches the Sidebar/Alerts-page badge count); the total also includes
   // info-severity alerts, called out in the detail line so the two numbers never look contradictory (R-14).
   const alertsNeedingAttention = snapshot.alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;
   const infoAlertCount = snapshot.alerts.filter((a) => a.severity === 'info').length;
-  const criticalAlertCount = snapshot.alerts.filter((a) => a.severity === 'critical').length;
-  const warningAlertCount = alertsNeedingAttention - criticalAlertCount;
+  // "Do these first": the kinds add up to the same "need attention" count; the queue is ranked by money (docs/DASHBOARD-ALERTS.md).
+  const kinds = kindCounts(snapshot.alerts);
+  const queue = buildQueue(snapshot);
 
   const rate = kpis.onTimeRate;
   const tone = onTimeTone(rate);
@@ -248,47 +262,65 @@ export function DashboardPage() {
       </section>
 
       {/* ATTENTION (dark, one block with Situation): what needs action comes right after what is happening and where.
-          The critical count is the figure; the first five alerts follow. */}
+          "Do these first": the alerts that need attention by kind (each a link to exactly its rows), then at most five
+          rows ranked by the money SCC can compute, each one link with what, where, the damage and the next step. */}
       <Chapter className="scene--dark surface-stage attention" label="Attention">
         <div className="attention__head">
-          <h2 className="scene__title">Top alerts</h2>
-          <dl className="alert-counts">
-            <div className="alert-counts__critical">
-              <dt>Critical</dt>
-              <dd>{criticalAlertCount.toLocaleString('en-US')}</dd>
-            </div>
-            <div className="alert-counts__warning">
-              <dt>Warning</dt>
-              <dd>{warningAlertCount.toLocaleString('en-US')}</dd>
-            </div>
-            <div className="alert-counts__info">
-              <dt>Info</dt>
-              <dd>{infoAlertCount.toLocaleString('en-US')}</dd>
-            </div>
-          </dl>
+          <h2 className="scene__title">Do these first</h2>
+          {kinds.length > 0 && (
+            <p className="attention__kinds">
+              {kinds.map((k, i) => (
+                <Fragment key={k.kind}>
+                  {i > 0 && <Separator className="attention__sep" />}
+                  <a href={k.href}>{k.text}</a>
+                </Fragment>
+              ))}
+            </p>
+          )}
           <a className="dash-link" href={buildHash('alerts')}>
-            View all alerts
+            {alertsNeedingAttention === 0 ? 'View all alerts' : `View all alerts (${alertsNeedingAttention.toLocaleString('en-US')} ${alertsNeedingAttention === 1 ? 'needs' : 'need'} attention)`}
           </a>
         </div>
 
         <div className="attention__list">
-          {topAlerts.length === 0 ? (
-            <p className="attention__empty">No alerts — all clear.</p>
+          {queue.length === 0 ? (
+            <p className="attention__empty">Nothing needs action today.</p>
           ) : (
-            <ul>
-              {topAlerts.map((a) => (
-                <li key={a.id} className="alert-row">
-                  <SeverityGlyph severity={a.severity} />
-                  <div>
-                    <p className="alert-row__title">
-                      <span className="visually-hidden">{capitalise(a.severity)}: </span>
-                      {a.title}
-                    </p>
-                    <p className="alert-row__message">{a.message}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ol className="queue">
+                {queue.map((r) => (
+                  <li key={r.key}>
+                    <a className="queue-row" href={r.href}>
+                      <SeverityGlyph severity={r.tone} />
+                      <span className="queue-row__text">
+                        <span className="visually-hidden">{capitalise(r.tone)}: </span>
+                        <span className="queue-row__what">{r.what}</span>
+                        {r.damage !== null && (
+                          <>
+                            <Separator className="queue-row__sep" />
+                            <span className="queue-row__damage">{r.damage}</span>
+                          </>
+                        )}
+                        <Separator className="queue-row__sep" />
+                        <span className="queue-row__action">{r.action}</span>
+                      </span>
+                      <svg className="queue-row__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                        <path d="M4 10h11M11 5l5 5-5 5" />
+                      </svg>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+              <details className="attention__how">
+                <summary>How these are counted</summary>
+                <p>
+                  Short before restock: what usage will ask for before a reorder placed today can arrive, minus what is on hand, valued at unit
+                  cost: (daily usage × lead time − on hand) × unit cost. SCC has no selling prices, so this is not lost revenue. Billed above
+                  typical: the cost over the usual cost for the same route and carrier. Late deliveries have no money figure. Rows are ordered by
+                  money, with at most three stock rows and the latest carrier last; colour shows severity.
+                </p>
+              </details>
+            </>
           )}
         </div>
       </Chapter>

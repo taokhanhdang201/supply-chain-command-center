@@ -8,6 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { DashboardPage } from '../../../src/client/pages/DashboardPage';
 import { renderWithData } from '../../helpers/renderWithData';
 import { makeInventoryRecord, makeShipmentRecord, makeSnapshot, TODAY } from '../../helpers/fixtures';
+import { kindCounts } from '../../../src/client/lib/attention';
 
 beforeEach(() => {
   window.location.hash = '';
@@ -83,7 +84,8 @@ describe('Dashboard (Atlas): numbers and links are unchanged', () => {
     expect(screen.queryByRole('link', { name: /^(Pending|In transit|Delivered|Cancelled) \d/ })).toBeNull();
     expect(document.querySelector('.hero__gauge')).toBeNull();
     expect(screen.getAllByText('No data for the selected range').length).toBe(2);
-    expect(screen.getByText('No alerts — all clear.')).toBeInTheDocument();
+    // "Do these first" (docs/DASHBOARD-ALERTS.md): the empty queue says so (it used to read "No alerts — all clear.")
+    expect(screen.getByText('Nothing needs action today.')).toBeInTheDocument();
     expect(screen.getByText('No shipment activity yet.')).toBeInTheDocument();
   });
 });
@@ -114,14 +116,18 @@ describe('Dashboard (Atlas): derived views trace back to existing data', () => {
     }
   });
 
-  it('breaks the alert count into critical, warning and info from the same alert list', async () => {
+  // "Do these first" replaced the critical / warning / info figures (they repeated the KPI above): the alerts that need
+  // attention by kind, adding up to the same count as the KPI tile, each a link to exactly its rows on the Alerts page.
+  it('lists the alerts that need attention by kind, adding up to the KPI count, each linking to its filter', async () => {
     const snapshot = scenario();
     await renderWithData(<DashboardPage />, { snapshot });
-    const counts = screen.getByText('Critical').closest('dl') as HTMLElement;
-    const by = (sev: string) => snapshot.alerts.filter((a) => a.severity === sev).length.toLocaleString('en-US');
-    expect(within(counts).getByText('Critical').nextSibling).toHaveTextContent(by('critical'));
-    expect(within(counts).getByText('Warning').nextSibling).toHaveTextContent(by('warning'));
-    expect(within(counts).getByText('Info').nextSibling).toHaveTextContent(by('info'));
+    const line = document.querySelector('.attention__kinds') as HTMLElement;
+    const links = within(line).getAllByRole('link');
+    const expected = kindCounts(snapshot.alerts);
+    expect(links.map((a) => [a.textContent, a.getAttribute('href')])).toEqual(expected.map((k) => [k.text, k.href]));
+    const needAttention = snapshot.alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;
+    expect(expected.reduce((sum, k) => sum + k.count, 0)).toBe(needAttention);
+    expect(screen.queryByText('Critical')).toBeNull(); // no severity figures any more
   });
 });
 
@@ -157,7 +163,10 @@ describe('Dashboard (Atlas): interaction and accessibility', () => {
   it('keeps the recent-activity ledger and the alerts link', async () => {
     await renderWithData(<DashboardPage />, { snapshot: scenario() });
     expect(screen.getByRole('table', { name: 'Recent shipment activity' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'View all alerts' })).toHaveAttribute('href', '#/alerts');
+    // the link names the same "need attention" count as the KPI tile and the badge (it used to read "View all alerts")
+    const snapshot = scenario();
+    const n = snapshot.alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;
+    expect(screen.getByRole('link', { name: `View all alerts (${n} need attention)` })).toHaveAttribute('href', '#/alerts');
     expect(screen.getByRole('link', { name: 'Explore the lanes' })).toHaveAttribute('href', '#/routes');
   });
 });

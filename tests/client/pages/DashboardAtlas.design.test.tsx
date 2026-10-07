@@ -7,6 +7,7 @@ import { screen, within } from '@testing-library/react';
 import { DashboardPage, ON_TIME_FLOOR, ON_TIME_TARGET } from '../../../src/client/pages/DashboardPage';
 import { renderWithData } from '../../helpers/renderWithData';
 import { makeInventoryRecord, makeShipmentRecord, makeSnapshot, TODAY } from '../../helpers/fixtures';
+import { buildQueue, kindCounts } from '../../../src/client/lib/attention';
 
 beforeEach(() => {
   window.location.hash = '';
@@ -104,7 +105,7 @@ describe('Dashboard V2: what the redesign removed stays removed', () => {
   it('keeps exactly four h2 chapter titles, in reading order', async () => {
     await renderWithData(<DashboardPage />, { snapshot: scenario() });
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'Top alerts',
+      'Do these first', // was "Top alerts" (docs/DASHBOARD-ALERTS.md, decision 7)
       'Delivery reliability and cost',
       'Warehouses and inventory',
       'Recent shipment activity'
@@ -113,9 +114,16 @@ describe('Dashboard V2: what the redesign removed stays removed', () => {
 });
 
 describe('Dashboard V2: keyboard order equals reading order', () => {
-  it('tabs through the network, the four figures then the status counts, the alerts link, the flow and the racks', async () => {
-    await renderWithData(<DashboardPage />, { snapshot: scenario() });
+  // "Do these first" adds the kinds links before the alerts link and the queue rows after it, in reading order (title
+  // column, then the rows); the rest of the order is unchanged.
+  it('tabs through the network, the four figures then the status counts, the kinds, the alerts link, the rows, the flow and the racks', async () => {
+    const snapshot = scenario();
+    await renderWithData(<DashboardPage />, { snapshot });
     const order = [...document.querySelectorAll('a[href], button, select')].map((el) => el.getAttribute('href') ?? el.tagName.toLowerCase());
+    const kinds = kindCounts(snapshot.alerts).map((k) => k.href);
+    const rows = buildQueue(snapshot).map((r) => r.href);
+    expect(kinds.length).toBeGreaterThan(0);
+    expect(rows.length).toBeGreaterThan(0);
     expect(order).toEqual([
       '#/inventory?warehouse=WH-DFW',
       '#/inventory?warehouse=WH-ATL',
@@ -131,7 +139,9 @@ describe('Dashboard V2: keyboard order equals reading order', () => {
       '#/shipments?status=in_transit',
       '#/shipments?status=delivered',
       '#/shipments?status=cancelled',
+      ...kinds,
       '#/alerts',
+      ...rows,
       'select',
       'button',
       'button',
@@ -174,14 +184,22 @@ describe('Dashboard V2: keyboard order equals reading order', () => {
 });
 
 describe('Dashboard V2: alerts and the ledger keep their meaning without colour or layout', () => {
-  it('gives every alert row a glyph plus visually hidden severity text (no badge)', async () => {
+  // "Do these first": each row is now one link (it used to be a plain list item that could not be clicked); the glyph and
+  // the hidden severity word stay, and the dots between the parts read as commas to a screen reader.
+  it('gives every queue row one link, a glyph plus visually hidden severity text (no badge), and read-aloud separators', async () => {
     await renderWithData(<DashboardPage />, { snapshot: scenario() });
-    const rows = [...document.querySelectorAll('.alert-row')] as HTMLElement[];
+    const rows = [...document.querySelectorAll('.queue > li')] as HTMLElement[];
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
+      const links = row.querySelectorAll('a[href]');
+      expect(links).toHaveLength(1);
+      expect(links[0]).toHaveClass('queue-row');
       expect(row.querySelectorAll('.alert-glyph[aria-hidden="true"]')).toHaveLength(1);
-      expect(row.querySelector('.visually-hidden')?.textContent).toMatch(/^(Critical|Warning|Info): $/);
+      expect(row.querySelector('.visually-hidden')?.textContent).toMatch(/^(Critical|Warning): $/);
+      for (const dot of row.querySelectorAll('.queue-row__sep')) expect(dot).toHaveAttribute('aria-hidden', 'true');
+      expect(row.querySelector('.queue-row__action')?.textContent).toMatch(/^(Move|Reorder|Check|Ask)/);
     }
+    expect(screen.getByText('How these are counted').closest('details')).not.toHaveAttribute('open');
   });
 
   it('exposes the ledger as a table with six column headers and six cells per row, and a marker plus the status word', async () => {

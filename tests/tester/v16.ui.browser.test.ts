@@ -101,7 +101,7 @@ describe('V1.6 redesign (real Chromium)', () => {
       const rgb = (c: string) => c.match(/[\d.]+/g)!.slice(0, 3).map(Number);
       const lum = ([r = 0, g = 0, b = 0]: number[]) => { const f = (x: number) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
       const solidBg = (el: HTMLElement) => { for (let n: HTMLElement | null = el; n; n = n.parentElement) { const c = getComputedStyle(n).backgroundColor; if (/^rgb\(/.test(c)) return c; } return 'rgb(255,255,255)'; };
-      const targets: Array<[string, number]> = [['.hero__value', 3], ['.hero__label', 4.5], ['.hero__detail', 4.5], ['.situation__title', 4.5], ['.situation .figure__label', 4.5], ['.situation .figure__detail', 4.5], ['.situation .figure--critical .figure__value', 3], ['.atlas-caption', 4.5], ['.status-list__link', 4.5], ['.flow-figure__subtitle', 4.5], ['.nodes .rack__code', 4.5], ['.nodes .rack__value', 4.5], ['.attention .alert-counts__critical dd', 3], ['.attention .alert-counts__info dd', 3], ['.attention .alert-row__message', 4.5], ['.movement .activity__carrier', 4.5], ['.movement .activity__date', 4.5]];
+      const targets: Array<[string, number]> = [['.hero__value', 3], ['.hero__label', 4.5], ['.hero__detail', 4.5], ['.situation__title', 4.5], ['.situation .figure__label', 4.5], ['.situation .figure__detail', 4.5], ['.situation .figure--critical .figure__value', 3], ['.atlas-caption', 4.5], ['.status-list__link', 4.5], ['.flow-figure__subtitle', 4.5], ['.nodes .rack__code', 4.5], ['.nodes .rack__value', 4.5], ['.attention .attention__kinds a', 4.5], ['.attention .queue-row__what', 4.5], ['.attention .queue-row__damage', 4.5], ['.attention .queue-row__action', 4.5], ['.attention .attention__how > summary', 4.5], ['.movement .activity__carrier', 4.5], ['.movement .activity__date', 4.5]];
       return targets.map(([sel, min]) => {
         const el = document.querySelector(sel) as HTMLElement;
         const a = lum(rgb(getComputedStyle(el).color)), b = lum(rgb(solidBg(el)));
@@ -110,6 +110,38 @@ describe('V1.6 redesign (real Chromium)', () => {
     });
     for (const r of results) expect(r.ratio, r.sel).toBeGreaterThanOrEqual(r.min);
     await ctx.close();
+  });
+
+  // "Do these first" (docs/DASHBOARD-ALERTS.md; it replaced the 20/37/10 figures, whose contrast targets moved above):
+  // every row is one link of at most two lines at 1440, Tab reaches the rows in order, and a phone never scrolls sideways.
+  it('atlas dashboard: "Do these first" rows are links of at most two lines at 1440, in tab order, and fit a phone', async () => {
+    for (const w of [1440, 390]) {
+      const { ctx, page } = await open(w, '', { reducedMotion: 'reduce' });
+      const m = await page.evaluate(() => {
+        const rows = [...document.querySelectorAll('.attention .queue-row')] as HTMLElement[];
+        return {
+          hrefs: rows.map((r) => r.getAttribute('href')),
+          lines: rows.map((r) => {
+            const t = r.querySelector('.queue-row__text') as HTMLElement;
+            return Math.round(t.getBoundingClientRect().height / parseFloat(getComputedStyle(t).lineHeight));
+          }),
+          sideways: document.documentElement.scrollWidth - window.innerWidth
+        };
+      });
+      expect(m.hrefs).toHaveLength(5);
+      expect(m.sideways, `${w}`).toBeLessThanOrEqual(0);
+      if (w === 1440) {
+        for (const l of m.lines) expect(l).toBeLessThanOrEqual(2);
+        await page.locator('.attention .dash-link').focus();
+        const reached: Array<string | null> = [];
+        for (let i = 0; i < m.hrefs.length; i += 1) {
+          await page.keyboard.press('Tab');
+          reached.push(await page.evaluate(() => document.activeElement?.getAttribute('href') ?? null));
+        }
+        expect(reached).toEqual(m.hrefs);
+      }
+      await ctx.close();
+    }
   });
 
   // The design rules the V2 specification measures (section i): one grid, five identical racks, six type sizes, no uppercase.
