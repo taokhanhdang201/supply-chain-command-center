@@ -7,9 +7,11 @@ import { Icon } from '../ui/Icon';
 export interface PasteBoxProps {
   busy: boolean;
   onSubmit: (text: string) => void;
+  /** The toggle's text (default "Paste data instead"). */
+  label?: string;
 }
 
-export function PasteBox({ busy, onSubmit }: PasteBoxProps) {
+export function PasteBox({ busy, onSubmit, label = 'Paste data instead' }: PasteBoxProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const regionId = useId();
@@ -17,7 +19,7 @@ export function PasteBox({ busy, onSubmit }: PasteBoxProps) {
   return (
     <div className="ingest-paste">
       <button type="button" className="button" aria-expanded={open} aria-controls={regionId} onClick={() => setOpen((o) => !o)}>
-        <Icon name={open ? 'chevron-up' : 'chevron-down'} size={14} /> Paste data instead
+        <Icon name={open ? 'chevron-up' : 'chevron-down'} size={14} /> {label}
       </button>
       <div id={regionId} hidden={!open}>
         {open && (

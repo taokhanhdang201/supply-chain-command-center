@@ -60,7 +60,9 @@ describe('Focus after a failed mapped import (real Chromium)', () => {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await ctx.newPage();
     await page.goto(`${base}/#/import`);
-    // the per-kind cards are in the Column guide (closed by default); the Inventory tab is selected
+    // the per-kind cards are in the Column guide (closed by default); the Inventory tab is selected.
+    // G1: the Column guide sits under the import card's "More" (closed by default), so More is opened first.
+    await page.locator('.ingest-more > summary').click();
     await page.getByText('Column guide').click();
     await page.getByLabel('Choose inventory CSV file').setInputFiles(path.resolve('tests/fixtures/import/inventory_alt_schema.csv'));
     await page.getByRole('button', { name: 'Import', exact: true }).first().click();

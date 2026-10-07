@@ -16,12 +16,16 @@ beforeEach(() => {
 });
 
 describe('accessibility of the universal import card', () => {
-  it('every panel heading is focusable but not a tab stop, and the first panel that opens receives focus', async () => {
+  // G1: the panels sit behind the state's small link (a closed <details>), so the state's sentence receives the focus
+  // instead of the first panel heading; the panel headings stay focusable without being tab stops.
+  it('every panel heading is focusable but not a tab stop, and the state sentence receives focus', async () => {
     const r = await renderCard();
     await review(r, fileOfFixture(fixtureByName('brightwater_banner.csv')));
     const names = ['Detected format', 'Structure of the table', 'Match columns to SCC fields', 'Review before importing'];
     for (const name of names) expect(screen.getByRole('heading', { name })).toHaveAttribute('tabindex', '-1');
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Detected format' }));
+    const state = document.getElementById('ingest-state-heading') as HTMLElement;
+    expect(state).toHaveAttribute('tabindex', '-1');
+    expect(document.activeElement).toBe(state);
   });
 
   it('a panel that opens while the user is working in another panel does not steal focus', async () => {

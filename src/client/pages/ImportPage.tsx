@@ -1,12 +1,10 @@
-// The Data Import page (plan §8.6): current data-source summary, an upload card per dataset kind (column
-// reference, template download, drag-and-drop file picker, client-side pre-checks, server-validation error
-// table), and a confirm-then-reset "Restore sample data" card. V1.5: a file whose headers are not already canonical
-// goes through a column-mapping step (ColumnMappingPanel) before the upload; canonical files upload directly as in V1. V2: an "Import any file" card sits above the two cards
-// (any supported format, structure and column detection, preview, confirm). The two cards keep their DOM and behaviour for
-// every file V1 handles (legacy-first routing); files V1 cannot read (other separators or encodings, other file families)
-// are handed to the universal card, and a rejected file offers "Review as a different format". Demo layout: the universal
-// card is the single way in (with "Try a sample"); the two per-kind cards live, unchanged, in the tabs of the "Column
-// guide" (closed by default) next to their column reference and template.
+// The Data Import page (plan §8.6): one import card in seven states (waiting, reading, ready, one question, errors, cannot
+// import, done with Undo). Under the card's "More" (closed by default): the other samples, paste, templates, the "Column
+// guide" whose tabs keep an upload card per dataset kind (column reference, template download, file picker, client-side
+// pre-checks, server-validation error table; V1.5: a file whose headers are not already canonical goes through a
+// column-mapping step before the upload), and a confirm-then-reset "Restore sample data" card. The per-kind cards keep
+// their DOM and behaviour for every file V1 handles (legacy-first routing); files V1 cannot read are handed to the import
+// card, and a rejected file offers "Review as a different format".
 
 import { useEffect, useId, useRef, useState } from 'react';
 import type { DragEvent } from 'react';
@@ -30,7 +28,6 @@ import { detectFormat, makeHints } from '../../shared/ingest/detect/arbiter';
 import { HEAD_BYTES } from '../../shared/ingest/detect/bytes';
 import { unsupportedTypeMessage } from '../../shared/ingest/messages';
 import { routeFile } from '../ingest/runner';
-import { displaySourceLabel } from '../import/sampleFiles';
 
 const GUIDE_TABS: ReadonlyArray<readonly [ImportKind, string]> = [
   ['inventory', 'Inventory'],
@@ -352,9 +349,8 @@ function ImportCard({ kind, title, description, columns, templateHref, chooseLab
   );
 }
 
-/** The Data Import page (plan §8.6): data-source summary, upload cards, and "Restore sample data". */
+/** The Data Import page (plan §8.6): the import card; under its "More", the column guide with the per-kind uploads and "Restore sample data". */
 export function ImportPage() {
-  const snapshot = useSnapshot();
   const { api, refresh } = useData();
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -384,40 +380,10 @@ export function ImportPage() {
     }
   }
 
-  return (
-    <div className="page">
-      <PageStage title="Data Import">
-        <div className="import-stage">
-          {/* The current data as figures: rows per dataset, with its source and when it was loaded. */}
-          <section className="figure-stage__group import-stage__sources" aria-labelledby="import-current">
-            <h2 className="figure-stage__label" id="import-current">
-              Current data sources
-            </h2>
-            <ul className="figure-stage__figures import-sources">
-              {(
-                [
-                  ['Inventory rows', snapshot.dataSources.inventory],
-                  ['Shipment rows', snapshot.dataSources.shipments]
-                ] as const
-              ).map(([label, source]) => (
-                <li key={label} className="stage-figure">
-                  <span className="stage-figure__value">{source.rowCount.toLocaleString('en-US')}</span>
-                  <span className="stage-figure__label">{label}</span>
-                  <span className="stage-figure__detail">{displaySourceLabel(source.label)}</span>
-                  <span className="stage-figure__detail">{`loaded ${new Date(source.loadedAt).toLocaleString('en-US')}`}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-      </PageStage>
-
-      <div className="page-floor import-floor">
-        <UniversalImportCard incoming={incoming} />
-
-        {/* Column guide: the documented columns per dataset, closed by default. Each tab keeps that dataset's direct
-            upload (the per-kind card) next to its template. The inactive tab is hidden by CSS (display: none), so both
-            cards stay mounted and keep their state. */}
+  // Under "More", after the card's own tools: the column guide (each tab keeps that dataset's direct upload, the per-kind
+  // card, next to its template; the inactive tab is hidden by CSS so both cards keep their state) and Restore sample data.
+  const more = (
+    <>
         <details className="column-guide">
           <summary className="column-guide__summary">Column guide</summary>
           <div className="column-guide__tabs" role="tablist" aria-label="Datasets">
@@ -484,6 +450,14 @@ export function ImportPage() {
           )}
           {resetBanner !== null && <Banner tone={resetBanner.tone} title={resetBanner.title} />}
         </Card>
+    </>
+  );
+
+  return (
+    <div className="page">
+      <PageStage title="Data Import" />
+      <div className="page-floor import-floor">
+        <UniversalImportCard incoming={incoming} more={more} />
       </div>
     </div>
   );

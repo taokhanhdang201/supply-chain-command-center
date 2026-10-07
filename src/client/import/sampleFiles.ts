@@ -1,6 +1,6 @@
-// "Try a sample" for the demo: CSV files built in the browser from the existing sample-data generator (with a seed other
-// than the one the app starts with, so an import visibly changes every page), plus a short shipments file with a few
-// broken rows that the review blocks. The files go through the same import flow as a file the user chooses.
+// The demo files, built in the browser from the existing sample-data generator (with a seed other than the one the app
+// starts with, so an import visibly changes every page): the carrier export behind "No file? Try one.", and under "More" an
+// inventory file and a short shipments file with a few broken rows. They go through the same flow as a chosen file.
 
 import { generateSampleData } from '../../shared/sample/generateSampleData';
 import { INVENTORY_COLUMNS, SHIPMENT_COLUMNS } from '../../shared/csv/schemas';
@@ -9,19 +9,12 @@ import type { DayString, ImportKind, InventoryRecord, ShipmentRecord } from '../
 /** The seed of the demo samples: the app starts on seed 42, so seed 7 changes every figure. */
 export const SAMPLE_SEED = 7;
 
-export type SampleId = 'shipments' | 'inventory' | 'errors';
+export type SampleId = 'shipments' | 'inventory' | 'errors' | 'carrier-export';
 
-export interface SampleOption {
-  id: SampleId;
-  label: string;
-  /** What the sample is for, shown in the menu. */
-  note: string;
-}
-
-export const SAMPLE_OPTIONS: readonly SampleOption[] = [
-  { id: 'shipments', label: 'Shipments sample', note: 'A full shipments file to import' },
-  { id: 'inventory', label: 'Inventory sample', note: 'A full inventory file to import' },
-  { id: 'errors', label: 'Sample with errors', note: 'A few broken rows: see how errors are reported' }
+/** The secondary samples under "More" (the main demo is "No file? Try one.", the carrier export). */
+export const MORE_SAMPLES: ReadonlyArray<{ id: SampleId; label: string }> = [
+  { id: 'errors', label: 'Try a file with errors' },
+  { id: 'inventory', label: 'Try an inventory file' }
 ];
 
 /** A sample file name the server keeps as the data-source label (it allows letters, digits, dot, dash, underscore). */
@@ -84,9 +77,50 @@ function errorSampleCsv(shipments: readonly ShipmentRecord[]): string {
   return toCsv(SHIPMENT_HEADER, rows);
 }
 
+/** The demo's file name; the server keeps it as the data-source label. */
+export const CARRIER_EXPORT_NAME = 'carrier-export.csv';
+
+/** The demo: a carrier's own export of the seed 7 shipments, the way real exports look. */
+export const CARRIER_EXPORT_HEADER = ['Load ID', 'From', 'To', 'Transporter', 'Shipment Status', 'Dispatch Date', 'ETA', 'Delivered Date', 'Freight Cost'] as const;
+
+/** 15.03.2026 */
+const dayDotMonth = (iso: string): string => `${iso.slice(8, 10)}.${iso.slice(5, 7)}.${iso.slice(0, 4)}`;
+/** 3/15/2026 (no leading zeros) */
+const monthSlashDay = (iso: string): string => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}`;
+/** "$1,812.40" */
+const dollars = (cents: number): string => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/**
+ * Carrier words for the statuses. Every other in-transit shipment says "Arrived", which can mean in transit (at a
+ * terminal) or delivered: SCC asks instead of guessing. "Booked" is a known word for pending.
+ */
+function carrierStatus(status: string, inTransitIndex: number): string {
+  if (status === 'in_transit') return inTransitIndex % 2 === 0 ? 'Arrived' : 'In transit';
+  return { pending: 'Booked', delivered: 'Delivered', cancelled: 'Cancelled' }[status] ?? status;
+}
+
+/** How many shipments of the demo say "Arrived" (the demo's one question). */
+export function arrivedCount(shipments: readonly ShipmentRecord[]): number {
+  return Math.ceil(shipments.filter((s) => s.status === 'in_transit').length / 2);
+}
+
+function carrierExportCsv(shipments: readonly ShipmentRecord[]): string {
+  // A value that needs no quotes gets a space on each side, as some exports write them; quoted values cannot carry one.
+  const cell = (v: string): string => (/[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : ` ${v} `);
+  let inTransit = 0;
+  const rows = shipments.map((r) => {
+    const status = carrierStatus(r.status, r.status === 'in_transit' ? inTransit++ : 0);
+    return [r.shipmentId, r.origin, r.destination, r.carrier, status, r.shipDate, r.estimatedDelivery === null ? '' : dayDotMonth(r.estimatedDelivery), r.actualDelivery === null ? '' : monthSlashDay(r.actualDelivery), dollars(r.shippingCostCents)].map(cell).join(',');
+  });
+  return [CARRIER_EXPORT_HEADER.map((h) => ` ${h} `).join(','), ...rows].join('\n') + '\n';
+}
+
 /** Builds one sample as a File, ready for the import flow. Everything happens in the browser. */
 export function buildSampleFile(id: SampleId, today: DayString, seed = SAMPLE_SEED): File {
   const data = generateSampleData({ seed, today });
+  if (id === 'carrier-export') {
+    return new File([carrierExportCsv(data.shipments)], CARRIER_EXPORT_NAME, { type: 'text/csv' });
+  }
   if (id === 'inventory') {
     return new File([toCsv(INVENTORY_HEADER, data.inventory.map(inventoryRow))], sampleFileName('inventory', seed), { type: 'text/csv' });
   }

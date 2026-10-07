@@ -37,7 +37,7 @@ import { normalizeHeader } from './mapping/normalizeHeader';
 import { distinctValues, mapStatusValues, mapWarehouseValues, summarizeLocations, type ValueMapEntry } from './mapping/valueMaps';
 import { detectDatePreset, detectNumberPreset, type PresetOutcome } from './normalize/detectPreset';
 import { NUMBER_PRESET_LABEL, decideCurrency, scanCurrency, type NumberPreset } from './normalize/numbers';
-import { DATE_PRESETS, DATE_PRESET_EXAMPLE, type DatePreset } from './normalize/dates';
+import { compatibleDatePresets, DATE_PRESETS, DATE_PRESET_EXAMPLE, type DatePreset } from './normalize/dates';
 import { fieldsOf, isDateField, isNumberField, type FieldInfo } from './canonical/schemaRegistry';
 import { buildCanonicalCsv, type BuildOutput } from './canonical/buildCsv';
 import { dryRun, type DryRunResult } from './validate/dryRun';
@@ -164,6 +164,8 @@ interface DateColumnResolution {
   view: PresetView<DatePreset>;
   /** A value from the column, for the question shown to the user. */
   example: string;
+  /** A value that only the settled format can read (it proves the format), or null. */
+  proof: string | null;
 }
 
 interface DateColumnsResolved {
@@ -192,7 +194,8 @@ function resolveDateColumns(columns: ReadonlyArray<{ field: string; header: stri
     const answer = perColumn.get(c.field) ?? fileWide;
     if (c.texts.length === 0 && answer === undefined) continue;
     const { view, effective } = presetView(detectDatePreset(c.texts), answer, 'iso' as DatePreset, (p) => DATE_PRESET_EXAMPLE[p]);
-    const entry = { field: c.field, header: c.header, view, example: c.texts[0] ?? '' };
+    const proof = effective === null ? null : (c.texts.find((t) => { const fits = compatibleDatePresets(t); return fits.length === 1 && fits[0] === effective; }) ?? null);
+    const entry = { field: c.field, header: c.header, view, example: (c.texts[0] ?? '').trim().slice(0, 40), proof: proof === null ? null : proof.trim().slice(0, 40) };
     out.columns.push(entry);
     if (effective === null) out.open.push(entry);
     else out.byField.set(c.field, effective);
@@ -624,7 +627,7 @@ export async function analyzeFile(input: PipelineInput, env: PipelineEnv): Promi
     presets: {
       number: numberTexts.length === 0 && decisions.numberPreset === undefined ? null : numberResolved.view,
       date: dates.view,
-      dateColumns: dates.columns.map((c) => ({ field: c.field, header: c.header, view: c.view })),
+      dateColumns: dates.columns.map((c) => ({ field: c.field, header: c.header, view: c.view, example: c.example, proof: c.proof })),
       currency: { kind: currencyKind, markers: currencyMarkers, message: currencyMessage },
       timestampsStripped: build.stats.timestampsStripped,
       placeholders: build.stats.placeholders,

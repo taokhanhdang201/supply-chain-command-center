@@ -67,7 +67,8 @@ function ReadyOnly({ children }: { children: ReactNode }) {
 const CSV = 'sku,product_name,category,warehouse,quantity,reorder_point,unit_cost\nA-1,Bolt,Hardware,WH-DFW,3,1,9.5\n';
 
 describe('flow: runs, cancel and supersede', () => {
-  it('shows progress while reading, with the card marked busy and a Start over that terminates the run and returns focus to the picker', async () => {
+  // G1: the reading state's small link is "Cancel" (it used to be "Start over"); it does the same thing.
+  it('shows progress while reading, with the card marked busy and a Cancel that terminates the run and returns focus to the picker', async () => {
     const runner = new ManualRunner();
     const { user } = await renderWith(runner);
     const picker = screen.getByLabelText(DROPZONE_LABEL) as HTMLInputElement;
@@ -76,11 +77,12 @@ describe('flow: runs, cancel and supersede', () => {
     expect(document.querySelector('[data-ingest-card]')?.getAttribute('aria-busy')).toBe('true');
     act(() => runner.runs[0]?.progress?.('read', 0.25));
     expect(await screen.findByText(/Reading the data \(25%\)…/)).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Start over' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(runner.runs[0]?.cancelled).toBe(true);
     expect(document.activeElement).toBe(picker);
     expect(document.querySelector('[data-ingest-card]')?.getAttribute('aria-busy')).toBe('false');
-    expect(screen.queryByRole('button', { name: 'Start over' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+    expect(screen.getByText('Drop your file')).toBeInTheDocument(); // back to waiting
     expect(screen.queryByRole('heading', { name: 'Detected format' })).not.toBeInTheDocument();
   });
 

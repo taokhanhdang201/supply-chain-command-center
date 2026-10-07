@@ -39,7 +39,7 @@ describe('nothing file-derived is logged', () => {
     await acknowledgeAll(r.user);
     await waitFor(() => expect(confirmButton()).toBeEnabled());
     await r.user.click(confirmButton());
-    await screen.findByText(/All views are updated\./);
+    await screen.findByRole('heading', { name: 'Done. Dashboard updated.' }); // G1: the done state (it used to read "... All views are updated.")
     expect(calls).toEqual([]);
     expect(windowErrors).toEqual([]);
   });
@@ -71,7 +71,7 @@ describe('nothing file-derived is logged', () => {
     await acknowledgeAll(r.user);
     await waitFor(() => expect(confirmButton()).toBeEnabled());
     await r.user.click(confirmButton());
-    await screen.findByText('The file was rejected: 1 problem(s) found. No data was changed.');
+    await screen.findByRole('heading', { name: 'The file was rejected: 1 problem(s) found.' }); // G1: the rejected state's sentence
     await settled();
     expect(calls).toEqual([]);
     expect(windowErrors).toEqual([]);

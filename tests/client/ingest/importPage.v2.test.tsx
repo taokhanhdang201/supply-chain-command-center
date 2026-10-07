@@ -139,14 +139,16 @@ describe('legacy-first routing and the handoff to the universal card', () => {
     await user.click(importButtons()[0] as HTMLElement);
     const format = await screen.findByRole('heading', { name: 'Detected format' });
     expect(format).toBeInTheDocument();
-    expect(document.activeElement).toBe(format);
+    // G1: a handed-over file takes the focus to the state's sentence (it used to go to the first panel, which now sits
+    // behind the state's small link), even though the click came from the per-kind card under More
+    await waitFor(() => expect(document.activeElement).toBe(document.getElementById('ingest-state-heading')));
     const group = screen.getByRole('group', { name: /What does this file contain\?/ });
     expect((within(group).getByRole('radio', { name: /Inventory/ }) as HTMLInputElement).checked).toBe(true);
     expect(within(group).getByText('Chosen by you')).toBeInTheDocument();
     expect(screen.getByText(/Semicolon/)).toBeInTheDocument();
     expect(importCsv).not.toHaveBeenCalled();
     // the per-kind card was reset
-    expect(screen.queryByText(/stock\.csv \(/)).toBeInTheDocument(); // shown by the universal card
+    expect(screen.getAllByText(/stock\.csv/).length).toBeGreaterThan(0); // named by the universal card (G1: no "name (size)" line)
     expect(inventoryPicker().value).toBe('');
   });
 
@@ -167,7 +169,7 @@ describe('legacy-first routing and the handoff to the universal card', () => {
     await screen.findByRole('heading', { name: 'Review before importing' });
     await waitFor(() => expect(screen.getByRole('button', { name: CONFIRM_NAME })).toBeEnabled());
     await user.click(screen.getByRole('button', { name: CONFIRM_NAME }));
-    await screen.findByText(/All views are updated\./);
+    await screen.findByRole('heading', { name: 'Done. Dashboard updated.' }); // G1: the done state (it used to read "... All views are updated.")
     const args = importCsv.mock.calls[0] as unknown[];
     expect(args).toHaveLength(2);
     expect(args[0]).toBe('inventory');

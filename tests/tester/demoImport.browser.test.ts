@@ -1,8 +1,9 @@
 // Demo import, end to end in real Chromium against the real server (its own seed-42 store, since importing changes
-// the data): "Try a sample" takes the shipments and the inventory samples through Columns and Preview to a successful
-// import, and the figures on the Dashboard, Shipments, Routes, Alerts and Inventory change; the sample with errors is
-// blocked with its problems grouped by column; at 390px nothing scrolls sideways; "Restore sample data" asks first and
-// brings both datasets back to seed 42.
+// the data). G1: "No file? Try one." takes the carrier export through its one question to the import in three clicks and
+// the figures on the Dashboard, Shipments, Routes, Alerts change; Undo brings them back; the inventory file under More
+// changes Inventory; the file with errors stops at "has errors" with its problems grouped by column; at 390px nothing
+// scrolls sideways in any state; "Restore sample data" asks first and brings both datasets back to seed 42.
+// (Before G1 this file drove the "Try a sample" menu, the step bar and the stage figures, all replaced by the states.)
 // OPT-IN (`*.browser.test.ts`). Run: npm run build && npm run test:browser
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
@@ -20,7 +21,7 @@ const CHROME = process.env.SCC_CHROME || undefined;
 const TODAY = '2026-06-15';
 const SEED7 = generateSampleData({ seed: 7, today: TODAY });
 
-describe('demo import with the samples (real Chromium, real server)', () => {
+describe('demo import (real Chromium, real server)', () => {
   let server: ReturnType<typeof createAppServer>;
   let base = '';
   let browser: any;
@@ -52,65 +53,96 @@ describe('demo import with the samples (real Chromium, real server)', () => {
     return { ctx, page };
   };
 
-  /** What a page leads with: its stage figures (the Dashboard: its hero). */
-  const lead = async (page: any, hash: string): Promise<string> => {
+  /** What a page leads with: its stage figures (the Dashboard: its hero). `reload` reads the server afresh (a second tab
+   *  that only changes the hash keeps the snapshot it loaded). */
+  const lead = async (page: any, hash: string, reload = false): Promise<string> => {
     await page.goto(`${base}/#/${hash}`);
+    if (reload) await page.reload();
     await page.waitForTimeout(600);
     const sel = hash === '' ? '.hero' : '.figure-stage';
     return ((await page.locator(sel).first().innerText()) as string).replace(/\s+/g, ' ');
   };
 
-  const trySample = async (page: any, name: RegExp) => {
-    await page.getByText('Try a sample').click();
-    await page.getByRole('button', { name }).click();
-    await page.waitForFunction(() => document.querySelector('.ingest-headline') !== null && document.querySelector('[data-ingest-card]')?.getAttribute('aria-busy') === 'false');
+  const idle = (page: any) => page.waitForFunction(() => document.querySelector('[data-ingest-card]')?.getAttribute('aria-busy') === 'false');
+  const heading = async (page: any, name: string) => {
+    await page.getByRole('heading', { name, exact: true }).waitFor();
+    await idle(page);
+  };
+  const openMore = async (page: any) => {
+    if (!(await page.locator('.ingest-more').evaluate((d: HTMLDetailsElement) => d.open))) await page.locator('.ingest-more > summary').click();
   };
 
-  const PAGES = ['', 'shipments', 'routes', 'alerts', 'inventory'] as const;
+  /** Clicks 1 and 2: the demo file and its one question; ends on "Ready". */
+  const tryOne = async (page: any) => {
+    await page.getByRole('button', { name: 'No file? Try one.' }).click();
+    await heading(page, 'What does “Arrived” mean?');
+    await page.getByRole('button', { name: 'In transit', exact: true }).click();
+    await heading(page, `${SEED7.shipments.length} shipments. Ready.`);
+  };
 
-  it('imports the shipments and then the inventory sample in a few clicks, and every page changes', async () => {
+  const SHIPMENT_PAGES = ['', 'shipments', 'routes', 'alerts'] as const;
+
+  it('three clicks import the carrier export and the Dashboard changes; Undo brings it back', async () => {
+    const { ctx, page } = await open(1440, 'import');
+    const other = await ctx.newPage();
+    const before: Record<string, string> = {};
+    for (const p of SHIPMENT_PAGES) before[p] = await lead(other, p, true);
+
+    await tryOne(page);
+    await page.getByRole('button', { name: 'Use this data' }).click();
+    await heading(page, 'Done. Dashboard updated.');
+    expect(await page.getByText(`${SEED7.shipments.length} shipments from carrier-export.csv.`).count()).toBe(1);
+    for (const p of SHIPMENT_PAGES) expect(await lead(other, p, true), `#/${p} after the import`).not.toBe(before[p]);
+
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await heading(page, 'Undone. The data is back as it was.');
+    for (const p of SHIPMENT_PAGES) expect(await lead(other, p, true), `#/${p} after Undo`).toBe(before[p]);
+    await ctx.close();
+  });
+
+  it('the carrier export and the inventory file under More change every page; the top bar names the new sources', async () => {
     const { ctx, page } = await open(1440, 'import');
     const before: Record<string, string> = {};
-    for (const p of PAGES) before[p] = await lead(page, p);
+    for (const p of [...SHIPMENT_PAGES, 'inventory']) before[p] = await lead(page, p);
 
     await page.goto(`${base}/#/import`);
-    await trySample(page, /^Shipments sample/);
-    expect(await page.locator('[aria-current="step"]').textContent()).toBe('Preview');
-    expect(await page.getByText('All 9 columns matched.').count()).toBe(1);
-    expect(await page.locator('.ingest-headline').textContent()).toBe(`${SEED7.shipments.length} rows · 0 errors · replaces 480 current shipments`);
-    const ship = page.getByRole('button', { name: `Import ${SEED7.shipments.length} shipments` });
-    expect(await ship.isEnabled()).toBe(true);
-    await ship.click();
-    await page.getByText(/All views are updated\./).waitFor();
-    expect(await page.locator('[aria-current="step"]').textContent()).toBe('Import');
-    expect(await page.getByRole('link', { name: 'View shipments' }).getAttribute('href')).toBe('#/shipments');
+    await tryOne(page);
+    await page.getByRole('button', { name: 'Use this data' }).click();
+    await heading(page, 'Done. Dashboard updated.');
+    await openMore(page);
+    await page.getByRole('button', { name: 'Try an inventory file' }).click();
+    await heading(page, `${SEED7.inventory.length} inventory items. Ready.`);
+    await page.getByRole('button', { name: 'Use this data' }).click();
+    await heading(page, 'Done. Dashboard updated.');
 
-    await trySample(page, /^Inventory sample/);
-    await page.getByRole('button', { name: `Import ${SEED7.inventory.length} inventory items` }).click();
-    await page.getByText(/All views are updated\./).waitFor();
-    expect(await page.getByRole('link', { name: 'View inventory' }).getAttribute('href')).toBe('#/inventory');
-
-    for (const p of PAGES) expect(await lead(page, p), `#/${p} after the sample imports`).not.toBe(before[p]);
-    await page.goto(`${base}/#/import`);
-    await page.waitForTimeout(400);
-    const sources = ((await page.locator('.import-sources').innerText()) as string).replace(/\s+/g, ' ');
-    expect(sources).toMatch(/360 Inventory rows Sample data \(seed 7\)/);
-    expect(sources).toMatch(/480 Shipment rows Sample data \(seed 7\)/);
+    for (const p of [...SHIPMENT_PAGES, 'inventory']) expect(await lead(page, p), `#/${p} after the imports`).not.toBe(before[p]);
+    expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Inventory: Sample data (seed 7)', 'Shipments: carrier-export.csv']);
     await ctx.close();
   });
 
-  it('the sample with errors is blocked: the Import button is locked and the problems are grouped by column', async () => {
+  it('the file with errors stops at "has errors", in red, with the problems grouped by column behind "See every problem"', async () => {
     const { ctx, page } = await open(1440, 'import');
-    await trySample(page, /^Sample with errors/);
-    expect(await page.locator('.ingest-headline').textContent()).toMatch(/^20 rows · 7 errors · /);
-    expect(await page.getByRole('button', { name: 'Import 20 shipments' }).isDisabled()).toBe(true);
+    await openMore(page);
+    await page.getByRole('button', { name: 'Try a file with errors' }).click();
+    await heading(page, '7 rows need fixing.');
+    expect(await page.getByText('Lines 5, 7, 10 and 4 more. Nothing was imported.').count()).toBe(1);
+    const colors = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.color = 'var(--critical)';
+      document.body.append(probe);
+      const critical = getComputedStyle(probe).color;
+      probe.remove();
+      return { critical, border: getComputedStyle(document.querySelector('.ingest-state') as Element).borderLeftColor };
+    });
+    expect(colors.border).toBe(colors.critical);
+    await page.getByText('See every problem').click();
     const groups = await page.locator('.ingest-error-groups__where').allTextContents();
     expect(groups).toEqual(['ship_date: 3 rows, lines 5, 10, 16', 'shipment_id: 2 rows, lines 7, 13', 'shipping_cost: 2 rows, lines 12, 19']);
-    expect(await page.locator('.ingest-error-groups').evaluate((e: Element) => e.closest('.banner')?.className)).toContain('banner--critical');
+    expect(await page.getByRole('button', { name: 'Import 20 shipments' }).isDisabled()).toBe(true);
     await ctx.close();
   });
 
-  it('at 390px the drop area is a "Choose CSV file" button, the sample menu fits, and nothing scrolls sideways', async () => {
+  it('at 390px the waiting state, More, the question, Ready with its details and "has errors" fit, and nothing scrolls sideways', async () => {
     const { ctx, page } = await open(390, 'import');
     const sideways = () =>
       page.evaluate(() => ({
@@ -119,29 +151,45 @@ describe('demo import with the samples (real Chromium, real server)', () => {
           .filter((e) => e.scrollWidth > e.clientWidth + 1 && !['visible', 'hidden', 'clip'].includes(getComputedStyle(e).overflowX))
           .map((e) => String((e as HTMLElement).className))
       }));
-    expect(((await page.locator('.ingest-card .dropzone').innerText()) as string).trim()).toBe('Choose CSV file');
-    await page.getByText('Try a sample').click();
-    const box = await page.getByRole('button', { name: /^Shipments sample/ }).boundingBox();
-    expect(box.x + box.width).toBeLessThanOrEqual(390);
-    await page.getByText('Try a sample').click();
-    for (const name of [/^Shipments sample/, /^Sample with errors/]) {
-      await trySample(page, name);
+    const fits = async (label: string) => {
       const m = await sideways();
-      expect(m.page, String(name)).toBeLessThanOrEqual(0);
-      expect(m.inner, String(name)).toEqual([]);
-    }
+      expect(m.page, label).toBeLessThanOrEqual(0);
+      expect(m.inner, label).toEqual([]);
+    };
+    const drop = ((await page.locator('.ingest-drop').innerText()) as string).replace(/\s+/g, ' ').trim();
+    expect(drop).toBe('Drop your file CSV, TSV, TXT or GZ file. Up to 2 MB. Choose a file');
+    await fits('waiting');
+    await openMore(page);
+    const box = await page.getByRole('button', { name: 'Try a file with errors' }).boundingBox();
+    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    await fits('More open');
+    await page.locator('.ingest-more > summary').click();
+
+    await page.getByRole('button', { name: 'No file? Try one.' }).click();
+    await heading(page, 'What does “Arrived” mean?');
+    await fits('question');
+    await page.getByRole('button', { name: 'In transit', exact: true }).click();
+    await heading(page, `${SEED7.shipments.length} shipments. Ready.`);
+    await fits('ready');
+    await page.locator('#ingest-details > summary').click();
+    await fits('ready, details open');
+
+    await openMore(page);
+    await page.getByRole('button', { name: 'Try a file with errors' }).click();
+    await heading(page, '7 rows need fixing.');
+    await fits('has errors');
     await ctx.close();
   });
 
   it('"Restore sample data" asks first, then brings both datasets back to seed 42', async () => {
     const { ctx, page } = await open(1440, 'import');
+    await openMore(page);
     await page.getByRole('button', { name: 'Restore sample data' }).click();
-    expect(await page.getByText(/Sample data \(seed 7\)/).count()).toBeGreaterThan(0); // nothing changed yet
+    expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Inventory: Sample data (seed 7)', 'Shipments: carrier-export.csv']); // nothing changed yet
     await page.getByRole('button', { name: 'Replace data' }).click();
     await page.getByText('Sample data restored.').waitFor();
-    const sources = ((await page.locator('.import-sources').innerText()) as string).replace(/\s+/g, ' ');
-    expect(sources).toMatch(/360 Inventory rows Sample data \(seed 42\)/);
-    expect(sources).toMatch(/480 Shipment rows Sample data \(seed 42\)/);
+    await page.waitForFunction(() => [...document.querySelectorAll('.topbar__chip')].every((c) => /seed 42/.test(c.textContent ?? '')));
+    expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Inventory: Sample data (seed 42)', 'Shipments: Sample data (seed 42)']);
     await ctx.close();
   });
 });

@@ -14,13 +14,15 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+// G1: the paste box sits under "More" and reads "Paste rows from a spreadsheet" (it used to read "Paste data instead").
+const PASTE = /Paste rows from a spreadsheet/;
 const mappingText = (): string => (document.querySelector('[data-ingest-panel="mapping"]') as HTMLElement).textContent as string;
 const summary = (): string => (screen.getByText(/rows read/) as HTMLElement).textContent as string;
 
 describe('paste box', () => {
   it('is a disclosure: a button with aria-expanded and aria-controls, the text area only when open', async () => {
     const r = await renderCard();
-    const toggle = screen.getByRole('button', { name: /Paste data instead/ });
+    const toggle = screen.getByRole('button', { name: PASTE });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     await r.user.click(toggle);
@@ -40,7 +42,7 @@ describe('paste box', () => {
     cleanup();
 
     const pasted = await renderCard();
-    await pasted.user.click(screen.getByRole('button', { name: /Paste data instead/ }));
+    await pasted.user.click(screen.getByRole('button', { name: PASTE }));
     await pasted.user.click(screen.getByRole('textbox'));
     await pasted.user.paste(fixture.text);
     await pasted.user.click(screen.getByRole('button', { name: 'Review pasted data' }));
@@ -51,7 +53,7 @@ describe('paste box', () => {
     expect(pasted.runner.jobs.at(-1)?.fileName).toBe('Pasted data');
     await acknowledgeAll(pasted.user);
     await pasted.user.click(confirmButton());
-    await screen.findByText(/All views are updated\./);
+    await screen.findByRole('heading', { name: 'Done. Dashboard updated.' }); // G1: the done state (it used to read "... All views are updated.")
     const sent = pasted.importCsv.mock.calls[0] as unknown[];
     expect(sent).toHaveLength(2);
     expect((sent[1] as File).name).toBe('Pasted data');
@@ -59,7 +61,7 @@ describe('paste box', () => {
 
   it('pasted text that is blank, or not a table, is refused with the catalogue text', async () => {
     const r = await renderCard();
-    await r.user.click(screen.getByRole('button', { name: /Paste data instead/ }));
+    await r.user.click(screen.getByRole('button', { name: PASTE }));
     await r.user.click(screen.getByRole('textbox'));
     await r.user.paste('just one line of words');
     await r.user.click(screen.getByRole('button', { name: 'Review pasted data' }));

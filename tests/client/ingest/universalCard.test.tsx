@@ -23,8 +23,10 @@ describe('universal import card: states', () => {
     expect(screen.queryByRole('button', { name: 'Review file' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Import' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Start over' })).not.toBeInTheDocument();
-    // the supported-format sentence and the file picker hint come from the registry
-    expect(screen.getByText(/You can import Delimited text \(\.csv, \.tsv, \.txt\)/)).toBeInTheDocument();
+    // G1: the waiting state shows one line made from the registry and the size limit (it used to show the full
+    // "You can import ..." sentence, which now sits behind "What SCC can read"); the file picker hint comes from the registry
+    expect(screen.getByText('CSV, TSV, TXT or GZ file. Up to 2 MB.')).toBeInTheDocument();
+    expect(screen.queryByText(/You can import/)).not.toBeInTheDocument();
     expect(r.picker().getAttribute('accept')).toContain('.csv');
     expect(r.picker().getAttribute('accept')).toContain('.gz');
   });
@@ -47,7 +49,10 @@ describe('universal import card: states', () => {
     await acknowledgeAll(r.user);
     await waitFor(() => expect(confirmButton()).toBeEnabled());
     await r.user.click(confirmButton());
-    await screen.findByText(/Imported 12 shipments rows from alder_freight\.csv\. All views are updated\./);
+    // G1: the done state says "Done. Dashboard updated." and names what came in (it used to read "Imported 12 shipments
+    // rows from alder_freight.csv. All views are updated."); its sentence takes the focus
+    const done = await screen.findByRole('heading', { name: 'Done. Dashboard updated.' });
+    expect(screen.getByText('12 shipments from alder_freight.csv.')).toBeInTheDocument();
     expect(r.importCsv).toHaveBeenCalledTimes(1);
     const args = r.importCsv.mock.calls[0] as unknown[];
     expect(args).toHaveLength(2);
@@ -61,8 +66,8 @@ describe('universal import card: states', () => {
       fr.readAsText(sent);
     });
     expect(text.split('\n')[0]).toBe('shipment_id,origin,destination,carrier,status,ship_date,estimated_delivery,actual_delivery,shipping_cost');
-    const banner = screen.getByText(/Imported 12 shipments rows/).closest('[tabindex="-1"]') as HTMLElement;
-    await waitFor(() => expect(document.activeElement).toBe(banner));
+    expect(done).toHaveAttribute('tabindex', '-1');
+    await waitFor(() => expect(document.activeElement).toBe(done));
     // the review is gone, nothing is left selected
     expect(screen.queryByRole('heading', { name: 'Review before importing' })).not.toBeInTheDocument();
     expect(r.picker().value).toBe('');
@@ -77,7 +82,9 @@ describe('universal import card: states', () => {
     await acknowledgeAll(r.user);
     await waitFor(() => expect(confirmButton()).toBeEnabled());
     await r.user.click(confirmButton());
-    expect(await screen.findByText('The file was rejected: 1 problem(s) found. No data was changed.')).toBeInTheDocument();
+    // G1: the server message is shown as the state's sentence and line (it used to be one banner)
+    expect(await screen.findByRole('heading', { name: 'The file was rejected: 1 problem(s) found.' })).toBeInTheDocument();
+    expect(screen.getByText('No data was changed.')).toBeInTheDocument();
     expect(screen.getByText('Value is required.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Review before importing' })).toBeInTheDocument();
   });
@@ -94,7 +101,13 @@ describe('universal import card: states', () => {
   it('refuses a file of an unknown type with the registry text and never calls the api', async () => {
     const r = await renderCard();
     await review(r, fileOf(new Uint8Array(100), 'data.xlsx', 'application/vnd.ms-excel'));
-    expect(await screen.findByText(/This looks like a binary file\. SCC cannot import that type\./)).toBeInTheDocument();
+    // G1: the refusal is the "cannot import" state: its first sentence is the heading, the rest is the line, and the full
+    // list of what SCC reads sits behind "What SCC can read"
+    expect(await screen.findByRole('heading', { name: 'This looks like a binary file.' })).toBeInTheDocument();
+    expect(screen.getByText('SCC reads text files (CSV, TSV and plain text).')).toBeInTheDocument(); // the one line: the registry's hint
+    expect(screen.getByText('What SCC can read')).toBeInTheDocument();
+    expect(screen.getByText(/You can import Delimited text \(\.csv, \.tsv, \.txt\)/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Choose another file' })).toBeInTheDocument();
     expect(r.importCsv).not.toHaveBeenCalled();
     expect(screen.queryByRole('heading', { name: 'Detected format' })).not.toBeInTheDocument();
   });
@@ -171,7 +184,8 @@ describe('universal import card: choices and blocking', () => {
     expect(screen.getByRole('heading', { name: 'Review before importing' })).toBeInTheDocument();
     // choosing the new file starts its review at once; nothing of the previous review is left
     await r.user.upload(r.picker(), fileOf(SAMPLE_COMMA_CSV, 'stock.csv'));
-    expect(screen.getByText(/^stock\.csv \(/)).toBeInTheDocument();
+    // G1: there is no file-name line any more (state 2 names the file while reading); the old review is gone at once
+    expect(screen.queryByText(/alder_freight\.csv/)).not.toBeInTheDocument();
     await screen.findByRole('heading', { name: 'Review before importing' });
     await settled();
     expect(screen.getByText(/rows from stock\.csv/)).toBeInTheDocument();
@@ -181,7 +195,9 @@ describe('universal import card: choices and blocking', () => {
   it('a file over the source limit is stopped with the text and next step, before any reading', async () => {
     const r = await renderCard({ maxUploadBytes: 1024 });
     await review(r, fileOf(`${SAMPLE_COMMA_CSV}${'x'.repeat(4000)}`, 'big.csv'));
-    expect(await screen.findByText(/File is 0\.0 MB; the limit is 0\.0 MB\. Split the file, remove columns you do not need, or choose fewer rows\./)).toBeInTheDocument();
+    // G1: the "cannot import" state splits the text into its sentence and its next step
+    expect(await screen.findByRole('heading', { name: 'File is 0.0 MB; the limit is 0.0 MB.' })).toBeInTheDocument();
+    expect(screen.getByText('Split the file, remove columns you do not need, or choose fewer rows.')).toBeInTheDocument();
     expect(r.importCsv).not.toHaveBeenCalled();
   });
 });

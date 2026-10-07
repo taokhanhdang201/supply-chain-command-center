@@ -15,6 +15,7 @@ import type { Analysis, Decisions, PipelineInput, PipelineStage } from '../../sh
 import type { DatePreset } from '../../shared/ingest/normalize/dates';
 import type { NumberPreset } from '../../shared/ingest/normalize/numbers';
 import { InlineRunner, WorkerRunner, type IngestRunner } from './runner';
+import { countOf } from './importStory';
 import { useData, useSnapshot } from '../state/DataContext';
 
 export type FlowPhase = 'idle' | 'reading' | 'review' | 'uploading';
@@ -26,6 +27,10 @@ export interface FlowResult {
   warnings?: string[];
   issues?: ImportIssue[];
   totalErrors?: number;
+  /** What was imported; `version` is what the server needs to undo it (absent once undone or when it cannot be). */
+  imported?: { kind: ImportKind; rowCount: number; label: string; version?: number };
+  /** The import was taken back. */
+  undone?: boolean;
 }
 
 export interface SourceInfo {
@@ -63,6 +68,10 @@ export interface IngestFlow {
   /** Clears the flow without moving focus (a new file was chosen). */
   reset(): void;
   confirm(): Promise<void>;
+  /** Takes the last import back (one step); says plainly when the data changed since and it cannot. */
+  undo(): Promise<void>;
+  /** An undo is on its way to the server. */
+  undoing: boolean;
   setOption(key: string, value: string): void;
   acknowledgeChoice(key: string): void;
   setTable(index: number): void;
@@ -73,6 +82,8 @@ export interface IngestFlow {
   acknowledgeColumn(columnIndex: number): void;
   setNumberPreset(preset: NumberPreset | undefined): void;
   setDatePreset(preset: DatePreset | undefined): void;
+  /** The date format of one column (canonical field name). */
+  setDatePresetFor(field: string, preset: DatePreset | undefined): void;
   setStatus(source: string, target: string | undefined): void;
   setWarehouse(source: string, target: string | undefined): void;
   setConstant(field: string, value: string | undefined): void;
@@ -136,6 +147,7 @@ export function useIngestFlow(options: UseIngestFlowOptions = {}): IngestFlow {
   const [decisions, setDecisions] = useState<Decisions>(NO_DECISIONS);
   const [result, setResult] = useState<FlowResult | null>(null);
   const [focus, setFocus] = useState<FocusTarget>(null);
+  const [undoing, setUndoing] = useState(false);
 
   const bytesRef = useRef<Uint8Array | null>(null);
   const nameRef = useRef('');
@@ -302,7 +314,12 @@ export function useIngestFlow(options: UseIngestFlowOptions = {}): IngestFlow {
       if (!mounted.current) return;
       bytesRef.current = null;
       runId.current += 1;
-      setResult({ tone: 'success', title: `Imported ${outcome.rowCount} ${kind} rows from ${outcome.dataSource.label}. All views are updated.`, warnings: outcome.warnings });
+      setResult({
+        tone: 'success',
+        title: `${countOf(kind, outcome.rowCount)} from ${outcome.dataSource.label}.`,
+        warnings: outcome.warnings,
+        imported: { kind, rowCount: outcome.rowCount, label: outcome.dataSource.label, ...(outcome.undo === undefined ? {} : { version: outcome.undo.version }) }
+      });
       setPhase('idle');
       setSource(null);
       setAnalysis(null);
@@ -323,6 +340,28 @@ export function useIngestFlow(options: UseIngestFlowOptions = {}): IngestFlow {
     }
   }, [analysis, api, busy, error, refresh]);
 
+  const undo = useCallback(async (): Promise<void> => {
+    const imported = result?.imported;
+    if (imported?.version === undefined || undoing) return;
+    setUndoing(true);
+    try {
+      await api.undoImport(imported.version);
+      if (!mounted.current) return;
+      setResult({ tone: 'success', title: `Nothing from ${imported.label} was kept.`, undone: true });
+      setFocus('banner');
+      await refresh();
+    } catch (err) {
+      if (!mounted.current) return;
+      const apiErr = err as ApiError;
+      const message = typeof apiErr.message === 'string' && apiErr.message !== '' ? apiErr.message : ingestError('INTERNAL', 'read').message;
+      // the import stays; it just cannot be taken back any more
+      setResult({ tone: 'critical', title: message, imported: { kind: imported.kind, rowCount: imported.rowCount, label: imported.label } });
+      setFocus('banner');
+    } finally {
+      if (mounted.current) setUndoing(false);
+    }
+  }, [api, refresh, result, undoing]);
+
   const change = useCallback((next: Decisions): void => analyze(next), [analyze]);
 
   return {
@@ -341,6 +380,8 @@ export function useIngestFlow(options: UseIngestFlowOptions = {}): IngestFlow {
     cancel,
     reset,
     confirm,
+    undo,
+    undoing,
     setOption: (key, value) => change({ ...keepOptionsOnly(decisions), options: withMap(decisions.options, key, value) }),
     acknowledgeChoice: (key) => change({ ...decisions, acknowledgedChoices: [...new Set([...(decisions.acknowledgedChoices ?? []), key])] }),
     setTable: (index) => change({ ...keepOptionsOnly(decisions), tableIndex: index }),
@@ -362,6 +403,7 @@ export function useIngestFlow(options: UseIngestFlowOptions = {}): IngestFlow {
     acknowledgeColumn: (columnIndex) => change({ ...decisions, acknowledgedColumns: [...new Set([...(decisions.acknowledgedColumns ?? []), columnIndex])] }),
     setNumberPreset: (preset) => change(setOrDrop(decisions, 'numberPreset', preset)),
     setDatePreset: (preset) => change(setOrDrop(decisions, 'datePreset', preset)),
+    setDatePresetFor: (field, preset) => change({ ...decisions, datePresets: withMap(decisions.datePresets, field, preset) }),
     setStatus: (src, target) => change({ ...decisions, statusChoices: withMap(decisions.statusChoices, src, target) }),
     setWarehouse: (src, target) => change({ ...decisions, warehouseChoices: withMap(decisions.warehouseChoices, src, target) }),
     setConstant: (field, value) => change({ ...decisions, constants: withMap(decisions.constants, field, value === undefined || value.trim() === '' ? undefined : value) })
@@ -374,9 +416,12 @@ export function useIngestFlow(options: UseIngestFlowOptions = {}): IngestFlow {
  */
 export function usePanelFocus(headingRef: { current: HTMLElement | null }): void {
   useEffect(() => {
+    const heading = headingRef.current;
+    // a panel folded away behind the details link does not take focus from the question shown above it
+    if (heading === null || heading.closest('details:not([open])') !== null) return;
     const active = typeof document === 'undefined' ? null : document.activeElement;
     const inside = active !== null && active !== document.body && active.closest('[data-ingest-panel]') !== null;
-    if (!inside) headingRef.current?.focus();
+    if (!inside) heading.focus();
     // runs once, when the panel opens
   }, [headingRef]);
 }

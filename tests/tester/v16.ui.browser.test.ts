@@ -174,13 +174,15 @@ describe('V1.6 redesign (real Chromium)', () => {
       ['shipments', ['480 shipments', 'SHP-100200', '$545.08', 'Page 1 of 20']],
       ['alerts', ['Showing 1–25 of 67', 'Out of stock: APP-0005']],
       ['analytics', ['11.17×', 'DIO 32.7 days · 356 of 360 items have usage data', '$1,285.04', '3.1 days', '85.6%', '76.9%', '63.5%', '56.5%', '85.1%', '92.4%']],
-      // The current data sources are stage figures: rows, then the label, then the source.
-      ['import', ['360 Inventory rows Sample data (seed 42)', '480 Shipment rows Sample data (seed 42)']]
+      // G1: Data Import opens on the waiting state (the "Current data sources" figures were removed, G0 §4; the top bar
+      // names each source, checked below)
+      ['import', ['Drop your file', 'CSV, TSV, TXT or GZ file. Up to 2 MB.', 'No file? Try one.']]
     ];
     for (const [hash, vals] of checks) {
       const { ctx, page } = await open(1440, hash);
       const t = await text(page);
       for (const v of vals) expect(t, `${hash}: ${v}`).toContain(v);
+      if (hash === 'import') expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Inventory: Sample data (seed 42)', 'Shipments: Sample data (seed 42)']);
       await ctx.close();
     }
     const { ctx, page } = await open(1440, 'alerts');

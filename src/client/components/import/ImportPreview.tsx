@@ -9,19 +9,14 @@ import type { PreviewModel } from '../../../shared/ingest/preview/model';
 import type { DisplayIssue } from '../../../shared/ingest/validate/dryRun';
 import type { ImportKind } from '../../../shared/types';
 import { usePanelFocus } from '../../ingest/useIngestFlow';
+import { countOf } from '../../ingest/importStory';
 import { Banner } from '../ui/Banner';
 import { Icon } from '../ui/Icon';
 
+export { countOf };
+
 /** The preview shows the first rows only: enough to recognise the data at a glance. */
 const PREVIEW_ROWS = 5;
-
-const KIND_NOUN: Record<ImportKind, [string, string]> = { shipments: ['shipment', 'shipments'], inventory: ['inventory item', 'inventory items'] };
-
-/** "480 shipments", "1 inventory item". */
-export function countOf(kind: ImportKind, n: number): string {
-  const [one, many] = KIND_NOUN[kind];
-  return `${n.toLocaleString('en-US')} ${n === 1 ? one : many}`;
-}
 
 /** The Import button names what it imports: "Import 480 shipments" (or "Import data" before the dataset is known). */
 export function importLabel(kind: ImportKind | null, rows: number | null): string {

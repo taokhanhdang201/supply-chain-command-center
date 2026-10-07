@@ -101,7 +101,7 @@ export interface PreviewModel {
     /** One view for the whole file (the first column still open, else the common format). */
     date: PresetView<DatePreset> | null;
     /** The date format of each date column, settled from that column's own values or by the user. */
-    dateColumns: Array<{ field: string; header: string; view: PresetView<DatePreset> }>;
+    dateColumns: Array<{ field: string; header: string; view: PresetView<DatePreset>; example: string; proof: string | null }>;
     currency: { kind: 'ok' | 'foreign' | 'mixed'; markers: string[]; message: string | null };
     timestampsStripped: number;
     placeholders: number;

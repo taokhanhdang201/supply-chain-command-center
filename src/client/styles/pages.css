@@ -510,23 +510,6 @@
   color: var(--color-text-muted);
 }
 
-/* Data Import composition */
-.import-stage {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--space-8);
-}
-
-.import-stage__sources {
-  --stage-figure-size: clamp(2rem, 1vw + 1.5rem, 2.75rem);
-  grid-column: 1 / span 6;
-}
-
-/* Two datasets, two figures side by side (the shared figure grid has four columns from 768px). */
-.figure-stage__figures.import-sources {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 /* The floor's import cards sit open on the paper under a hairline, like the other ledgers; nested panels keep their
    own surfaces. */
 .import-floor > .card {
@@ -611,94 +594,96 @@
   color: var(--color-text-muted);
 }
 
-@media (max-width: 899px) {
-  .import-stage__sources {
-    grid-column: 1 / -1;
-  }
-}
+/* ---------- Data Import: seven states, one sentence each ---------- */
 
-/* ---------- Data Import: one way in, four steps ---------- */
-
-/* The steps, in sentence case: done ones in ink with a check, the current one marked by the accent rule. */
-.import-steps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-6);
-  margin: 0 0 var(--space-4);
-  padding: 0 0 var(--space-3);
-  list-style: none;
-  border-bottom: 1px solid var(--color-border-subtle);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-subtle);
-}
-
-.import-steps__step {
-  position: relative;
-  padding-bottom: 2px;
-}
-
-.import-steps__step + .import-steps__step::before {
-  content: '→';
+/* The page title already says Data Import: the card's own title stays for assistive tech only. */
+.ingest-card > .card__header {
   position: absolute;
-  left: calc(-1 * var(--space-6) + 4px);
-  color: var(--color-text-subtle);
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
-.import-steps__step.is-done {
+/* Waiting: one large drop area with the sentence, one line and the button. */
+.ingest-drop {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--space-2);
+  min-height: 240px;
+  padding: var(--space-10) var(--space-6);
+  text-align: center;
+}
+
+.ingest-file:focus-visible + .ingest-drop {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.ingest-drop .button {
+  margin-top: var(--space-2);
+}
+
+/* Every other state: the sentence, one line, then the actions and the one small link. */
+.ingest-state {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-6) 0 var(--space-2);
+}
+
+/* Red only for what stops the import (cannot, rejected, has errors, a failed Undo); amber for a question. */
+.ingest-state--critical,
+.ingest-state--warning {
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--critical);
+}
+
+.ingest-state--warning {
+  border-left-color: var(--warning);
+}
+
+.ingest-state__main {
+  margin: 0;
+  font: 600 var(--font-size-xl) / 1.3 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ingest-state__main:focus {
+  outline: none;
+}
+
+.ingest-state__line {
+  margin: 0;
+  max-width: 72ch;
   color: var(--color-text-muted);
 }
 
-.import-steps__step.is-done::after {
-  content: ' ✓';
-}
-
-.import-steps__step.is-current {
-  color: var(--color-text);
-  font-weight: 600;
-  box-shadow: inset 0 -2px 0 var(--color-accent);
-}
-
-.ingest-intro {
-  color: var(--color-text-muted);
-}
-
-/* The drop area reads "Drop a CSV here or choose a file"; on a phone it is a plain "Choose CSV file" button. */
-.dropzone__narrow {
+.ingest-state__line:empty {
   display: none;
 }
 
-@media (max-width: 767px) {
-  .ingest-card .dropzone {
-    flex-direction: row;
-    min-height: 0;
-    padding: var(--space-3) var(--space-4);
-    border-style: solid;
-  }
-
-  .ingest-card .dropzone__wide {
-    display: none;
-  }
-
-  .ingest-card .dropzone__narrow {
-    display: inline;
-  }
-}
-
-/* Try a sample · Download templates · Paste data instead: three small links under the drop area. */
-.ingest-links {
+.ingest-state__actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-2) var(--space-6);
-  margin-bottom: var(--space-4);
+  align-items: center;
+  gap: var(--space-3) var(--space-6);
+  margin: var(--space-3) 0 0;
 }
 
-.ingest-links .ingest-paste {
-  display: contents;
+.ingest-answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.ingest-links .ingest-paste > .button,
-.ingest-menu > summary {
+/* The small link of a state and the tools under More: underlined text in the accent colour. */
+.ingest-link,
+.ingest-state__details > summary,
+.ingest-more > summary,
+.ingest-more .ingest-paste > .button {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -714,79 +699,73 @@
   cursor: pointer;
 }
 
-.ingest-links .ingest-paste > div {
-  flex-basis: 100%;
-  margin-top: 0;
+.ingest-link:disabled {
+  color: var(--color-text-subtle);
+  cursor: default;
 }
 
-.ingest-menu {
-  position: relative;
-}
-
-.ingest-menu > summary {
+.ingest-state__details > summary,
+.ingest-more > summary {
   list-style: none;
 }
 
-.ingest-menu > summary::-webkit-details-marker {
+.ingest-state__details > summary::-webkit-details-marker,
+.ingest-more > summary::-webkit-details-marker {
   display: none;
 }
 
-.ingest-menu > summary::after {
-  content: '▾';
-  text-decoration: none;
+.ingest-state__details {
+  margin-top: var(--space-1);
 }
 
-.ingest-menu__list {
-  position: absolute;
-  z-index: 5;
-  top: calc(100% + var(--space-2));
-  left: 0;
-  min-width: 260px;
-  margin: 0;
-  padding: var(--space-1) 0;
-  list-style: none;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md, 0 8px 24px rgba(17, 22, 29, 0.14));
+.ingest-state__details[open] > summary {
+  margin-bottom: var(--space-4);
 }
 
-.ingest-menu__option {
+/* What I fixed: a short numbered list, above the panels that can change any of it. */
+.ingest-fixes {
   display: grid;
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  background: none;
-  color: var(--color-text);
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-6);
+  padding-left: var(--space-6);
 }
 
-.ingest-menu__option:is(:hover, :focus-visible) {
-  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+/* More: the bottom of the card, closed by default. */
+.ingest-more {
+  margin-top: var(--space-10);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
-.ingest-menu__label {
-  font-weight: 600;
+.ingest-more[open] > summary {
+  margin-bottom: var(--space-4);
 }
 
-.ingest-menu__note {
+.ingest-more__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-6);
+  padding: 0;
+  list-style: none;
+}
+
+.ingest-more__templates {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
 
-/* Phones: the menus open in place (full width) instead of floating, so nothing runs off the screen. */
+.ingest-more .ingest-paste > div {
+  margin-top: var(--space-2);
+}
+
 @media (max-width: 767px) {
-  .ingest-menu {
-    flex-basis: 100%;
+  .ingest-drop {
+    min-height: 0;
+    padding: var(--space-8) var(--space-4);
   }
 
-  .ingest-menu__list {
-    position: static;
-    min-width: 0;
-    margin-top: var(--space-2);
-    box-shadow: none;
+  .ingest-state__main {
+    font-size: var(--font-size-lg);
   }
 }
 
@@ -795,22 +774,6 @@
   margin: var(--space-2) 0 0;
   font: 600 var(--font-size-lg) / 1.4 var(--font-sans);
   font-variant-numeric: tabular-nums;
-}
-
-.ingest-columns-ok {
-  margin: var(--space-4) 0;
-}
-
-.ingest-columns-ok__line {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-2);
-  font-weight: 600;
-}
-
-.ingest-columns-ok__line svg {
-  color: var(--good);
 }
 
 /* Errors grouped by column: the column and where, then one short fix. */
@@ -829,14 +792,6 @@
 .ingest-error-groups__hint {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-}
-
-.ingest-next {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-4);
-  margin: var(--space-3) 0 0;
 }
 
 /* Rows with problems: a list of records at every width (values never break mid-word), the problem across the record. */

@@ -54,7 +54,10 @@ describe('Import page layout with a mapping panel open (real Chromium)', () => {
   });
 
   // Demo layout: the two per-kind cards live in the tabs of the "Column guide" (closed by default), one card per tab.
+  // G1: the Column guide sits under the import card's "More" (closed by default), so More is opened first.
   async function openGuideTab(page: any, kind: 'inventory' | 'shipments') {
+    const more = page.locator('.ingest-more');
+    if (!(await more.evaluate((d: HTMLDetailsElement) => d.open))) await page.locator('.ingest-more > summary').click();
     const guide = page.locator('.column-guide');
     if (!(await guide.evaluate((d: HTMLDetailsElement) => d.open))) await page.getByText('Column guide').click();
     await page.getByRole('tab', { name: kind === 'inventory' ? 'Inventory' : 'Shipments' }).click();

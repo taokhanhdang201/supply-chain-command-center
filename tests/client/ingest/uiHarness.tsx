@@ -58,8 +58,8 @@ export async function renderCard(opts: { api?: Partial<ApiClient>; maxUploadByte
   return { user, runner, importCsv, api: rendered.api, snapshot, picker: () => screen.getByLabelText(DROPZONE_LABEL) as HTMLInputElement };
 }
 
-/** The single drop area (on a phone its visible text is "Choose CSV file"). */
-export const DROPZONE_LABEL = /Drop a CSV here or choose a file/;
+/** The card's one file input. G1: the drop area reads "Drop your file" (it used to read "Drop a CSV here or choose a file"). */
+export const DROPZONE_LABEL = /Drop your file or choose a file/;
 
 /** Chooses a file (the review starts at once), then waits until the review has been produced (or an error shown). */
 export async function review(r: Rendered, file: File): Promise<void> {

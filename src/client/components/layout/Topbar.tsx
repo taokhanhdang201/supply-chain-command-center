@@ -5,6 +5,7 @@ import type { RefObject } from 'react';
 import type { DataSourceInfo, DayString } from '../../../shared/types';
 import { formatDay } from '../../../shared/format';
 import { Icon } from '../ui/Icon';
+import { displaySourceLabel } from '../../import/sampleFiles';
 
 export interface TopbarProps {
   title: string;
@@ -40,8 +41,8 @@ export function Topbar({ title, today, dataSources, refreshing, onRefresh, drawe
 
       {dataSources !== null && (
         <div className="topbar__sources">
-          <span className="topbar__chip">Inventory: {dataSources.inventory.label}</span>
-          <span className="topbar__chip">Shipments: {dataSources.shipments.label}</span>
+          <span className="topbar__chip">Inventory: {displaySourceLabel(dataSources.inventory.label)}</span>
+          <span className="topbar__chip">Shipments: {displaySourceLabel(dataSources.shipments.label)}</span>
         </div>
       )}
 
