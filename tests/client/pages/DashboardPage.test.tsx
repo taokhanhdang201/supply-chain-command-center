@@ -34,7 +34,9 @@ describe('DashboardPage', () => {
     const snapshot = makeSnapshot([], shipments, { today: TODAY });
     await renderWithData(<DashboardPage />, { snapshot });
     expect(screen.getByText('SHP-100001')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'View all alerts' })).toHaveAttribute('href', '#/alerts');
+    // The total row of Top alerts ("Need attention") replaced "View all alerts"; its name says the count and where it
+    // goes, and it opens only the alerts that need attention (`kind=any`).
+    expect(screen.getByRole('link', { name: '0 need attention, view in Alerts' })).toHaveAttribute('href', '#/alerts?kind=any');
   });
 
   it('changes the chart range via the Range select', async () => {

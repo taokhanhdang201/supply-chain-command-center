@@ -41,8 +41,13 @@ const TYPE_FILTER_OPTIONS: SelectOption[] = [
 ];
 const TYPE_FILTER_VALUES = new Set(TYPE_FILTER_OPTIONS.map((o) => o.value));
 
-// The Dashboard's "Top alerts" kinds (alerts that need attention), so each of its counts opens exactly its rows.
-const KIND_FILTER_OPTIONS: SelectOption[] = [{ value: 'all', label: 'All' }, ...ATTENTION_KINDS.map((k) => ({ value: k, label: ATTENTION_KIND_LABELS[k] }))];
+// The Dashboard's "Top alerts" kinds (alerts that need attention), so each of its counts opens exactly its rows; "Any
+// problem" (`kind=any`) is all of them together, what its "Need attention" total counts (info alerts have no kind).
+const KIND_FILTER_OPTIONS: SelectOption[] = [
+  { value: 'all', label: 'All' },
+  { value: 'any', label: 'Any problem' },
+  ...ATTENTION_KINDS.map((k) => ({ value: k, label: ATTENTION_KIND_LABELS[k] }))
+];
 const KIND_FILTER_VALUES = new Set(KIND_FILTER_OPTIONS.map((o) => o.value));
 
 const SEVERITY_LABELS: Record<Severity, string> = { critical: 'Critical', warning: 'Warning', info: 'Info' };
@@ -78,7 +83,8 @@ function matchesType(a: Alert, type: string): boolean {
 }
 
 function matchesKind(a: Alert, kind: string): boolean {
-  return kind === 'all' || kindOf(a) === kind;
+  if (kind === 'all') return true;
+  return kind === 'any' ? kindOf(a) !== null : kindOf(a) === kind;
 }
 
 /** The page an alert came from, filtered to that one item: an inventory row's id is `SKU@warehouse`. */

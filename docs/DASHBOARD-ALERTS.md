@@ -206,3 +206,25 @@ C, the block on paper. The owner chose C, because dark is the situation and pape
   (`atlasCss.test.ts`), focus rings at 3:1 and text at AA, hovered and open (`v16.ui.browser.test.ts`). Updated with the
   reason: the h2 list and the region names (renamed), and the browser test's scene order (now dark, paper, paper, dark,
   paper).
+
+## 10. The head of Top alerts (owner, 2026-10-07 night)
+
+- **Title a step up.** The figure size from the type scale (`--fs-figure`: 38.4 px at 1440, 32 px at 390; the other
+  section titles are `--fs-h2`, 31.52 px and 24 px), weight 600, never wraps. Under it, in muted ink: "Ranked by money at
+  risk."
+- **The kinds as a list.** One row each, label left in sentence case agreeing with the count ("Unusual costs", "Unusual
+  cost" for one), the count right in one tabular column, ink like the label (severity is the five rows' job), no dots;
+  21 rem wide so the eye's trip from label to count stays short. Each row is the Alerts page filtered to its kind
+  (`kind=`), the whole row a link, 40 px tall (44 px on phones), named "Out of stock, 6, view in Alerts".
+- **The total row** under a rule, in 600: "Need attention 57 →". It replaces "View all alerts (57 need attention)" and is
+  named "57 need attention, view in Alerts"; 57 is the sum of the kind rows (tested). First drafted as "All alerts 57",
+  renamed before shipping: the KPI tile right above says "67 total · 10 info", so "All alerts 57" said the wrong thing.
+  It opens the Alerts page with `kind=any` ("Any problem" in its Problem filter): every kind together, exactly the 57,
+  none of the 10 info alerts (`#/alerts` alone shows all 67).
+- **No rule between the kinds**, so no line sits level with a rule of the five rows beside them (the two lists do not
+  match row for row); at 1440 the total's rule sits 40 px from the nearest row rule (tested: more than 8 px).
+- **Measured** on paper: focus rings on all 12 stops solid 2 px #2552c4, 5.71:1; labels and counts ink 15.21:1; the
+  muted line 6.52:1; no sideways scroll at 390.
+- **Code.** `KindCount.text` ("6 out of stock") became `label` ("Out of stock"); the count stays `count`. Tests updated
+  with the reason (the kind labels, the kinds list, the total link's name) and added (the total equals the sum of the
+  kinds; the head's layout in a real browser).

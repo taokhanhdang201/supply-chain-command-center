@@ -28,7 +28,9 @@ describe('kinds: only alerts that need attention, adding up to the KPI and badge
   it('seed 42: 6 out of stock, 14 low stock, 12 overdue, 8 unusual costs, 17 incomplete or wrong records = 57', () => {
     const snap = seed42();
     const kinds = kindCounts(snap.alerts);
-    expect(kinds.map((k) => k.text)).toEqual(['6 out of stock', '14 low stock', '12 overdue', '8 unusual costs', '17 incomplete or wrong records']);
+    // The Dashboard lists each kind as its own row, label and count apart (it was one line: "6 out of stock · 14 low
+    // stock · …"), so a kind carries a sentence-case label that agrees with its count instead of a counted phrase.
+    expect(kinds.map((k) => [k.label, k.count])).toEqual([['Out of stock', 6], ['Low stock', 14], ['Overdue', 12], ['Unusual costs', 8], ['Incomplete or wrong records', 17]]);
     const needAttention = snap.alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;
     expect(kinds.reduce((sum, k) => sum + k.count, 0)).toBe(needAttention);
     expect(needAttention).toBe(57);

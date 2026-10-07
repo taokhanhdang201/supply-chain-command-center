@@ -16,7 +16,7 @@ export type AttentionKind = 'out_of_stock' | 'low_stock' | 'overdue' | 'unusual_
 /** The kinds in the order the Dashboard lists them. */
 export const ATTENTION_KINDS: readonly AttentionKind[] = ['out_of_stock', 'low_stock', 'overdue', 'unusual_cost', 'over_capacity', 'records'];
 
-/** [one, many]: "1 unusual cost", "8 unusual costs". */
+/** [one, many]: "unusual cost" for 1, "unusual costs" for 8. */
 const KIND_NOUNS: Record<AttentionKind, readonly [string, string]> = {
   out_of_stock: ['out of stock', 'out of stock'],
   low_stock: ['low stock', 'low stock'],
@@ -56,8 +56,8 @@ export function kindOf(alert: Alert): AttentionKind | null {
 export interface KindCount {
   kind: AttentionKind;
   count: number;
-  /** "6 out of stock", "8 unusual costs". */
-  text: string;
+  /** Sentence case, agreeing with the count: "Out of stock", "Unusual costs" ("Unusual cost" for one). */
+  label: string;
   href: string;
 }
 
@@ -65,8 +65,8 @@ export interface KindCount {
 export function kindCounts(alerts: readonly Alert[]): KindCount[] {
   return ATTENTION_KINDS.map((kind) => {
     const n = alerts.filter((a) => kindOf(a) === kind).length;
-    const [one, many] = KIND_NOUNS[kind];
-    return { kind, count: n, text: `${n.toLocaleString('en-US')} ${n === 1 ? one : many}`, href: buildHash('alerts', { kind }) };
+    const noun = KIND_NOUNS[kind][n === 1 ? 0 : 1];
+    return { kind, count: n, label: noun.charAt(0).toUpperCase() + noun.slice(1), href: buildHash('alerts', { kind }) };
   }).filter((k) => k.count > 0);
 }
 

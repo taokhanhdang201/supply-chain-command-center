@@ -1369,35 +1369,79 @@
   min-width: 0;
 }
 
-/* The alerts that need attention, by kind: each a link to the Alerts page filtered to exactly those rows. The spaces
-   around each dot let the line wrap between kinds, never inside one. */
-.atlas-page .attention__kinds {
-  margin: var(--title-gap) 0 0;
-  font: 400 var(--fs-lead) / 32px var(--font-sans);
+/* The title is a step above the other section titles (the figure size, 600) and never wraps; one muted line under it. */
+.atlas-page .attention__title {
+  font-size: var(--fs-figure);
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.atlas-page .attention__sub {
+  margin: 8px 0 0;
+  font: 400 var(--fs-lead) / 24px var(--font-sans);
   color: var(--color-text-muted);
 }
 
-.atlas-page .attention__kinds a {
+/* The alerts that need attention, by kind: one row each, label left and count right in one tabular column, ink like the
+   label (severity is the rows' job), each the Alerts page filtered to exactly those rows; then the total under a rule.
+   21rem keeps the eye's trip from label to count short. No rule between kinds, so nothing lines up with the queue's rules
+   as if the two lists matched row for row. Rows are whole links, 40px tall (44px on phones). */
+.atlas-page .attention__kinds {
+  max-width: 21rem;
+  margin-top: var(--title-gap);
+}
+
+.atlas-page .kind-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atlas-page .kind-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 20px;
+  column-gap: 12px;
+  align-items: center;
+  min-height: 40px;
+  margin: 0 -12px;
+  padding: 0 12px;
+  font: 400 var(--fs-lead) / 24px var(--font-sans);
   color: var(--color-text);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  text-decoration: underline;
-  text-decoration-color: var(--dash-line);
-  text-underline-offset: 5px;
+  text-decoration: none;
 }
 
-.atlas-page .attention__kinds a:hover {
-  text-decoration-color: currentColor;
+.atlas-page .kind-row:hover {
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
 }
 
-.atlas-page .attention__sep,
+.atlas-page .kind-row__count {
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: right;
+}
+
+.atlas-page .kind-row--total {
+  margin-top: 8px;
+  border-top: 1px solid var(--dash-line-strong);
+  font-weight: 600;
+}
+
+.atlas-page .kind-row__arrow {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.75;
+}
+
+@media (max-width: 767px) {
+  .atlas-page .kind-row {
+    min-height: 44px;
+  }
+}
+
 .atlas-page .queue-row__sep {
   color: var(--color-text-muted);
-}
-
-.atlas-page .attention__head .dash-link {
-  justify-self: start;
-  margin-top: 32px;
 }
 
 .atlas-page .attention__list {

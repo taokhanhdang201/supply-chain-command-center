@@ -202,6 +202,21 @@ describe('AlertsPage: the Dashboard kinds (kind=)', () => {
     }
   });
 
+  // The Dashboard's "Need attention" total opens kind=any: every kind together, so exactly the 57 it counts and none of
+  // the 10 info alerts (67 in all); the Problem filter names it "Any problem".
+  it('kind=any opens exactly the alerts that need attention: the Dashboard total, no info alerts', async () => {
+    const snapshot = seed42();
+    const needAttention = snapshot.alerts.filter((a) => a.severity !== 'info').length;
+    expect([needAttention, snapshot.alerts.length]).toEqual([57, 67]);
+    expect(kindCounts(snapshot.alerts).reduce((sum, k) => sum + k.count, 0)).toBe(needAttention);
+    window.location.hash = '#/alerts?kind=any';
+    await renderWithData(<AlertsPage />, { snapshot });
+    expect(screen.getByText('57 alerts')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Problem' })).toHaveValue('any');
+    expect(screen.getByRole('option', { name: 'Any problem' })).toBeInTheDocument();
+    for (const r of screen.getAllByRole('row').slice(1)) expect(r.textContent).not.toMatch(/\bInfo\b/);
+  });
+
   it('ignores an unknown kind, and the Problem filter writes kind= to the hash', async () => {
     window.location.hash = '#/alerts?kind=bogus';
     const user = userEvent.setup();

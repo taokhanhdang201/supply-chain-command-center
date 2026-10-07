@@ -10,7 +10,7 @@
 // Every number is the one the previous Dashboard showed, from the same snapshot fields and shared functions; only the
 // way it is drawn changed. Red ("signal") means late or critical and nothing else.
 
-import { Fragment, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { DateRange, RouteSummary } from '../../shared/domain/analytics';
 import { filterShipmentsByRange, recentActivity, shippingCostByMonth, onTimeVsDelayedByMonth, summarizeRoutes } from '../../shared/domain/analytics';
@@ -267,20 +267,31 @@ export function DashboardPage() {
           most five rows ranked by the money SCC can compute, each one link with what, where, the damage and the next step. */}
       <Chapter className="scene--paper attention" label="Top alerts">
         <div className="attention__head">
-          <h2 className="scene__title">Top alerts</h2>
-          {kinds.length > 0 && (
-            <p className="attention__kinds">
-              {kinds.map((k, i) => (
-                <Fragment key={k.kind}>
-                  {i > 0 && <Separator className="attention__sep" />}
-                  <a href={k.href}>{k.text}</a>
-                </Fragment>
-              ))}
-            </p>
-          )}
-          <a className="dash-link" href={buildHash('alerts')}>
-            {alertsNeedingAttention === 0 ? 'View all alerts' : `View all alerts (${alertsNeedingAttention.toLocaleString('en-US')} ${alertsNeedingAttention === 1 ? 'needs' : 'need'} attention)`}
-          </a>
+          <h2 className="scene__title attention__title">Top alerts</h2>
+          <p className="attention__sub">Ranked by money at risk.</p>
+          {/* One row per kind, label left and count right, each the Alerts page filtered to exactly its rows; the total
+              row under a rule replaces "View all alerts". The name says what the count is and where the link goes. */}
+          <div className="attention__kinds">
+            {kinds.length > 0 && (
+              <ul className="kind-list" aria-label="Alerts that need attention, by kind">
+                {kinds.map((k) => (
+                  <li key={k.kind}>
+                    <a className="kind-row" href={k.href} aria-label={`${k.label}, ${k.count.toLocaleString('en-US')}, view in Alerts`}>
+                      <span className="kind-row__label">{k.label}</span>
+                      <span className="kind-row__count">{k.count.toLocaleString('en-US')}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <a className="kind-row kind-row--total" href={buildHash('alerts', { kind: 'any' })} aria-label={`${alertsNeedingAttention.toLocaleString('en-US')} ${alertsNeedingAttention === 1 ? 'needs' : 'need'} attention, view in Alerts`}>
+              <span className="kind-row__label">Need attention</span>
+              <span className="kind-row__count">{alertsNeedingAttention.toLocaleString('en-US')}</span>
+              <svg className="kind-row__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                <path d="M4 10h11M11 5l5 5-5 5" />
+              </svg>
+            </a>
+          </div>
         </div>
 
         <div className="attention__list">

@@ -101,7 +101,7 @@ describe('V1.6 redesign (real Chromium)', () => {
       const rgb = (c: string) => c.match(/[\d.]+/g)!.slice(0, 3).map(Number);
       const lum = ([r = 0, g = 0, b = 0]: number[]) => { const f = (x: number) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
       const solidBg = (el: HTMLElement) => { for (let n: HTMLElement | null = el; n; n = n.parentElement) { const c = getComputedStyle(n).backgroundColor; if (/^rgb\(/.test(c)) return c; } return 'rgb(255,255,255)'; };
-      const targets: Array<[string, number]> = [['.hero__value', 3], ['.hero__label', 4.5], ['.hero__detail', 4.5], ['.situation__title', 4.5], ['.situation .figure__label', 4.5], ['.situation .figure__detail', 4.5], ['.situation .figure--critical .figure__value', 3], ['.atlas-caption', 4.5], ['.status-list__link', 4.5], ['.flow-figure__subtitle', 4.5], ['.nodes .rack__code', 4.5], ['.nodes .rack__value', 4.5], ['.attention .attention__kinds a', 4.5], ['.attention .queue-row__what', 4.5], ['.attention .queue-row__damage', 4.5], ['.attention .queue-row__action', 4.5], ['.attention .attention__how > summary', 4.5], ['.movement .activity__carrier', 4.5], ['.movement .activity__date', 4.5]];
+      const targets: Array<[string, number]> = [['.hero__value', 3], ['.hero__label', 4.5], ['.hero__detail', 4.5], ['.situation__title', 4.5], ['.situation .figure__label', 4.5], ['.situation .figure__detail', 4.5], ['.situation .figure--critical .figure__value', 3], ['.atlas-caption', 4.5], ['.status-list__link', 4.5], ['.flow-figure__subtitle', 4.5], ['.nodes .rack__code', 4.5], ['.nodes .rack__value', 4.5], ['.attention .attention__title', 3], ['.attention .attention__sub', 4.5], ['.attention .kind-row__label', 4.5], ['.attention .kind-row__count', 4.5], ['.attention .kind-row--total .kind-row__label', 4.5], ['.attention .queue-row__what', 4.5], ['.attention .queue-row__damage', 4.5], ['.attention .queue-row__action', 4.5], ['.attention .attention__how > summary', 4.5], ['.movement .activity__carrier', 4.5], ['.movement .activity__date', 4.5]];
       return targets.map(([sel, min]) => {
         const el = document.querySelector(sel) as HTMLElement;
         const a = lum(rgb(getComputedStyle(el).color)), b = lum(rgb(solidBg(el)));
@@ -133,7 +133,8 @@ describe('V1.6 redesign (real Chromium)', () => {
       expect(m.sideways, `${w}`).toBeLessThanOrEqual(0);
       if (w === 1440) {
         for (const l of m.lines) expect(l).toBeLessThanOrEqual(2);
-        await page.locator('.attention .dash-link').focus();
+        // the total row of the kinds list replaced "View all alerts" as the last stop before the rows
+        await page.locator('.attention .kind-row--total').focus();
         const reached: Array<string | null> = [];
         for (let i = 0; i < m.hrefs.length; i += 1) {
           await page.keyboard.press('Tab');
@@ -145,9 +146,9 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   });
 
-  // Top alerts on paper (docs/DASHBOARD-ALERTS.md §9): Tab through every link in the block (the kinds, "View all alerts",
-  // the five rows, "How these are counted") and each focus ring stands 3:1 off the paper (WCAG 1.4.11); the text on a
-  // hovered row (its 7% tint included) and the open explanation meet AA (4.5:1).
+  // Top alerts on paper (docs/DASHBOARD-ALERTS.md §9): Tab through every link in the block (the kind rows, the "All
+  // alerts" total row, the five rows, "How these are counted") and each focus ring stands 3:1 off the paper (WCAG
+  // 1.4.11); the text on a hovered row (its 7% tint included) and the open explanation meet AA (4.5:1).
   it('atlas dashboard: Top alerts on paper keeps focus rings at 3:1 and its text at AA, hovered and open', async () => {
     const { ctx, page } = await open(1440, '', { reducedMotion: 'reduce' });
     // ratio of an element's colour (or outline colour) against what is behind it, alpha layers composited
@@ -177,9 +178,9 @@ describe('V1.6 redesign (real Chromium)', () => {
       }, [target, prop] as [string, 'color' | 'outlineColor']);
 
     const stops = await page.locator('.attention a[href], .attention summary').count();
-    const kinds = await page.locator('.attention__kinds a').count();
+    const kinds = await page.locator('.attention .kind-list a').count();
     expect(kinds).toBeGreaterThan(0);
-    expect(stops).toBe(kinds + 1 + 5 + 1); // the kinds, View all alerts, five rows, the explanation
+    expect(stops).toBe(kinds + 1 + 5 + 1); // the kind rows, the total row, five rows, the explanation
     await page.locator('.status-list__link').last().focus();
     for (let i = 0; i < stops; i += 1) {
       await page.keyboard.press('Tab');
@@ -191,6 +192,8 @@ describe('V1.6 redesign (real Chromium)', () => {
 
     await page.locator('.attention .queue-row').first().hover();
     for (const r of await contrast('.attention .queue-row:hover .queue-row__text *, .attention .queue-row:hover .queue-row__text', 'color')) expect(r.ratio, r.what).toBeGreaterThanOrEqual(4.5);
+    await page.locator('.attention .kind-row').first().hover();
+    for (const r of await contrast('.attention .kind-row:hover > span', 'color')) expect(r.ratio, r.what).toBeGreaterThanOrEqual(4.5);
     await page.mouse.move(0, 0);
 
     await page.locator('.attention__how > summary').click();
@@ -198,6 +201,48 @@ describe('V1.6 redesign (real Chromium)', () => {
     expect(explained).toHaveLength(2);
     for (const r of explained) expect(r.ratio, r.what).toBeGreaterThanOrEqual(4.5);
     await ctx.close();
+  });
+
+  // The Top alerts head (docs/DASHBOARD-ALERTS.md §10): the title a step above the other section titles (600, one line
+  // on a phone); the kinds as one column of whole-row links, 40px tall (44px on a phone), within 22rem, the counts in one
+  // right-aligned tabular column; the total row's rule never level with a rule of the five rows beside it.
+  it('atlas dashboard: Top alerts kinds are one column of tall rows, counts aligned, title a step up', async () => {
+    for (const w of [1440, 390]) {
+      const { ctx, page } = await open(w, '', { reducedMotion: 'reduce' });
+      const m = await page.evaluate(() => {
+        const rect = (e: Element) => e.getBoundingClientRect();
+        const title = document.querySelector('.attention .attention__title') as HTMLElement;
+        const rows = [...document.querySelectorAll('.attention .kind-row')] as HTMLElement[];
+        const total = document.querySelector('.attention .kind-row--total') as HTMLElement;
+        return {
+          titleSize: parseFloat(getComputedStyle(title).fontSize),
+          titleWeight: getComputedStyle(title).fontWeight,
+          titleLines: Math.round(rect(title).height / parseFloat(getComputedStyle(title).lineHeight)),
+          otherTitle: parseFloat(getComputedStyle(document.querySelector('.flow .scene__title')!).fontSize),
+          heights: rows.map((r) => rect(r).height),
+          xs: rows.map((r) => Math.round(rect(r).left)),
+          listWidth: rect(document.querySelector('.attention .attention__kinds')!).width,
+          rem: parseFloat(getComputedStyle(document.documentElement).fontSize),
+          countRights: rows.map((r) => Math.round(rect(r.querySelector('.kind-row__count')!).right)),
+          numeric: getComputedStyle(rows[0]!.querySelector('.kind-row__count')!).fontVariantNumeric,
+          totalRule: Math.round(rect(total).top),
+          queueRules: [...document.querySelectorAll('.attention .queue-row')].map((r) => Math.round(rect(r).top)),
+          sideways: document.documentElement.scrollWidth - window.innerWidth
+        };
+      });
+      expect(m.titleSize, `${w}`).toBeGreaterThan(m.otherTitle);
+      expect(m.titleWeight).toBe('600');
+      expect(m.titleLines, `${w}: title on one line`).toBe(1);
+      expect(m.heights.length).toBeGreaterThan(2);
+      for (const h of m.heights) expect(h, `${w}: row height`).toBeGreaterThanOrEqual(w < 768 ? 44 : 40);
+      expect(new Set(m.xs).size, `${w}: one column`).toBe(1);
+      expect(m.listWidth).toBeLessThanOrEqual(22 * m.rem);
+      expect(new Set(m.countRights).size, `${w}: counts share one right edge`).toBe(1);
+      expect(m.numeric).toContain('tabular-nums');
+      if (w === 1440) for (const y of m.queueRules) expect(Math.abs(y - m.totalRule), 'total rule level with a queue rule').toBeGreaterThan(8);
+      expect(m.sideways, `${w}`).toBeLessThanOrEqual(0);
+      await ctx.close();
+    }
   });
 
   // The design rules the V2 specification measures (section i): one grid, five identical racks, six type sizes, no uppercase.

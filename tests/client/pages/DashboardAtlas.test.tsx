@@ -118,16 +118,36 @@ describe('Dashboard (Atlas): derived views trace back to existing data', () => {
 
   // "Top alerts" replaced the critical / warning / info figures (they repeated the KPI above): the alerts that need
   // attention by kind, adding up to the same count as the KPI tile, each a link to exactly its rows on the Alerts page.
+  // Each kind is now its own row, label left and count right (it was one line of "6 out of stock · …" links), named
+  // "Out of stock, 6, view in Alerts".
   it('lists the alerts that need attention by kind, adding up to the KPI count, each linking to its filter', async () => {
     const snapshot = scenario();
     await renderWithData(<DashboardPage />, { snapshot });
-    const line = document.querySelector('.attention__kinds') as HTMLElement;
-    const links = within(line).getAllByRole('link');
+    const list = screen.getByRole('list', { name: 'Alerts that need attention, by kind' });
+    const links = within(list).getAllByRole('link');
     const expected = kindCounts(snapshot.alerts);
-    expect(links.map((a) => [a.textContent, a.getAttribute('href')])).toEqual(expected.map((k) => [k.text, k.href]));
+    expect(links.map((a) => [a.getAttribute('aria-label'), a.getAttribute('href')])).toEqual(expected.map((k) => [`${k.label}, ${k.count}, view in Alerts`, k.href]));
+    for (const [i, a] of links.entries()) {
+      expect(a.querySelector('.kind-row__label')?.textContent).toBe(expected[i]?.label);
+      expect(a.querySelector('.kind-row__count')?.textContent).toBe(String(expected[i]?.count));
+    }
     const needAttention = snapshot.alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;
     expect(expected.reduce((sum, k) => sum + k.count, 0)).toBe(needAttention);
     expect(screen.queryByText('Critical')).toBeNull(); // no severity figures any more
+    expect(document.querySelector('.attention .attention__sep')).toBeNull(); // no dots between the kinds any more
+  });
+
+  // The total row closes the kinds list: the number it shows is the sum of the counts above it, read from the page. It
+  // reads "Need attention", not "All alerts": the KPI tile above says "67 total", so "All alerts 57" said the wrong thing
+  // (docs/DASHBOARD-ALERTS.md §10); it opens the Alerts page with exactly those alerts (`kind=any`, no info).
+  it('shows a total row whose number is the sum of the kind rows above it', async () => {
+    await renderWithData(<DashboardPage />, { snapshot: scenario() });
+    const counts = [...document.querySelectorAll('.kind-list .kind-row__count')].map((n) => Number(n.textContent));
+    expect(counts.length).toBeGreaterThan(1);
+    const total = document.querySelector('.kind-row--total') as HTMLElement;
+    expect(total.querySelector('.kind-row__label')?.textContent).toBe('Need attention');
+    expect(Number(total.querySelector('.kind-row__count')?.textContent)).toBe(counts.reduce((a, b) => a + b, 0));
+    expect(total).toHaveAttribute('href', '#/alerts?kind=any');
   });
 });
 
@@ -175,10 +195,12 @@ describe('Dashboard (Atlas): interaction and accessibility', () => {
   it('keeps the recent-activity ledger and the alerts link', async () => {
     await renderWithData(<DashboardPage />, { snapshot: scenario() });
     expect(screen.getByRole('table', { name: 'Recent shipment activity' })).toBeInTheDocument();
-    // the link names the same "need attention" count as the KPI tile and the badge (it used to read "View all alerts")
+    // the link names the same "need attention" count as the KPI tile and the badge; it is now the total row of the
+    // kinds list ("Need attention" and the count), which replaced "View all alerts (N need attention)", and it opens
+    // only those alerts (`kind=any`)
     const snapshot = scenario();
     const n = snapshot.alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;
-    expect(screen.getByRole('link', { name: `View all alerts (${n} need attention)` })).toHaveAttribute('href', '#/alerts');
+    expect(screen.getByRole('link', { name: `${n} need attention, view in Alerts` })).toHaveAttribute('href', '#/alerts?kind=any');
     expect(screen.getByRole('link', { name: 'Explore the lanes' })).toHaveAttribute('href', '#/routes');
   });
 });

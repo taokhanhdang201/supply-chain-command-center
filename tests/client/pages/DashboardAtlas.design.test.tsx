@@ -140,7 +140,7 @@ describe('Dashboard V2: keyboard order equals reading order', () => {
       '#/shipments?status=delivered',
       '#/shipments?status=cancelled',
       ...kinds,
-      '#/alerts',
+      '#/alerts?kind=any', // the "Need attention" total opens only the alerts that need attention (it was '#/alerts')
       ...rows,
       'select',
       'button',
