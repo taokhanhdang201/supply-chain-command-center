@@ -2,7 +2,7 @@
 // shared data-loading state. Owns the off-canvas drawer's open/close/focus behaviour.
 
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import { useData } from '../../state/DataContext';
 import { ROUTES, useHashRoute, type RouteId } from '../../router';
 import { Sidebar } from './Sidebar';
@@ -89,6 +89,14 @@ export function AppLayout() {
     menuButtonRef.current?.focus();
   }
 
+  /** Skip link: focus the page's h1 (or <main> while no page is mounted) without touching the hash, which the router
+   *  would read as a route ("Page not found"). */
+  function handleSkipLinkClick(e: MouseEvent<HTMLAnchorElement>): void {
+    e.preventDefault();
+    const main = mainRef.current;
+    (main?.querySelector<HTMLElement>('h1') ?? main)?.focus();
+  }
+
   const alertCount =
     state.status === 'ready'
       ? state.snapshot.alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length
@@ -128,7 +136,7 @@ export function AppLayout() {
 
   return (
     <div className="app-shell">
-      <a href="#main" className="skip-link">
+      <a href="#main" className="skip-link" onClick={handleSkipLinkClick}>
         Skip to main content
       </a>
       <Sidebar activeRouteId={route.id} alertCount={alertCount} open={drawerOpen} onNavigate={handleNavigate} />
@@ -144,7 +152,7 @@ export function AppLayout() {
           onMenuClick={handleMenuClick}
           menuButtonRef={menuButtonRef}
         />
-        <main id="main" className="main" ref={mainRef}>
+        <main id="main" className="main" ref={mainRef} tabIndex={-1}>
           {body}
         </main>
       </div>

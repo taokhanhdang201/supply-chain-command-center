@@ -34,7 +34,7 @@ const PATHS: Record<IconName, string> = {
   dashboard: 'M3 3h8v8H3V3zm10 0h8v5h-8V3zM3 13h8v8H3v-8zm10 3h8v5h-8v-5z',
   inventory: 'M3 7l9-4 9 4-9 4-9-4zm0 0v10l9 4 9-4V7M12 11v10',
   shipments: 'M3 7h11v10H3V7zm11 3h4l3 3v4h-7v-7zM6.5 21a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z',
-  routes: 'M5 21c2-6 4-8 7-8s5 2 7 8M9 5a3 3 0 106 0 3 3 0 00-6 0z',
+  routes: 'M3 15h6v6H3zM15 6a3 3 0 106 0 3 3 0 00-6 0zM9 18h1.5a2 2 0 002-2V8a2 2 0 012-2h.5',
   analytics: 'M4 20V10m6 10V4m6 16V13m6 7V8',
   alerts: 'M12 3l9 16H3l9-16zm0 6v5m0 3h.01',
   import: 'M12 3v12m0 0l-4-4m4 4l4-4M4 17v3a1 1 0 001 1h14a1 1 0 001-1v-3',
