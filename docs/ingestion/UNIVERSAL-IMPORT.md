@@ -303,10 +303,11 @@ keeps.
 Both name the document type from ST01 and import nothing; the second says what SCC reads today, so the user knows which
 EDI file to send instead. Tests in G3: one per set listed here, plus an unknown set.
 
-### Later (engineering)
+### Engineering note: time-limited tests (done)
 
-- The wall-clock-sensitive test "2 MB single token" in `tests/shared/ingest/pipelineLimits.test.ts` has no timeout of its
-  own and sometimes passes the 5 s limit when the machine is busy (5.1 to 5.4 s seen during G1; under 4 s alone). Consider
-  running it apart, the way `tests/shared/ingest/performance.test.ts` runs alone after every other test (`vitest.config.ts`,
-  the `performance` project). A few jsdom UI tests showed the same under load during G1, and once the conformance kit's
-  "handles the hostile pack" (`tests/ingest-kit/conformance.ts`, 15 s timeout, 18.3 s under load).
+The test "2 MB single token" in `tests/shared/ingest/pipelineLimits.test.ts` (5 s limit; 5.1 to 5.4 s seen under load
+during G1, under 4 s alone) and the conformance kit's "handles the hostile pack" (`tests/ingest-kit/conformance.ts`, 15 s
+limit; 18.3 s seen once under load) passed their limits when the rest of the suite kept the machine busy. Their two files
+now run after the parallel group, one file at a time (`vitest.config.ts`, the `timing` project, group 1), before the
+performance budgets (group 2). No check, limit or timeout changed. A few jsdom UI tests also slowed under load during G1;
+they stayed within their limits in the five full runs that verified this change.
