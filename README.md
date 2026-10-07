@@ -7,7 +7,8 @@
 A web dashboard that turns shipment and inventory data into the daily calls a supply chain team makes: which
 shipments to chase, which lanes are slipping, and what to reorder first.
 
-**Live demo:** _the link goes here after the first deploy ([docs/DEPLOY.md](docs/DEPLOY.md))._
+**Live demo:** [supply-chain-command-center.onrender.com](https://supply-chain-command-center.onrender.com). It runs on
+Render's free plan, which sleeps when nobody is using it, so the first visit can take about a minute to load.
 
 ![Dashboard at 1440px: on-time delivery rate, the lane map and the figures that need attention](docs/screenshots/home-1440.jpg)
 
@@ -155,7 +156,8 @@ To put the demo online: [docs/DEPLOY.md](docs/DEPLOY.md).
 Một dashboard web biến dữ liệu lô hàng và tồn kho thành những quyết định hằng ngày của một đội supply chain:
 lô nào cần theo sát, tuyến nào đang trễ, và mặt hàng nào cần đặt thêm trước.
 
-**Bản demo:** _link sẽ được thêm sau lần deploy đầu tiên ([docs/DEPLOY.md](docs/DEPLOY.md))._
+**Bản demo:** [supply-chain-command-center.onrender.com](https://supply-chain-command-center.onrender.com). Demo chạy
+trên gói miễn phí của Render, server ngủ khi không có ai dùng nên lần mở đầu có thể mất khoảng 1 phút.
 
 Ảnh chụp màn hình nằm ở phần tiếng Anh phía trên và trong thư mục [docs/screenshots](docs/screenshots).
 
