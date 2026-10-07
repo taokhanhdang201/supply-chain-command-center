@@ -207,7 +207,8 @@ describe('V1.6 redesign (real Chromium)', () => {
   // on a phone); the kinds as one column of whole-row links, 40px tall (44px on a phone), within 22rem, the counts in one
   // right-aligned tabular column; the total row's rule never level with a rule of the five rows beside it.
   it('atlas dashboard: Top alerts kinds are one column of tall rows, counts aligned, title a step up', async () => {
-    for (const w of [1440, 390]) {
+    // 1100 and 1280 too: with a four-column head, "Incomplete or wrong records" wrapped below 1440 (the demo video caught it)
+    for (const w of [1440, 1280, 1100, 390]) {
       const { ctx, page } = await open(w, '', { reducedMotion: 'reduce' });
       const m = await page.evaluate(() => {
         const rect = (e: Element) => e.getBoundingClientRect();
@@ -220,6 +221,7 @@ describe('V1.6 redesign (real Chromium)', () => {
           titleLines: Math.round(rect(title).height / parseFloat(getComputedStyle(title).lineHeight)),
           otherTitle: parseFloat(getComputedStyle(document.querySelector('.flow .scene__title')!).fontSize),
           heights: rows.map((r) => rect(r).height),
+          labelLines: rows.map((r) => { const l = r.querySelector('.kind-row__label') as HTMLElement; return Math.round(rect(l).height / parseFloat(getComputedStyle(l).lineHeight)); }),
           xs: rows.map((r) => Math.round(rect(r).left)),
           listWidth: rect(document.querySelector('.attention .attention__kinds')!).width,
           rem: parseFloat(getComputedStyle(document.documentElement).fontSize),
@@ -235,6 +237,7 @@ describe('V1.6 redesign (real Chromium)', () => {
       expect(m.titleLines, `${w}: title on one line`).toBe(1);
       expect(m.heights.length).toBeGreaterThan(2);
       for (const h of m.heights) expect(h, `${w}: row height`).toBeGreaterThanOrEqual(w < 768 ? 44 : 40);
+      for (const l of m.labelLines) expect(l, `${w}: each kind label on one line`).toBe(1);
       expect(new Set(m.xs).size, `${w}: one column`).toBe(1);
       expect(m.listWidth).toBeLessThanOrEqual(22 * m.rem);
       expect(new Set(m.countRights).size, `${w}: counts share one right edge`).toBe(1);

@@ -221,6 +221,9 @@ C, the block on paper. The owner chose C, because dark is the situation and pape
   renamed before shipping: the KPI tile right above says "67 total · 10 info", so "All alerts 57" said the wrong thing.
   It opens the Alerts page with `kind=any` ("Any problem" in its Problem filter): every kind together, exactly the 57,
   none of the 10 info alerts (`#/alerts` alone shows all 67).
+- **One line per kind at every width.** From 1100 px the head spans five grid columns (it was four) and a row's gaps are
+  8 px: with four columns "Incomplete or wrong records" wrapped below 1440 px (the 1280 px demo video showed it). The
+  rows still start on column 6. Tested at 1440, 1280, 1100 and 390.
 - **No rule between the kinds**, so no line sits level with a rule of the five rows beside them (the two lists do not
   match row for row); at 1440 the total's rule sits 40 px from the nearest row rule (tested: more than 8 px).
 - **Measured** on paper: focus rings on all 12 stops solid 2 px #2552c4, 5.71:1; labels and counts ink 15.21:1; the

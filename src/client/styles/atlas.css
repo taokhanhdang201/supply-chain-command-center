@@ -1401,7 +1401,7 @@
 .atlas-page .kind-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto 20px;
-  column-gap: 12px;
+  column-gap: 8px; /* 12px pushed "Incomplete or wrong records" onto two lines at 1100px */
   align-items: center;
   min-height: 40px;
   margin: 0 -12px;
@@ -1573,11 +1573,13 @@
   }
 }
 
+/* Five columns from 1100px: four left "Incomplete or wrong records" two lines deep below 1440px; the rows still start on
+   column 6. */
 @media (min-width: 1100px) {
   .atlas-page .attention__head {
-    grid-column: 1 / span 4;
+    grid-column: 1 / span 5;
     grid-row: 1;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .atlas-page .attention__list {
