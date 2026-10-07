@@ -12,6 +12,7 @@ function makeApi(overrides: Partial<ApiClient> = {}): ApiClient {
     getSnapshot: vi.fn().mockResolvedValue(makeSnapshot([], [])),
     importCsv: vi.fn(),
     resetSampleData: vi.fn().mockResolvedValue(undefined),
+    undoImport: vi.fn().mockResolvedValue(undefined),
     ...overrides
   };
 }

@@ -4,7 +4,7 @@
   "files": {
     "public/templates/inventory-template.csv": "bf9029788c41d9ad867eac9b02030b84113b1cc9d8302f14d3d1fb21f55abc38",
     "public/templates/shipments-template.csv": "e9521dc9519b6fd40318c145d844a5233cd580b303be4d78b6d5cef78a0d5477",
-    "src/client/api/apiClient.ts": "f4a923eaf79e09341e26e433a38d48bda14909f5a04897115fc1b517e59a3fa3",
+    "src/client/api/apiClient.ts": "14a5cfd9fef55afad68890db2d5d8078e4b8eaa355b2ce9c9430a87be75a340e",
     "src/client/state/DataContext.tsx": "91691c3070913c0827ca5e5555458eaf21bf5f74adbf19c0f46787afe0b5efb9",
     "src/server/app.ts": "0508179f0336abb795d85ad43cddffd0c758136c8a3e75c35d830f283f3ea793",
     "src/server/config.ts": "b9ccb40b453b596f834c6c26c6c8b5b8a399cd67f0f277b21c465e2ec1cce78f",

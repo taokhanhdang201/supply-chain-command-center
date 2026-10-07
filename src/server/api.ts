@@ -1,4 +1,4 @@
-// The application's JSON API (plan §6.4). Owns the 5 endpoints, all request validation, and the snapshot cache
+// The application's JSON API (plan §6.4). Owns the 6 endpoints (one of them the one-step Undo), all request validation, and the snapshot cache
 // keyed by (store version, today). The client is untrusted: every import is re-validated here in full.
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -52,6 +52,21 @@ export function createApiHandler(deps: ApiDeps): Handler {
     if (sources.inventory.kind !== 'sample' || sources.shipments.kind !== 'sample') return;
     deps.store.replaceAll(deps.createSampleDataset(today));
     sampleDay = today;
+  }
+
+  // One-step Undo: the dataset before the last import and the store version right after it. Undo only works while nothing
+  // changed since (another import, a restore, the daily sample refresh), so one visitor never undoes another's change.
+  let undoEntry: { previous: Dataset; version: number } | null = null;
+
+  function undoLastImport(req: IncomingMessage): void {
+    const raw = req.headers['x-scc-undo-version'];
+    const version = typeof raw === 'string' && /^\d{1,15}$/.test(raw) ? Number(raw) : null;
+    if (version === null) throw new HttpError(400, 'INVALID_UNDO', 'The undo request does not say which import to undo.');
+    if (undoEntry === null || undoEntry.version !== version || deps.store.getVersion() !== version) {
+      throw new HttpError(409, 'UNDO_STALE', 'This import can no longer be undone: the data changed after it. Use Restore sample data to start over.');
+    }
+    deps.store.replaceAll(undoEntry.previous);
+    undoEntry = null;
   }
 
   function getSnapshot(): Snapshot {
@@ -123,13 +138,15 @@ export function createApiHandler(deps: ApiDeps): Handler {
       rowCount: result.rows.length
     };
 
+    const previous = deps.store.getDataset();
     if (kind === 'inventory') {
       deps.store.replaceInventory(result.rows as never, dataSource);
     } else {
       deps.store.replaceShipments(result.rows as never, dataSource);
     }
+    undoEntry = { previous, version: deps.store.getVersion() };
 
-    sendJson(res, 200, { ok: true, kind, rowCount: result.rows.length, warnings: result.warnings, dataSource });
+    sendJson(res, 200, { ok: true, kind, rowCount: result.rows.length, warnings: result.warnings, dataSource, undo: { version: undoEntry.version } });
   }
 
   return async function apiHandler(req: IncomingMessage, res: ServerResponse, url: URL): Promise<void> {
@@ -167,6 +184,15 @@ export function createApiHandler(deps: ApiDeps): Handler {
         const today = deps.getToday();
         deps.store.replaceAll(deps.createSampleDataset(today));
         sampleDay = today;
+        undoEntry = null;
+        sendJson(res, 200, { ok: true });
+        return;
+      }
+
+      if (pathname === '/api/undo') {
+        if (method !== 'POST') throw methodNotAllowed(['POST']);
+        assertSameOriginMutation(req);
+        undoLastImport(req);
         sendJson(res, 200, { ok: true });
         return;
       }

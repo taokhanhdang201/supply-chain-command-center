@@ -41,7 +41,7 @@ class ManualRunner implements IngestRunner {
 
 async function renderWith(runner: IngestRunner, importCsv = vi.fn()) {
   const snapshot = makeSnapshot([], [], { today: TODAY });
-  const api: ApiClient = { getSnapshot: vi.fn().mockResolvedValue(snapshot), importCsv, resetSampleData: vi.fn() };
+  const api: ApiClient = { getSnapshot: vi.fn().mockResolvedValue(snapshot), importCsv, resetSampleData: vi.fn(), undoImport: vi.fn() };
   const user = userEvent.setup({ applyAccept: false });
   let result!: ReturnType<typeof render>;
   await act(async () => {

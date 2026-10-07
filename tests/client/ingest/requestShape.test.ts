@@ -53,12 +53,13 @@ describe('default-path request shape (criterion 44)', () => {
     expect((calls[0]?.init.headers as Record<string, string>)['X-SCC-Column-Map']).toBeUndefined();
   });
 
-  it('no new endpoint is used: only the two per-kind import URLs, the snapshot and the reset exist on the client', async () => {
+  // G1 (decision e, approved): the one-step Undo adds `undoImport` (POST /api/undo). Any other method is still unexpected.
+  it('no new endpoint is used: only the two per-kind import URLs, the snapshot, the reset and the one-step undo exist on the client', async () => {
     const calls = stubFetch();
     const client = createHttpApiClient();
     await client.importCsv('inventory', new File(['x'], 'a.csv'));
     await client.importCsv('shipments', new File(['x'], 'b.csv'));
     expect(calls.map((c) => c.url)).toEqual(['/api/import/inventory', '/api/import/shipments']);
-    expect(Object.keys(client).sort()).toEqual(['getSnapshot', 'importCsv', 'resetSampleData']);
+    expect(Object.keys(client).sort()).toEqual(['getSnapshot', 'importCsv', 'resetSampleData', 'undoImport']);
   });
 });

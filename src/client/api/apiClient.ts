@@ -26,12 +26,16 @@ export interface ImportSuccess {
   rowCount: number;
   warnings: string[];
   dataSource: DataSourceInfo;
+  /** What `undoImport` needs to take this import back (absent from a server without Undo). */
+  undo?: { version: number };
 }
 
 export interface ApiClient {
   getSnapshot(signal?: AbortSignal): Promise<Snapshot>;
   importCsv(kind: ImportKind, file: File, columnMap?: ColumnMap): Promise<ImportSuccess>;
   resetSampleData(): Promise<void>;
+  /** Takes back the last import, only while nothing changed since (409 `UNDO_STALE` otherwise). */
+  undoImport(version: number): Promise<void>;
 }
 
 function isSnapshotShape(value: unknown): value is Snapshot {
@@ -112,6 +116,14 @@ export function createHttpApiClient(baseUrl = ''): ApiClient {
       const res = await doFetch(`${baseUrl}/api/reset`, {
         method: 'POST',
         headers: { 'X-SCC-Request': '1' }
+      });
+      if (!res.ok) throw await parseErrorResponse(res);
+    },
+
+    async undoImport(version: number): Promise<void> {
+      const res = await doFetch(`${baseUrl}/api/undo`, {
+        method: 'POST',
+        headers: { 'X-SCC-Request': '1', 'X-SCC-Undo-Version': String(version) }
       });
       if (!res.ok) throw await parseErrorResponse(res);
     }

@@ -33,6 +33,7 @@ export async function renderWithData(ui: ReactElement, options: RenderWithDataOp
     getSnapshot: vi.fn().mockResolvedValue(options.snapshot),
     importCsv: vi.fn(),
     resetSampleData: vi.fn().mockResolvedValue(undefined),
+    undoImport: vi.fn().mockResolvedValue(undefined),
     ...options.api
   };
 
