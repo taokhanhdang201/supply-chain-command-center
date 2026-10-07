@@ -30,8 +30,8 @@ the list ("How these are counted").
 
 | Alert (today) | Data SCC has | Damage (formula) | What to do (derived) |
 |---|---|---|---|
-| Out of stock (`low_stock`, critical) | on hand, reorder point, avg daily usage, lead time, unit cost, the same SKU in other warehouses | **Short before restock** = usage × lead time × unit cost (on hand is 0) | Move or reorder (section 3.2) |
-| Low stock (`low_stock`, warning) | same, plus days of supply | **Short before restock** = max(0, usage × lead time − on hand) × unit cost; zero when stock lasts until a reorder placed today arrives | Move or reorder; the row also says "runs out in D days", D = whole days of supply, rounded down |
+| Out of stock (`low_stock`, critical) | on hand, reorder point, avg daily usage, lead time, unit cost, the same SKU in other warehouses | **Short before restock** = N × unit cost, N = ⌈usage × lead time⌉ (on hand is 0) | Move or reorder N (section 3.2) |
+| Low stock (`low_stock`, warning) | same, plus days of supply | **Short before restock** = N × unit cost, N = ⌈max(0, usage × lead time − on hand)⌉; zero when stock lasts until a reorder placed today arrives | Move or reorder N; the row also says "runs out in D days", D = whole days of supply, rounded down |
 | Overdue shipment (`shipment_delayed`, critical ≥ 7 days, warning < 7) | carrier, route, days late; freight cost | **None in money.** Freight is not a loss and SCC has no goods value; the row says how many shipments and how late | **Ask for new dates** (one call per carrier) |
 | Unusual cost (`cost_anomaly`) | shipping cost, typical cost (baseline), carrier | **Billed above typical** = Σ (shipping cost − typical cost) per carrier | **Check the invoices** |
 | Delivered late (`shipment_delayed`, info), missing usage (`missing_info`, info) | | none | not in the queue (info: no action) |
@@ -57,38 +57,45 @@ Not alerts today: lanes with 20%+ late shipments (7 on seed 42). They stay on th
 8. **Colour = the alert's own severity** (red critical, amber warning), never the damage; the order is the damage. A carrier
    row is critical when any of its shipments is critical.
 
-### 3.2 Move or reorder (adjustment 1)
+### 3.2 Move or reorder (adjustment 1, then the accuracy fix of the same day)
 
-- **Need** N = reorder point − on hand of the short item (for an item out of stock: its reorder point). When N is 0 (on hand
-  equals the reorder point) the action is "Reorder now".
-- **Spare** at another warehouse X holding the same SKU = X's on hand − X's own reorder point.
-- **Move N from X** only when spare ≥ N, so X never falls below its own reorder point. With spare exactly N, X lands on its
-  reorder point (SCC then counts X as low stock, since low stock is "at or below the reorder point"); that is allowed and
-  the record says so.
-- **Several warehouses can spare it:** the one with the **largest spare**; equal spare → warehouse code A→Z.
-- **None can:** "Reorder N".
+- **N = the whole units short before restock** = daily usage × lead time − on hand, rounded up (computed in hundredths of a
+  unit, so 26.9 × 10 is 269, never 270). The money on the row is **N × unit cost**, and the action covers **exactly N**, so
+  doing it ends the shortage the row prices. (First build: N was reorder point − on hand and the money used the fractional
+  shortage; on seed 42 they only agreed by chance, 292 vs 291.7.) An item without usage data has no shortage figure; its N
+  is reorder point − on hand. "Reorder now" when N is 0.
+- **Can give** at another warehouse X holding the same SKU = X's on hand − X's own reorder point − 1: after giving it, X is
+  still **above** its reorder point, so a move never creates a low-stock alert (low stock is "at or below the reorder point").
+- **Source:** the warehouse that can give the most; equal → warehouse code A→Z.
+- **It can give all of N:** "Move N from X".
+- **It can give some (A < N):** "Move A from X, reorder B", with A + B = N. Never a bare "Move" that looks complete.
+  Chosen over "Reorder N" because it says what helps before restock and what still has to be ordered, with both numbers.
+- **None can give any:** "Reorder N".
 
 ### 3.3 Seed 42 (2026-10-07): new five vs current five
 
 | # | New: "Do these first" | Damage | Current "Top alerts" | Its damage (same formula) |
 |---|---|---|---|---|
-| 1 | Compact Docking Station, Chicago: runs out in 12 days, restock takes 21 (amber) | $165,219 short | Out of stock: APP-0005 (Classic Denim Jeans, Chicago) | $39,265 |
+| 1 | Compact Docking Station, Chicago: runs out in 12 days, restock takes 21 (amber) | $165,388.80 short (292 × $566.40) | Out of stock: APP-0005 (Classic Denim Jeans, Chicago) | $39,265 |
 | 2 | Compact Webcam, Newark: out of stock (red) | $118,621 | Out of stock: ELC-0001 (Rugged Barcode Scanner, Chicago) | $91,795 |
 | 3 | Rugged Barcode Scanner, Chicago: out of stock (red) | $91,795 | Out of stock: ELC-0008 (Compact Webcam, Newark) | $118,621 |
 | 4 | Cascade Carriers: 4 shipments billed above typical (red) | $25,254 above typical | Out of stock: HLB-0002 (Enhanced Face Mask Pack, Chicago) | $5,089 (14th of 20 stock items) |
 | 5 | Cascade Carriers: 4 shipments 7 to 20 days late (red) | no money figure | Out of stock: HOM-0008 (Heavy-Duty Cutting Board, Dallas) | $46,983 |
 
-Actions: Docking Station needs 292; Atlanta can spare 777 and Dallas-Fort Worth 310, so "Move 292 from Atlanta". Webcam
-needs 269; Dallas-Fort Worth 682, Atlanta 271: "Move 269 from Dallas-Fort Worth". Barcode Scanner needs 220; Newark 561,
-Atlanta 372, Los Angeles 340: "Move 220 from Newark". SCC has no transfer time, so the row says "Move", never "fixes".
+Actions: Docking Station is short 292 (34.7 × 21 − 437 = 291.7, rounded up); Atlanta can give 776 and Dallas-Fort Worth
+309, so "Move 292 from Atlanta". Webcam is short 269 (26.9 × 10); Dallas-Fort Worth can give 681: "Move 269 from
+Dallas-Fort Worth". Barcode Scanner is short 220 (22 × 10); Newark can give 560: "Move 220 from Newark". Each row's money is
+N × unit cost: $165,388.80, $118,620.93 (269 × $440.97), $91,795.00 (220 × $417.25). SCC has no transfer time, so the row
+says "Move", never "fixes". (Current-column damages above use the first build's formula.)
 
 ## 4. Copy (adjustment 2: short rows)
 
 Pattern: **what · where** · **damage** · **action**, then the arrow. Money uses the Dashboard's compact format
-(`formatCentsCompact`: $165.2K); the record shows the exact figure. Target: every row at most 2 lines at 1440 px.
+(`formatCentsCompact`: $165.4K); the record shows the exact figure. Target: every row at most 2 lines at 1440 px.
 
 - Out of stock: "Compact Webcam is out of stock in Newark · $118.6K short before restock · Move 269 from Dallas-Fort Worth"
-- Low stock: "Compact Docking Station runs out in Chicago in 12 days · $165.2K short before restock · Move 292 from Atlanta"
+- Low stock: "Compact Docking Station runs out in Chicago in 12 days · $165.4K short before restock · Move 292 from Atlanta"
+- Another warehouse can give part: "… · Move 150 from Atlanta, reorder 142"
 - Nothing to move: "… · Reorder 269"
 - Unusual costs, several: "Cascade Carriers billed $25.3K above typical on 4 shipments · Check the invoices"
 - Unusual cost, one: "BlueLine Logistics billed $11.3K above typical on SHP-100232 · Check the invoice"
@@ -99,11 +106,12 @@ Pattern: **what · where** · **damage** · **action**, then the arrow. Money us
 - Warehouse names drop " DC" ("Chicago DC" reads "Chicago").
 
 **How these are counted** (a closed disclosure under the list; the valuation and formulas live here, not in the rows):
-"Short before restock: what usage will ask for before a reorder placed today can arrive, minus what is on hand, valued at
-unit cost: (daily usage × lead time − on hand) × unit cost. SCC has no selling prices, so this is not lost revenue. Billed
-above typical: the cost over the usual cost for the same route and carrier. Late deliveries have no money figure. Rows are
-ordered by money, with at most three stock rows; the carrier with the most shipments 7 or more days late comes last. Colour
-shows severity."
+"Short before restock: the whole units usage will ask for before a reorder placed today can arrive, minus what is on hand
+(daily usage × lead time − on hand, rounded up), valued at unit cost. SCC has no selling prices, so this is not lost revenue.
+The action covers exactly those units: moved from another warehouse that keeps more than its own reorder point, and
+reordered when no warehouse can give them all. Billed above typical: the cost over the usual cost for the same route and
+carrier. Late deliveries have no money figure. Rows are ordered by money, with at most three stock rows; the carrier with the
+most shipments 7 or more days late comes last. Colour shows severity."
 
 On the Alerts page the kinds are the **Problem** filter (next to Severity and Type), so the reason a list is filtered is
 always visible and Clear filters removes it.
@@ -165,3 +173,8 @@ Adjustments: (1) move only from real spare, never below the source's own reorder
 (2) "$165.2K short before restock" in the row, the valuation and formula in "How these are counted", rows at most 2 lines at
 1440 px; (3) "27 to check" replaced by labels that name the problem; (4) one count for "need attention" (57) across the
 tile, the badge, the kinds line and the link.
+
+Accuracy fix before the first push (owner, 2026-10-07): a source must stay **above** its reorder point after a move (no new
+alert); N in the action is the whole units short before restock, the row's money is N × unit cost, and when no warehouse
+can give all of N the action reads "Move A from X, reorder B" (A + B = N) or "Reorder N" (section 3.2). On seed 42 the
+Docking Station row moved from $165.2K to $165.4K (292 whole units instead of 291.7); the actions did not change.

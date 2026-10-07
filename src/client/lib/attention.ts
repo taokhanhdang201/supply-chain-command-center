@@ -105,28 +105,45 @@ export function placeName(code: string, locations: readonly Location[]): string 
   return (locations.find((l) => l.code === code)?.name ?? code).replace(/ DC$/, '');
 }
 
-/** What usage will ask for before a reorder placed today can arrive, minus what is on hand, at unit cost (in cents). Null
- *  without usage data. */
-export function shortBeforeRestockCents(item: InventoryItem): number | null {
+/**
+ * Whole units short before a reorder placed today can arrive: daily usage × lead time − on hand, rounded up, never below
+ * zero. Null without usage data. Computed in hundredths of a unit (usage has at most two decimals), so no floating-point
+ * residue can round a whole number up (26.9 × 10 is 269, not 270).
+ */
+export function shortUnitsBeforeRestock(item: InventoryItem): number | null {
   if (item.avgDailyUsage === null) return null;
-  return Math.round(Math.max(0, item.avgDailyUsage * item.leadTimeDays - item.quantity) * item.unitCostCents);
+  const demandHundredths = Math.round(item.avgDailyUsage * 100) * item.leadTimeDays;
+  return Math.ceil(Math.max(0, demandHundredths - item.quantity * 100) / 100);
 }
 
-/** What another warehouse can give without falling below its own reorder point. */
-const spareOf = (item: InventoryItem): number => item.quantity - item.reorderPoint;
+/** The money on the row: the units short before restock × unit cost, in cents. Null without usage data. */
+export function shortBeforeRestockCents(item: InventoryItem): number | null {
+  const units = shortUnitsBeforeRestock(item);
+  return units === null ? null : units * item.unitCostCents;
+}
+
+/** The most another warehouse can send and still stay above its own reorder point (so the move creates no alert). */
+const canGive = (item: InventoryItem): number => Math.max(0, item.quantity - item.reorderPoint - 1);
 
 /**
- * The action for a short item: need N = its reorder point − on hand. "Move N from X" when another warehouse holding the
- * SKU can spare at least N (so X stays at or above its own reorder point); among several, the largest spare, then the
- * warehouse code A→Z. Otherwise "Reorder N" ("Reorder now" when N is 0).
+ * The action for a short item. N = the units short before restock (for an item without usage data: its reorder point −
+ * on hand), so doing it ends the shortage the row prices. The source is the other warehouse holding the SKU that can give
+ * the most (then the warehouse code A→Z); a source keeps more than its own reorder point after the move.
+ * - it can give all of N: "Move N from X";
+ * - it can give some (A < N): "Move A from X, reorder B" with A + B = N, never a "Move" that looks complete;
+ * - none can give any: "Reorder N".
+ * "Reorder now" when N is 0.
  */
 export function stockAction(item: InventoryItem, inventory: readonly InventoryItem[], locations: readonly Location[]): string {
-  const need = item.reorderPoint - item.quantity;
+  const need = shortUnitsBeforeRestock(item) ?? item.reorderPoint - item.quantity;
   if (need <= 0) return 'Reorder now';
   const from = inventory
-    .filter((o) => o.sku === item.sku && o.warehouse !== item.warehouse && spareOf(o) >= need)
-    .sort((a, b) => spareOf(b) - spareOf(a) || compareKeys(a.warehouse, b.warehouse))[0];
-  return from === undefined ? `Reorder ${count(need)}` : `Move ${count(need)} from ${placeName(from.warehouse, locations)}`;
+    .filter((o) => o.sku === item.sku && o.warehouse !== item.warehouse && canGive(o) > 0)
+    .sort((a, b) => canGive(b) - canGive(a) || compareKeys(a.warehouse, b.warehouse))[0];
+  if (from === undefined) return `Reorder ${count(need)}`;
+  const place = placeName(from.warehouse, locations);
+  const moved = Math.min(need, canGive(from));
+  return moved === need ? `Move ${count(need)} from ${place}` : `Move ${count(moved)} from ${place}, reorder ${count(need - moved)}`;
 }
 
 function stockWhat(item: InventoryItem, place: string): string {

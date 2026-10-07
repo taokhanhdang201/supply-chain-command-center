@@ -314,11 +314,12 @@ export function DashboardPage() {
               <details className="attention__how">
                 <summary>How these are counted</summary>
                 <p>
-                  Short before restock: what usage will ask for before a reorder placed today can arrive, minus what is on hand, valued at unit
-                  cost: (daily usage × lead time − on hand) × unit cost. SCC has no selling prices, so this is not lost revenue. Billed above
-                  typical: the cost over the usual cost for the same route and carrier. Late deliveries have no money figure. Rows are ordered by
-                  money, with at most three stock rows; the carrier with the most shipments 7 or more days late comes last. Colour shows
-                  severity.
+                  Short before restock: the whole units usage will ask for before a reorder placed today can arrive, minus what is on hand
+                  (daily usage × lead time − on hand, rounded up), valued at unit cost. SCC has no selling prices, so this is not lost revenue.
+                  The action covers exactly those units: moved from another warehouse that keeps more than its own reorder point, and
+                  reordered when no warehouse can give them all. Billed above typical: the cost over the usual cost for the same route and
+                  carrier. Late deliveries have no money figure. Rows are ordered by money, with at most three stock rows; the carrier with the
+                  most shipments 7 or more days late comes last. Colour shows severity.
                 </p>
               </details>
             </>

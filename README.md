@@ -68,7 +68,7 @@ purpose so that every alert type appears. Its dates are counted from today, so i
 
 ## Quality
 
-- **2,197 automated tests** (Vitest) cover the calculations, the import pipeline, the server and every page.
+- **2,201 automated tests** (Vitest) cover the calculations, the import pipeline, the server and every page.
   9 of them compare against the private development history and are skipped in this repository.
 - **44 browser tests** drive real Chromium against the built app. They check that no page scrolls sideways
   from 360px to 1440px wide, that the dashboard text meets WCAG AA contrast, that focus moves to the page heading
@@ -212,7 +212,7 @@ xuất hiện. Ngày tháng được tính từ hôm nay nên dữ liệu luôn 
 
 ## Chất lượng
 
-- **2.197 test tự động** (Vitest) cho phần tính toán, quy trình nhập, server và từng trang. 9 test trong số đó so
+- **2.201 test tự động** (Vitest) cho phần tính toán, quy trình nhập, server và từng trang. 9 test trong số đó so
   với lịch sử phát triển riêng nên được bỏ qua trong repo này.
 - **44 test trình duyệt** chạy Chromium thật trên bản đã build. Các test kiểm tra không trang nào cuộn ngang từ
   360px đến 1440px, chữ trên dashboard đạt độ tương phản WCAG AA, focus chuyển tới tiêu đề trang sau mỗi lần

@@ -5,7 +5,8 @@ import { describe, expect, it } from 'vitest';
 import type { Shipment, Snapshot } from '../../../src/shared/types';
 import { createSampleDataset } from '../../../src/shared/sample/generateSampleData';
 import { buildSnapshot } from '../../../src/shared/domain/snapshot';
-import { buildQueue, kindCounts, kindOf, MAX_STOCK_ROWS, shortBeforeRestockCents, stockAction } from '../../../src/client/lib/attention';
+import { buildQueue, kindCounts, kindOf, MAX_STOCK_ROWS, shortBeforeRestockCents, shortUnitsBeforeRestock, stockAction } from '../../../src/client/lib/attention';
+import { formatCentsCompact } from '../../../src/shared/format';
 import { makeInventoryRecord, makeShipmentRecord, makeSnapshot, TODAY } from '../../helpers/fixtures';
 
 const DAY = '2026-10-07';
@@ -42,63 +43,115 @@ describe('kinds: only alerts that need attention, adding up to the KPI and badge
   });
 });
 
-describe('money: short before restock, at unit cost', () => {
-  it('is (usage × lead time − on hand) × unit cost, zero when stock lasts until a reorder arrives, null without usage', () => {
-    const [low, enough, none] = makeSnapshot(
+describe('money: whole units short before restock, at unit cost', () => {
+  it('N = daily usage × lead time − on hand, rounded up; the money is N × unit cost; zero when stock lasts; null without usage', () => {
+    const [low, exact, enough, none] = makeSnapshot(
       [
-        makeInventoryRecord({ quantity: 437, reorderPoint: 729, avgDailyUsage: 34.7, leadTimeDays: 21, unitCostCents: 56_639 }),
-        makeInventoryRecord({ quantity: 100, reorderPoint: 120, avgDailyUsage: 5, leadTimeDays: 14 }),
+        makeInventoryRecord({ quantity: 437, reorderPoint: 729, avgDailyUsage: 34.7, leadTimeDays: 21, unitCostCents: 56_639 }), // 291.7 → 292
+        makeInventoryRecord({ quantity: 0, reorderPoint: 300, avgDailyUsage: 26.9, leadTimeDays: 10, unitCostCents: 44_097 }), // 269 exactly
+        makeInventoryRecord({ quantity: 100, reorderPoint: 120, avgDailyUsage: 5, leadTimeDays: 14 }), // 70 ≤ 100
         makeInventoryRecord({ quantity: 0, avgDailyUsage: null })
       ],
       []
     ).inventory;
-    expect(shortBeforeRestockCents(low!)).toBe(Math.round((34.7 * 21 - 437) * 56_639));
-    expect(shortBeforeRestockCents(enough!)).toBe(0); // 5 × 14 = 70 ≤ 100 on hand
+    expect(shortUnitsBeforeRestock(low!)).toBe(292);
+    expect(shortBeforeRestockCents(low!)).toBe(292 * 56_639);
+    // 26.9 × 10 is 269 in floating point arithmetic only by luck; the hundredths keep it exact (never 270)
+    expect(shortUnitsBeforeRestock(exact!)).toBe(269);
+    expect(shortBeforeRestockCents(exact!)).toBe(269 * 44_097);
+    expect(shortUnitsBeforeRestock(enough!)).toBe(0);
+    expect(shortBeforeRestockCents(enough!)).toBe(0);
+    expect(shortUnitsBeforeRestock(none!)).toBeNull();
     expect(shortBeforeRestockCents(none!)).toBeNull();
   });
 });
 
-describe('move or reorder (adjustment 1)', () => {
+describe('move or reorder: N is the shortage, and a source stays above its own reorder point', () => {
+  // The short item in Chicago: 10 a day for 10 days, nothing on hand → N = 100 short before restock.
+  const SHORT = { sku: 'ABC-1', warehouse: 'WH-ORD', quantity: 0, reorderPoint: 80, avgDailyUsage: 10, leadTimeDays: 10 };
   const inv = (records: Parameters<typeof makeInventoryRecord>[0][]) => makeSnapshot(records.map((r) => makeInventoryRecord(r)), []);
+  const action = (snap: Snapshot) => stockAction(snap.inventory[0]!, snap.inventory, snap.locations);
 
-  it('moves when another warehouse can spare exactly the need, so it lands on its own reorder point', () => {
-    const snap = inv([
-      { sku: 'ABC-1', warehouse: 'WH-ORD', quantity: 0, reorderPoint: 100 },
-      { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 150, reorderPoint: 50 } // spare 100 = need 100
-    ]);
-    expect(stockAction(snap.inventory[0]!, snap.inventory, snap.locations)).toBe('Move 100 from Atlanta');
+  it('N equals the units short before restock (not the reorder point minus on hand)', () => {
+    const snap = inv([SHORT, { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 500, reorderPoint: 50 }]);
+    expect(shortUnitsBeforeRestock(snap.inventory[0]!)).toBe(100);
+    expect(action(snap)).toBe('Move 100 from Atlanta'); // the reorder point (80) plays no part in N
   });
 
-  it('reorders when the only other warehouse is short of the need by one unit (it would fall below its reorder point)', () => {
-    const snap = inv([
-      { sku: 'ABC-1', warehouse: 'WH-ORD', quantity: 0, reorderPoint: 100 },
-      { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 149, reorderPoint: 50 } // spare 99 < need 100
-    ]);
-    expect(stockAction(snap.inventory[0]!, snap.inventory, snap.locations)).toBe('Reorder 100');
+  it('just enough: a source that keeps one unit above its reorder point after the move gives all of N', () => {
+    const snap = inv([SHORT, { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 151, reorderPoint: 50 }]); // 151 − 100 = 51 > 50
+    expect(action(snap)).toBe('Move 100 from Atlanta');
   });
 
-  it('with several warehouses able to spare it: the largest spare; equal spare: the warehouse code A→Z', () => {
+  it('not enough: a source that would land on its reorder point gives what it can, and the rest is reordered', () => {
+    // 150 − 100 would leave 50 = its reorder point (a new low-stock alert), so it gives 99 and 1 is reordered
+    expect(action(inv([SHORT, { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 150, reorderPoint: 50 }]))).toBe('Move 99 from Atlanta, reorder 1');
+    expect(action(inv([SHORT, { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 90, reorderPoint: 50 }]))).toBe('Move 39 from Atlanta, reorder 61');
+  });
+
+  it('none: nothing above any reorder point (or no other warehouse with the SKU) means "Reorder N"', () => {
+    expect(action(inv([SHORT, { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 51, reorderPoint: 50 }]))).toBe('Reorder 100'); // 51 − 1 = 50
+    expect(action(inv([SHORT, { sku: 'XYZ-9', warehouse: 'WH-ATL', quantity: 900, reorderPoint: 20 }]))).toBe('Reorder 100'); // other SKU
+  });
+
+  it('several sources: the one that can give the most, then the warehouse code A→Z', () => {
     const largest = inv([
-      { sku: 'ABC-1', warehouse: 'WH-ORD', quantity: 10, reorderPoint: 60 }, // need 50
-      { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 120, reorderPoint: 20 }, // spare 100
-      { sku: 'ABC-1', warehouse: 'WH-DFW', quantity: 300, reorderPoint: 20 }, // spare 280
-      { sku: 'ABC-1', warehouse: 'WH-LAX', quantity: 60, reorderPoint: 20 } // spare 40 < 50
+      SHORT,
+      { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 160, reorderPoint: 20 }, // gives up to 139
+      { sku: 'ABC-1', warehouse: 'WH-DFW', quantity: 300, reorderPoint: 20 }, // 279
+      { sku: 'ABC-1', warehouse: 'WH-LAX', quantity: 60, reorderPoint: 20 } // 39
     ]);
-    expect(stockAction(largest.inventory[0]!, largest.inventory, largest.locations)).toBe('Move 50 from Dallas-Fort Worth');
+    expect(action(largest)).toBe('Move 100 from Dallas-Fort Worth');
     const equal = inv([
-      { sku: 'ABC-1', warehouse: 'WH-ORD', quantity: 10, reorderPoint: 60 },
-      { sku: 'ABC-1', warehouse: 'WH-LAX', quantity: 120, reorderPoint: 20 }, // spare 100
-      { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 120, reorderPoint: 20 } // spare 100: WH-ATL < WH-LAX
+      SHORT,
+      { sku: 'ABC-1', warehouse: 'WH-LAX', quantity: 160, reorderPoint: 20 },
+      { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 160, reorderPoint: 20 } // equal: WH-ATL < WH-LAX
     ]);
-    expect(stockAction(equal.inventory[0]!, equal.inventory, equal.locations)).toBe('Move 50 from Atlanta');
+    expect(action(equal)).toBe('Move 100 from Atlanta');
+    const partial = inv([
+      SHORT,
+      { sku: 'ABC-1', warehouse: 'WH-LAX', quantity: 60, reorderPoint: 20 }, // 39
+      { sku: 'ABC-1', warehouse: 'WH-ATL', quantity: 80, reorderPoint: 20 } // 59: the most, still not all
+    ]);
+    expect(action(partial)).toBe('Move 59 from Atlanta, reorder 41');
   });
 
-  it('only the same SKU counts, and "Reorder now" when on hand equals the reorder point', () => {
-    const snap = inv([
-      { sku: 'ABC-1', warehouse: 'WH-ORD', quantity: 20, reorderPoint: 20 },
-      { sku: 'XYZ-9', warehouse: 'WH-ATL', quantity: 900, reorderPoint: 20 }
-    ]);
-    expect(stockAction(snap.inventory[0]!, snap.inventory, snap.locations)).toBe('Reorder now');
+  it('an item without usage data uses its reorder point − on hand; "Reorder now" when that is 0', () => {
+    const noUsage = inv([{ sku: 'NOU-1', warehouse: 'WH-ORD', quantity: 0, reorderPoint: 40, avgDailyUsage: null }]);
+    expect(action(noUsage)).toBe('Reorder 40');
+    const zero = inv([{ sku: 'NOU-2', warehouse: 'WH-ORD', quantity: 0, reorderPoint: 0, avgDailyUsage: null }]);
+    expect(action(zero)).toBe('Reorder now');
+  });
+});
+
+describe('the money on a row matches its action', () => {
+  /** Units the action covers: "Move N", "Move A …, reorder B" (A + B) or "Reorder N". */
+  const unitsOf = (action: string): number => [...action.matchAll(/(?:Move|reorder|Reorder) ([\d,]+)/g)].reduce((sum, m) => sum + Number((m[1] as string).replace(/,/g, '')), 0);
+
+  it('seed 42: every stock row shows N × unit cost, and its action covers exactly N', () => {
+    const snap = seed42();
+    const stockRows = buildQueue(snap).filter((r) => r.key.startsWith('stock:'));
+    expect(stockRows).toHaveLength(3);
+    for (const row of stockRows) {
+      const item = snap.inventory.find((i) => `stock:${i.id}` === row.key)!;
+      const n = shortUnitsBeforeRestock(item)!;
+      expect(unitsOf(row.action), row.key).toBe(n);
+      expect(row.damage, row.key).toBe(`${formatCentsCompact(n * item.unitCostCents)} short before restock`);
+    }
+  });
+
+  it('a partial move still covers exactly N between the move and the reorder', () => {
+    const snap = makeSnapshot(
+      [
+        makeInventoryRecord({ sku: 'PRT-1', warehouse: 'WH-ORD', quantity: 3, reorderPoint: 10, avgDailyUsage: 2.5, leadTimeDays: 7, unitCostCents: 1_234 }), // 17.5 − 3 → 15
+        makeInventoryRecord({ sku: 'PRT-1', warehouse: 'WH-ATL', quantity: 20, reorderPoint: 10 }) // gives up to 9
+      ],
+      []
+    );
+    const [row] = buildQueue(snap);
+    expect(row?.action).toBe('Move 9 from Atlanta, reorder 6');
+    expect(unitsOf(row!.action)).toBe(15);
+    expect(row?.damage).toBe(`${formatCentsCompact(15 * 1_234)} short before restock`);
   });
 });
 
@@ -106,7 +159,8 @@ describe('the queue', () => {
   it('seed 42: the five rows, their numbers and their links', () => {
     const rows = buildQueue(seed42());
     expect(rows.map((r) => [r.tone, r.what, r.damage, r.action])).toEqual([
-      ['warning', 'Compact Docking Station runs out in Chicago in 12 days', '$165.2K short before restock', 'Move 292 from Atlanta'],
+      // 292 whole units × unit cost (was 291.7 units, $165.2K, before the money and the move were made to agree)
+      ['warning', 'Compact Docking Station runs out in Chicago in 12 days', '$165.4K short before restock', 'Move 292 from Atlanta'],
       ['critical', 'Compact Webcam is out of stock in Newark', '$118.6K short before restock', 'Move 269 from Dallas-Fort Worth'],
       ['critical', 'Rugged Barcode Scanner is out of stock in Chicago', '$91.8K short before restock', 'Move 220 from Newark'],
       ['critical', 'Cascade Carriers billed $25.3K above typical on 4 shipments', null, 'Check the invoices'],
