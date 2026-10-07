@@ -5,6 +5,9 @@ import userEvent from '@testing-library/user-event';
 import { AlertsPage } from '../../../src/client/pages/AlertsPage';
 import { renderWithData } from '../../helpers/renderWithData';
 import { makeInventoryRecord, makeShipmentRecord, makeSnapshot, TODAY } from '../../helpers/fixtures';
+import { createSampleDataset } from '../../../src/shared/sample/generateSampleData';
+import { buildSnapshot } from '../../../src/shared/domain/snapshot';
+import { kindCounts } from '../../../src/client/lib/attention';
 
 // Alert titles keep their IDs in a no-wrap span (IdText), so match a title by the whole text of its table cell.
 const cell = (text: string | RegExp) => (_: string, el: Element | null) =>
@@ -164,5 +167,49 @@ describe('AlertsPage: a read-only triaged ledger', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Alerts' })).toBeInTheDocument();
     expect(document.querySelector('.page-stage__display')).toBeNull();
     expect(screen.queryByRole('button', { name: /resolve|dismiss|acknowledge/i })).toBeNull();
+  });
+});
+
+describe('AlertsPage: the Dashboard kinds (kind=)', () => {
+  const seed42 = () =>
+    buildSnapshot(createSampleDataset(42, '2026-10-07', '2026-10-07T00:00:00.000Z'), '2026-10-07', {
+      generatedAt: '2026-10-07T00:00:00.000Z',
+      limits: { maxUploadBytes: 2_097_152, maxRows: 20_000 }
+    });
+
+  it('opens exactly the rows each Dashboard kind counts, and shows the kind in the Problem filter', async () => {
+    const snapshot = seed42();
+    const kinds = kindCounts(snapshot.alerts);
+    expect(kinds.map((k) => k.count)).toEqual([6, 14, 12, 8, 17]);
+    for (const k of kinds) {
+      window.location.hash = k.href;
+      const { unmount } = await renderWithData(<AlertsPage />, { snapshot });
+      expect(screen.getByText(`${k.count} alerts`)).toBeInTheDocument();
+      expect(screen.getByRole('combobox', { name: 'Problem' })).toHaveValue(k.kind);
+      expect(screen.getByRole('button', { name: 'Clear filters' })).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it('overdue keeps critical and warning delays and leaves out delivered-late info alerts', async () => {
+    window.location.hash = '#/alerts?kind=overdue';
+    await renderWithData(<AlertsPage />, { snapshot: seed42() });
+    const rows = screen.getAllByRole('row').slice(1);
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      expect(r.textContent).toMatch(/Shipment overdue/);
+      expect(r.textContent).not.toMatch(/Delivered late/);
+    }
+  });
+
+  it('ignores an unknown kind, and the Problem filter writes kind= to the hash', async () => {
+    window.location.hash = '#/alerts?kind=bogus';
+    const user = userEvent.setup();
+    await renderWithData(<AlertsPage />, { snapshot: makeSnapshot([makeInventoryRecord({ sku: 'ELC-0001', quantity: 0 }), makeInventoryRecord({ sku: 'ELC-0002', quantity: 5, reorderPoint: 10 })], [], { today: TODAY }) });
+    expect(screen.getByRole('combobox', { name: 'Problem' })).toHaveValue('all');
+    expect(screen.getByText('2 alerts')).toBeInTheDocument();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Problem' }), 'out_of_stock');
+    expect(window.location.hash).toBe('#/alerts?kind=out_of_stock');
+    expect(await screen.findByText('1 alert')).toBeInTheDocument();
   });
 });

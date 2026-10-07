@@ -1,5 +1,6 @@
 // The Alerts page (plan §8.6): severity and type figures on the stage (each a link to its filter), then the alert
-// ledger on the paper floor: severity/type/search filters synced to the hash, a "Sort by" for phones, and a paginated
+// ledger on the paper floor: severity/type/problem/search filters synced to the hash (problem = the Dashboard's
+// "Do these first" kinds, `kind=`), a "Sort by" for phones, and a paginated
 // table linking each alert's entity back to the page it came from. Read only: no alert actions.
 
 import { useEffect } from 'react';
@@ -16,6 +17,7 @@ import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { Badge, type BadgeTone } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IdText } from '../components/ui/IdText';
+import { ATTENTION_KINDS, ATTENTION_KIND_LABELS, kindOf } from '../lib/attention';
 
 const SEVERITY_FILTER_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'All' },
@@ -38,6 +40,10 @@ const TYPE_FILTER_OPTIONS: SelectOption[] = [
   ...(Object.entries(TYPE_LABELS) as Array<[AlertType, string]>).map(([value, label]) => ({ value, label }))
 ];
 const TYPE_FILTER_VALUES = new Set(TYPE_FILTER_OPTIONS.map((o) => o.value));
+
+// The Dashboard's "Do these first" kinds (alerts that need attention), so each of its counts opens exactly its rows.
+const KIND_FILTER_OPTIONS: SelectOption[] = [{ value: 'all', label: 'All' }, ...ATTENTION_KINDS.map((k) => ({ value: k, label: ATTENTION_KIND_LABELS[k] }))];
+const KIND_FILTER_VALUES = new Set(KIND_FILTER_OPTIONS.map((o) => o.value));
 
 const SEVERITY_LABELS: Record<Severity, string> = { critical: 'Critical', warning: 'Warning', info: 'Info' };
 // Red for critical, amber for warning; info is neutral gray (it asks for no action).
@@ -71,6 +77,10 @@ function matchesType(a: Alert, type: string): boolean {
   return type === 'all' || a.type === type;
 }
 
+function matchesKind(a: Alert, kind: string): boolean {
+  return kind === 'all' || kindOf(a) === kind;
+}
+
 /** The page an alert came from, filtered to that one item: an inventory row's id is `SKU@warehouse`. */
 function entityHref(alert: Alert): string {
   if (alert.entity.kind === 'inventory') {
@@ -89,18 +99,20 @@ export function AlertsPage() {
 
   const rawSeverity = route.params.get('severity') ?? 'all';
   const rawType = route.params.get('type') ?? 'all';
+  const rawKind = route.params.get('kind') ?? 'all';
   const rawQuery = route.params.get('q') ?? '';
 
   const severity = SEVERITY_FILTER_VALUES.has(rawSeverity) ? rawSeverity : 'all';
   const type = TYPE_FILTER_VALUES.has(rawType) ? rawType : 'all';
+  const kind = KIND_FILTER_VALUES.has(rawKind) ? rawKind : 'all';
   const query = rawQuery;
 
-  const filterKey = `${severity}|${type}|${query}`;
+  const filterKey = `${severity}|${type}|${kind}|${query}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => table.resetPage(), [filterKey]);
 
   function updateParams(changes: Record<string, string>): void {
-    const next: Record<string, string> = { severity, type, q: query, ...changes };
+    const next: Record<string, string> = { severity, type, kind, q: query, ...changes };
     const cleaned: Record<string, string> = {};
     for (const [key, value] of Object.entries(next)) {
       if (value !== '' && value !== 'all') cleaned[key] = value;
@@ -116,12 +128,14 @@ export function AlertsPage() {
     .map((t) => ({ value: t, label: TYPE_LABELS[t], count: all.filter((a) => matchesType(a, t)).length }))
     .filter((t) => t.count > 0);
 
-  const filtered = all.filter((a) => matchesSeverity(a, severity) && matchesType(a, type) && matchesSearch([a.title, a.message, a.entity.label], query));
+  const filtered = all.filter(
+    (a) => matchesSeverity(a, severity) && matchesType(a, type) && matchesKind(a, kind) && matchesSearch([a.title, a.message, a.entity.label], query)
+  );
   const accessor = SORT_ACCESSORS[table.sort.key] ?? ((a: Alert) => SEVERITY_RANK[a.severity]);
   const sorted = sortRows(filtered, accessor, table.sort.direction);
   const { rows, pageCount, total, start, end } = paginate(sorted, table.page, table.pageSize);
 
-  const hasAnyFilter = severity !== 'all' || type !== 'all' || query !== '';
+  const hasAnyFilter = severity !== 'all' || type !== 'all' || kind !== 'all' || query !== '';
 
   const sortValue = `${table.sort.key}:${table.sort.direction}`;
   const sortOptions: SelectOption[] = SORT_OPTIONS.some((o) => o.value === sortValue)
@@ -187,6 +201,7 @@ export function AlertsPage() {
               <SearchInput label="Search" value={query} onChange={(v) => updateParams({ q: v })} placeholder="Title, message or entity" />
               <SelectField label="Severity" value={severity} options={SEVERITY_FILTER_OPTIONS} onChange={(v) => updateParams({ severity: v })} />
               <SelectField label="Type" value={type} options={TYPE_FILTER_OPTIONS} onChange={(v) => updateParams({ type: v })} />
+              <SelectField label="Problem" value={kind} options={KIND_FILTER_OPTIONS} onChange={(v) => updateParams({ kind: v })} />
               <SelectField
                 label="Sort by"
                 value={sortValue}
