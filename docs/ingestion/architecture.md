@@ -36,8 +36,9 @@ bytes -> detect -> probe -> read -> structure -> map -> normalize -> canonical C
 | `src/shared/ingest/preview/` | `model.ts` (the `PreviewModel` the UI renders), `sourceRef.ts` (formatting of `SourceRef`). |
 | `src/shared/ingest/flatten/` | `records.ts` (nested records to tables), `positioned.ts` (hook for table inference over positioned text). |
 | `src/shared/ingest/limits.ts`, `messages.ts` | The limit layers and the message catalogue (see `limits.md`). |
-| `src/client/ingest/` | `runner.ts` (`WorkerRunner`, `InlineRunner`, `routeFile`), `ingest.worker.ts` (worker entry), `useIngestFlow.ts` (UI state machine). |
-| `src/client/components/import/` | `UniversalImportCard.tsx` and its panels. |
+| `src/client/ingest/` | `runner.ts` (`WorkerRunner`, `InlineRunner`, `routeFile`), `ingest.worker.ts` (worker entry), `useIngestFlow.ts` (UI state machine), `importStory.ts` (the words of the seven states). |
+| `src/client/components/import/` | `UniversalImportCard.tsx` (the seven states) and its panels. |
+| `src/client/import/sampleFiles.ts` | The demo files built in the browser: `carrier-export.csv` ("No file? Try one."), the inventory file and the file with errors. |
 | `src/server/ingestLimits.ts` | `SCC_MAX_IMPORT_ROWS` (the only server addition). |
 
 Dependency rules, enforced by tests (`tests/shared/ingest/importDirection.test.ts`, `coreScan.test.ts`):
@@ -146,19 +147,39 @@ enforces the parse and validation budgets.
 * `routeFile(bytes, fileName)` is the **legacy-first gate**: files that the V1 flow handles keep going through the unchanged
   per-kind cards; others are handed to the universal card.
 
-## 7. The UI (`UniversalImportCard` and panels)
+## 7. The UI (`UniversalImportCard`: seven states, then the panels)
+
+The card shows one state at a time, each with one sentence, one line, one main action and one small link (G1): waiting
+(the drop area; its line is generated from the registry and the size limit), reading (Cancel), a question, has errors,
+cannot import, ready ("480 shipments. Ready." with the effect on the on-time rate or low-stock count) and done (Undo). The
+state is derived from the flow (`viewOf`), never stored. `src/client/ingest/importStory.ts` holds the words, as pure
+functions of the preview: `questionFor` turns the first open blocker into one question whose answers are the buttons
+(each answer is a decision: a date preset for one column, a status or warehouse mapping, a dataset, a column assignment,
+an option); `fixesOf` lists what SCC settled on its own ("What I fixed (n)", with the value that proves each date column's
+format); `impactLine`, `errorsText`, `problemsCsv` (the rows to fix, saved as a `data:` URL) and `cannotLine`. Blockers no
+answer can resolve (currency, too large, no rows) are "cannot import". Red marks only what stops the import (cannot,
+rejected, has errors, a failed Undo), amber a question.
+
+Behind the state's small link sit the panels, unchanged: format (detected format, evidence, encoding and separator
+choices, number and date format), table picker, structure, dataset choice and column mapping (MATCHED / CHECK / CHOOSE
+badges with "Why?"), value mapping and constants, review (raw versus canonical rows, problems, counts, restatement and its
+own Import button). Under "More": the other samples, paste, templates, the Column guide with the two per-kind cards, and
+Restore sample data.
 
 `useIngestFlow` keeps the user's decisions as data and re-runs the analysis after every decision (the previous review stays
 visible, marked busy, until the new one arrives; a failed re-run keeps it but makes it unconfirmable). It reads
-`snapshot.limits` for the server's payload bytes and rows. Panels: format (detected format, evidence, encoding and separator
-choices, number and date format), table picker, structure, dataset choice and column mapping (MATCHED / CHECK / CHOOSE badges
-with "Why?"), value mapping and constants, review (raw versus canonical rows, problems, counts, restatement, Confirm).
-Accessibility rules (focus on each panel heading, `aria-describedby` for the Confirm reason, evidence expanders with
-`aria-expanded`/`aria-controls`, fieldset/legend radio groups, text plus icon for confidence) are tested in
-`tests/client/ingest/accessibility.test.tsx`. All file-derived text is rendered as React text and truncated; nothing uses
-`dangerouslySetInnerHTML` (`securityGuards.test.ts`).
+`snapshot.limits` for the server's payload bytes and rows. After an import it keeps the version the server returned, and
+`undo()` sends it to `POST /api/undo`; a stale version is refused and said so (decision e).
 
-Upload: `importCsv(kind, canonicalFile)` with the original file name (two arguments, the unchanged API client).
+Focus goes to the state's sentence on every new state (unless the user is working in the details or under More, except
+when a new file starts); a file SCC cannot take is a `role="alert"`. Panel headings stay focusable (`tabIndex -1`) and
+the other accessibility rules (`aria-describedby` for the Confirm reason, evidence expanders with
+`aria-expanded`/`aria-controls`, fieldset/legend radio groups, text plus icon for confidence) are tested in
+`tests/client/ingest/accessibility.test.tsx`; each state in `tests/client/import/sevenStates.test.tsx`. All file-derived
+text is rendered as React text and truncated; nothing uses `dangerouslySetInnerHTML` or object URLs
+(`securityGuards.test.ts`).
+
+Upload: `importCsv(kind, canonicalFile)` with the original file name (two arguments).
 
 ## 8. What did not change
 

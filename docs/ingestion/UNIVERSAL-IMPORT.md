@@ -1,6 +1,7 @@
 # Universal Import: audit and design (G0)
 
-Status: **design only, nothing here is implemented yet.** Baseline: `main` at `bd820d6`. Code is the source of truth; where
+Status: **G1 is built** (dates per column, Undo, the seven states, More, "No file? Try one."); section 11 says what was
+built and where it differs from this design. G2 to G4 are design only. Baseline of the audit: `main` at `bd820d6`. Code is the source of truth; where
 the existing docs say something else, section 1.2 lists it. "Probe" below means the current engine run on synthetic files
 (`analyzeFile` with the default registry) during G0; the probe was a temporary test and is not part of the repository.
 
@@ -242,3 +243,27 @@ Small commits, in this order. Core files are named; nothing else in the core lis
 
 Not in G1: recognizing orders and invoices (state 6 covers what SCC cannot read today; recognizing other document types
 needs mapping changes and is proposed for G2); 10 MB, XLSX and JSON (G2); EDI (G3).
+
+## 11. G1: what was built, and where it differs from the design
+
+Commits: `e5093f7` (dates per column), `81b8fbe` (Undo), `aafdf7b` (seven states, More, demo), then these docs.
+
+Built as designed: one state at a time with one sentence, one line, one main action and one small link; questions one at a
+time with the answers as buttons; "What I fixed (n)" with the value that proves each date column's format; the demo in
+three clicks (Try one, **In transit**, **Use this data**: on-time 85.6% to 91.0%, delayed 73 to 50 on the seed-42 sample);
+Undo with a version check; "Download the N rows to fix"; red only for what stops the import, amber for a question.
+
+Different from the design, and why:
+
+| Design | Built | Why |
+|---|---|---|
+| Waiting line "Spreadsheet, CSV or EDI. Up to 10 MB." | "CSV, TSV, TXT or GZ file. Up to 2 MB." | The line is generated from the registry and the limit, so it says only what G1 reads; it grows with G2 (XLSX, 10 MB) and G3 (EDI). |
+| Remove the per-kind V1 upload cards | Kept, under More, in the Column guide tabs | Their tests (V1.5 mapping panel, legacy routing, focus after a failed mapped import) stay as they are; removing them is a separate decision. |
+| The review's "Import N shipments" button replaced by "Use this data" | Both exist: "Use this data" in the state, the review keeps its own button behind the small link | The review is unchanged behind the link; both buttons confirm the same canonical file. |
+| Reading line "Matching 9 columns to shipments." | The pipeline stage and its progress, for example "Matching columns (60%)…" | The stage is known while reading; the column count is not known until mapping ends. |
+| "Cannot import" line from the catalogue | The refusal's own hint only; the list of formats sits behind "What SCC can read" | The catalogue text is several sentences; the state allows one line. |
+| "Current data sources" figures removed | Removed; the top bar now reads a sample file as "Sample data (seed 7)" | That label used to be shown only on the removed figures. |
+
+Known limits of G1: Undo lives in the card, so it is gone once the user leaves Data Import (Restore sample data stays the
+fallback); the rows-to-fix file lists at most the first 500 problems (`MAX_ERRORS_RETURNED`); the date question names the
+column, not the row.

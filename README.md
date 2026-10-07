@@ -22,22 +22,24 @@ Render's free plan, which sleeps when nobody is using it, so the first visit can
 | Routes | Which lanes to raise with the carrier: share of late shipments and average cost per lane. |
 | Analytics | Whether things are getting better: on-time vs delayed by month, shipping cost over time, inventory value and turnover. |
 | Alerts | What to fix first: every problem in one list, Critical first, each linked to the record behind it. |
-| Data Import | How the picture changes with your own data: load a shipments or inventory file, check every row, then import it or go back to the sample. |
+| Data Import | How the picture changes with your own data: drop a shipments or inventory file, answer what SCC cannot settle on its own, then use it, or undo it. |
 
 ## Try it in 3 clicks
 
-1. Open **Data Import**, click **Try a sample** and choose **Shipments sample**.
-2. Read the preview (480 rows, 0 errors) and click **Import 480 shipments**.
-3. Open **Dashboard**. The figures now come from the new file: on-time delivery moves from 85.6% to 91.0%, and
-   delayed shipments from 73 to 50.
+1. Open **Data Import** and click **No file? Try one.** SCC builds a carrier's own export (480 shipments, other
+   column names, three date styles, `$` amounts) and reads it.
+2. It asks one question: what the carrier's word "Arrived" means. Click **In transit**.
+3. It says "480 shipments. Ready." and how the on-time rate moves. Click **Use this data**, then **Open Dashboard**:
+   on-time delivery moves from 85.6% to 91.0%, and delayed shipments from 73 to 50.
 
-To go back, click **Restore sample data** at the bottom of Data Import.
+**What I fixed** lists what SCC read on its own. To go back, click **Undo** right after the import, or
+**Restore sample data** under **More** at any time.
 
 The online demo shares one copy of the data between all visitors, so the figures can differ from the screenshots if
 someone has just imported a file; **Restore sample data** brings the sample back, and the sample also refreshes
 itself every day.
 
-![Data Import at the preview step: every row checked before anything changes](docs/screenshots/import-preview-1440.jpg)
+![Data Import after one answer: 480 shipments ready, the effect on the on-time rate, and what SCC fixed on its own](docs/screenshots/import-ready-1440.jpg)
 
 ## How it works
 
@@ -45,8 +47,9 @@ itself every day.
   framework) keeps the data in memory and serves a JSON API. Charts and the map are hand-written SVG. The only
   runtime dependencies are React and two self-hosted fonts.
 - **Import.** The browser reads the file (CSV, TSV, TXT or gzip), matches its columns to the fields SCC needs and
-  shows a preview with every problem listed by line and column. The server checks every row again. If any row
-  fails, nothing is imported.
+  reads each date column in its own format. What it cannot settle (an ambiguous status word, a date column that
+  reads two ways) it asks, one question at a time; it never guesses. The server checks every row again. If any row
+  fails, nothing is imported, and the rows to fix can be downloaded. One import can be undone.
 - **On-time rate.** Of the delivered shipments with known dates, the share that arrived on or before the
   estimated delivery day.
 - **Cost anomaly.** Each shipment is compared with similar shipments: the same route and carrier, or a wider group
@@ -65,9 +68,9 @@ purpose so that every alert type appears. Its dates are counted from today, so i
 
 ## Quality
 
-- **2,146 automated tests** (Vitest) cover the calculations, the import pipeline, the server and every page.
+- **2,176 automated tests** (Vitest) cover the calculations, the import pipeline, the server and every page.
   9 of them compare against the private development history and are skipped in this repository.
-- **41 browser tests** drive real Chromium against the built app. They check that no page scrolls sideways
+- **42 browser tests** drive real Chromium against the built app. They check that no page scrolls sideways
   from 360px to 1440px wide, that the dashboard text meets WCAG AA contrast, that focus moves to the page heading
   after each navigation, and that reduced-motion settings are respected. Playwright is not a project dependency;
   see Run locally.
@@ -171,16 +174,18 @@ trên gói miễn phí của Render, server ngủ khi không có ai dùng nên l
 | Routes | Tuyến nào cần trao đổi với hãng vận chuyển: tỷ lệ lô trễ và chi phí trung bình của từng tuyến. |
 | Analytics | Tình hình có đang tốt lên không: đúng hẹn và trễ theo tháng, chi phí vận chuyển theo thời gian, giá trị và vòng quay tồn kho. |
 | Alerts | Sửa gì trước: mọi vấn đề trong một danh sách, Critical đứng đầu, mỗi dòng dẫn tới bản ghi gốc. |
-| Data Import | Bức tranh thay đổi ra sao với dữ liệu của bạn: nạp file lô hàng hoặc tồn kho, kiểm tra từng dòng, rồi nhập hoặc quay về dữ liệu mẫu. |
+| Data Import | Bức tranh thay đổi ra sao với dữ liệu của bạn: thả file lô hàng hoặc tồn kho, trả lời những gì SCC không tự quyết được, rồi dùng dữ liệu đó, hoặc hoàn tác. |
 
 ## Dùng thử trong 3 bước
 
-1. Mở **Data Import**, bấm **Try a sample** và chọn **Shipments sample**.
-2. Xem bản xem trước (480 dòng, 0 lỗi) rồi bấm **Import 480 shipments**.
-3. Mở **Dashboard**. Số liệu giờ lấy từ file mới: tỷ lệ giao đúng hẹn đổi từ 85,6% thành 91,0%, số lô trễ từ 73
-   còn 50.
+1. Mở **Data Import** và bấm **No file? Try one.** SCC tạo một file xuất từ hãng vận chuyển (480 lô, tên cột khác,
+   ba kiểu ngày, số tiền có `$`) rồi đọc nó.
+2. SCC hỏi đúng một câu: chữ "Arrived" của hãng nghĩa là gì. Bấm **In transit**.
+3. SCC báo "480 shipments. Ready." và tỷ lệ đúng hẹn sẽ đổi ra sao. Bấm **Use this data**, rồi **Open Dashboard**:
+   tỷ lệ giao đúng hẹn đổi từ 85,6% thành 91,0%, số lô trễ từ 73 còn 50.
 
-Muốn quay lại, bấm **Restore sample data** ở cuối trang Data Import.
+**What I fixed** liệt kê những gì SCC tự đọc được. Muốn quay lại, bấm **Undo** ngay sau khi nhập, hoặc
+**Restore sample data** trong **More** bất cứ lúc nào.
 
 Bản demo online dùng chung một bộ dữ liệu cho mọi người xem, nên số liệu có thể khác ảnh nếu ai đó vừa import file;
 bấm **Restore sample data** để về dữ liệu mẫu, và dữ liệu mẫu cũng tự làm mới mỗi ngày.
@@ -190,9 +195,10 @@ bấm **Restore sample data** để về dữ liệu mẫu, và dữ liệu mẫ
 - **Công nghệ.** Giao diện React và TypeScript, build bằng Vite. Một server Node.js nhỏ (`node:http`, không dùng
   framework) giữ dữ liệu trong bộ nhớ và trả về JSON API. Biểu đồ và bản đồ được vẽ bằng SVG tự viết. Thư viện
   chạy thực tế chỉ có React và hai font tự host.
-- **Nhập dữ liệu.** Trình duyệt đọc file (CSV, TSV, TXT hoặc gzip), ghép các cột với trường SCC cần, rồi hiện bản
-  xem trước liệt kê mọi lỗi theo dòng và cột. Server kiểm tra lại từng dòng. Chỉ cần một dòng sai là không có gì
-  được nhập.
+- **Nhập dữ liệu.** Trình duyệt đọc file (CSV, TSV, TXT hoặc gzip), ghép các cột với trường SCC cần và đọc mỗi cột
+  ngày theo kiểu riêng của nó. Điều gì không tự quyết được (một chữ trạng thái mơ hồ, một cột ngày đọc được hai
+  cách) thì SCC hỏi, mỗi lần một câu; không bao giờ đoán. Server kiểm tra lại từng dòng. Chỉ cần một dòng sai là không
+  có gì được nhập, và có thể tải về các dòng cần sửa. Lần nhập gần nhất có thể hoàn tác.
 - **Tỷ lệ giao đúng hẹn.** Trong các lô đã giao có đủ ngày, tỷ lệ lô đến vào hoặc trước ngày giao dự kiến.
 - **Chi phí bất thường.** Mỗi lô được so với các lô tương tự: cùng tuyến và cùng hãng vận chuyển, hoặc nhóm rộng
   hơn khi nhóm đó có dưới 8 lô. Lô chỉ bị đánh dấu khi vừa là điểm ngoại lai thống kê (modified z-score trên 3,5)
@@ -206,9 +212,9 @@ xuất hiện. Ngày tháng được tính từ hôm nay nên dữ liệu luôn 
 
 ## Chất lượng
 
-- **2.146 test tự động** (Vitest) cho phần tính toán, quy trình nhập, server và từng trang. 9 test trong số đó so
+- **2.176 test tự động** (Vitest) cho phần tính toán, quy trình nhập, server và từng trang. 9 test trong số đó so
   với lịch sử phát triển riêng nên được bỏ qua trong repo này.
-- **41 test trình duyệt** chạy Chromium thật trên bản đã build. Các test kiểm tra không trang nào cuộn ngang từ
+- **42 test trình duyệt** chạy Chromium thật trên bản đã build. Các test kiểm tra không trang nào cuộn ngang từ
   360px đến 1440px, chữ trên dashboard đạt độ tương phản WCAG AA, focus chuyển tới tiêu đề trang sau mỗi lần
   chuyển trang, và tôn trọng thiết lập giảm chuyển động. Playwright không nằm trong dependency của dự án; xem phần
   Chạy trên máy.
