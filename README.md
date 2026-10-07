@@ -10,7 +10,7 @@ shipments to chase, which lanes are slipping, and what to reorder first.
 **Live demo:** [supply-chain-command-center.onrender.com](https://supply-chain-command-center.onrender.com). It runs on
 Render's free plan, which sleeps when nobody is using it, so the first visit can take about a minute to load.
 
-![Demo: the dashboard at 85.6% on-time, the Do these first list ranked by money at risk, then Data Import tries a sample carrier file, asks what “Arrived” means, shows on-time moving to 91.0% and imports 480 shipments](docs/screenshots/demo.gif)
+![Demo: the dashboard at 85.6% on-time, the Top alerts list ranked by money at risk, then Data Import tries a sample carrier file, asks what “Arrived” means, shows on-time moving to 91.0% and imports 480 shipments](docs/screenshots/demo.gif)
 
 ![Dashboard at 1440px: on-time delivery rate, the lane map and the figures that need attention](docs/screenshots/home-1440.jpg)
 

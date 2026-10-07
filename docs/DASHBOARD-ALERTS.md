@@ -1,8 +1,9 @@
-# Dashboard: "Do these first" (redesign of Top alerts)
+# Dashboard: Top alerts (the redesign first shipped as "Do these first")
 
 Status: **built** (approved 2026-10-07 with the seven recommended options and four adjustments, section 8): `a2aba22` the
 queue as pure functions (`src/client/lib/attention.ts`), `9183987` the Alerts page `kind=` filter, `071ebf2` the Dashboard
 scene. Measured on the seed-42 sample dated 2026-10-07 with the code at `630d2b9` (a temporary probe, deleted after use).
+The same evening the block moved to paper and took the title "Top alerts" again (section 9).
 Goal: a manager sees in five seconds what to do first this morning. One sentence per row, no table, no jargon.
 
 ## 1. What the code does today (checked)
@@ -74,7 +75,7 @@ Not alerts today: lanes with 20%+ late shipments (7 on seed 42). They stay on th
 
 ### 3.3 Seed 42 (2026-10-07): new five vs current five
 
-| # | New: "Do these first" | Damage | Current "Top alerts" | Its damage (same formula) |
+| # | New queue | Damage | The old Top alerts list | Its damage (same formula) |
 |---|---|---|---|---|
 | 1 | Compact Docking Station, Chicago: runs out in 12 days, restock takes 21 (amber) | $165,388.80 short (292 × $566.40) | Out of stock: APP-0005 (Classic Denim Jeans, Chicago) | $39,265 |
 | 2 | Compact Webcam, Newark: out of stock (red) | $118,621 | Out of stock: ELC-0001 (Rugged Barcode Scanner, Chicago) | $91,795 |
@@ -147,7 +148,7 @@ code), reviewed before approval. Final screenshots come from the built app.
 | File | Change | Core? |
 |---|---|---|
 | `src/client/lib/attention.ts` (new) | pure functions: `kindOf(alert)`, `kindCounts(alerts)`, `buildQueue(snapshot)` and the copy | no |
-| `src/client/pages/DashboardPage.tsx` | the Attention scene: title, kinds line, the link rows, "How these are counted"; the 20/37/10 block goes | no |
+| `src/client/pages/DashboardPage.tsx` | the Top alerts scene: title, kinds line, the link rows, "How these are counted"; the 20/37/10 block goes | no |
 | `src/client/pages/AlertsPage.tsx` | `?kind=` through the same `kindOf`, so a kind's count equals its rows | no |
 | `src/client/styles/atlas.css`, `pages.css` | rows, hover, focus, kinds line, disclosure; `.alert-counts` removed | no |
 | `src/shared/*` (incl. `domain/alerts.ts`) | **unchanged**, read only | core, not touched |
@@ -167,7 +168,7 @@ Updated with the reason: `DashboardAtlas.design.test.tsx`, `DashboardAtlas.test.
 4. One row per carrier (A).
 5. At most 3 stock rows (A).
 6. Kinds line linked to a `kind=` filter on the Alerts page (A), with adjustments 3 and 4 (section 5).
-7. Title "Do these first" (A).
+7. Title "Do these first" (A); renamed "Top alerts" the same evening, when the block moved to paper (section 9).
 
 Adjustments: (1) move only from real spare, never below the source's own reorder point, fixed choice rule, tested;
 (2) "$165.2K short before restock" in the row, the valuation and formula in "How these are counted", rows at most 2 lines at
@@ -178,3 +179,30 @@ Accuracy fix before the first push (owner, 2026-10-07): a source must stay **abo
 alert); N in the action is the whole units short before restock, the row's money is N × unit cost, and when no warehouse
 can give all of N the action reads "Move A from X, reorder B" (A + B = N) or "Reorder N" (section 3.2). On seed 42 the
 Docking Station row moved from $165.2K to $165.4K (292 whole units instead of 291.7); the actions did not change.
+
+## 9. Top alerts on paper (owner, 2026-10-07 evening)
+
+The four figures with "Shipments by status" and this block were two dark scenes in a row, joined with no gap
+(`.scene--dark + .scene--dark`), so they read as one block. Three mockups on the built app (seed 42, CSS overridden in the
+browser), at 1440 and 390 px, all at AA: A, a large gap and a full-width rule; B, A plus the eyebrow the other pages use;
+C, the block on paper. The owner chose C, because dark is the situation and paper is what to act on.
+
+- **On paper.** The block is a paper scene (`scene--paper`), the floor colour the Inventory and Shipments tables sit on.
+  "Shipments by status" sits 24 px under the figures from 1100 px (was 32 px) and is the last line of the dark scene, so
+  it reads as part of the figures.
+- **Title "Top alerts"**, also the region's name (was "Attention"), the same size as the other section titles (31.52 px at
+  1440, 24 px at 390). Code, tests and the README use the new name; "Do these first" stays only in this history.
+- **Flow follows, also on paper:** one 1 px full-width rule (`--color-line-strong`) between the two; atlas.css now allows a
+  rule between two paper scenes.
+- **Colours: existing paper tokens, no new token.** Ink `--color-text`; the sentence, the separators, the info ring and the
+  explanation `--color-text-muted` (#4a5360; `--color-text-subtle` #5f6875 fell to 4.11:1 on the 7% hover tint); actions,
+  arrows and focus rings `--color-accent` and `--color-focus` (#2552c4); glyphs `--signal` (#b42318) and `--warning`
+  (#9a5200).
+- **Measured on paper #ecebe6** (on the hover tint #dddcd8 in brackets): action link 5.71 (4.96), red dot 5.51 (4.79),
+  amber triangle 4.91 (4.27; a graphic needs 3:1), muted text and separators 6.52 (5.67). Tab through all 12 stops (five
+  kinds, "View all alerts", five rows, "How these are counted"): every ring solid 2 px #2552c4, 5.71:1. "How these are
+  counted" open: summary 15.21, text 6.52. No sideways scroll at 390.
+- **Tests.** New: the block is paper (`DashboardAtlas.test.tsx`), paper inks only and the rule above Flow
+  (`atlasCss.test.ts`), focus rings at 3:1 and text at AA, hovered and open (`v16.ui.browser.test.ts`). Updated with the
+  reason: the h2 list and the region names (renamed), and the browser test's scene order (now dark, paper, paper, dark,
+  paper).

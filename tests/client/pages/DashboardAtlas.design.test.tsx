@@ -105,7 +105,7 @@ describe('Dashboard V2: what the redesign removed stays removed', () => {
   it('keeps exactly four h2 chapter titles, in reading order', async () => {
     await renderWithData(<DashboardPage />, { snapshot: scenario() });
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'Do these first', // was "Top alerts" (docs/DASHBOARD-ALERTS.md, decision 7)
+      'Top alerts', // "Do these first" for one release, renamed back when the block moved to paper (docs/DASHBOARD-ALERTS.md §9)
       'Delivery reliability and cost',
       'Warehouses and inventory',
       'Recent shipment activity'
@@ -114,7 +114,7 @@ describe('Dashboard V2: what the redesign removed stays removed', () => {
 });
 
 describe('Dashboard V2: keyboard order equals reading order', () => {
-  // "Do these first" adds the kinds links before the alerts link and the queue rows after it, in reading order (title
+  // "Top alerts" adds the kinds links before the alerts link and the queue rows after it, in reading order (title
   // column, then the rows); the rest of the order is unchanged.
   it('tabs through the network, the four figures then the status counts, the kinds, the alerts link, the rows, the flow and the racks', async () => {
     const snapshot = scenario();
@@ -184,7 +184,7 @@ describe('Dashboard V2: keyboard order equals reading order', () => {
 });
 
 describe('Dashboard V2: alerts and the ledger keep their meaning without colour or layout', () => {
-  // "Do these first": each row is now one link (it used to be a plain list item that could not be clicked); the glyph and
+  // "Top alerts": each row is now one link (it used to be a plain list item that could not be clicked); the glyph and
   // the hidden severity word stay, and the dots between the parts read as commas to a screen reader.
   it('gives every queue row one link, a glyph plus visually hidden severity text (no badge), and read-aloud separators', async () => {
     await renderWithData(<DashboardPage />, { snapshot: scenario() });

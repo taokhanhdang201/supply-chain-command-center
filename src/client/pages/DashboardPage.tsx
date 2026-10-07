@@ -1,8 +1,9 @@
-// The Dashboard (V2): five scenes on one twelve-column grid, alternating dark and paper in hard cuts.
+// The Dashboard (V2): five scenes on one twelve-column grid, dark and paper in hard cuts (dark = the situation, paper =
+// what to act on).
 //   Situation  (dark)   the lane map is the stage (width = traffic, dashed red = late); 85.6% sits inside it at display
 //                       size from 1100px, above it on narrower screens; four figures sit at the foot
-//   Attention  (dark)   "Do these first": the alerts that need attention by kind, then at most five rows ranked by money
-//                       (what needs action comes second)
+//   Top alerts (paper)  the alerts that need attention by kind, then at most five rows ranked by money (what needs
+//                       action comes second); a rule separates it from Flow, also on paper
 //   Flow       (paper)  the monthly on-time vs delayed bars, then cost
 //   Nodes      (dark)   five identical racks, one system
 //   Movement   (paper)  recent shipment activity as a ledger
@@ -174,7 +175,7 @@ export function DashboardPage() {
   // info-severity alerts, called out in the detail line so the two numbers never look contradictory (R-14).
   const alertsNeedingAttention = snapshot.alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;
   const infoAlertCount = snapshot.alerts.filter((a) => a.severity === 'info').length;
-  // "Do these first": the kinds add up to the same "need attention" count; the queue is ranked by money (docs/DASHBOARD-ALERTS.md).
+  // "Top alerts": the kinds add up to the same "need attention" count; the queue is ranked by money (docs/DASHBOARD-ALERTS.md).
   const kinds = kindCounts(snapshot.alerts);
   const queue = buildQueue(snapshot);
 
@@ -261,12 +262,12 @@ export function DashboardPage() {
         </div>
       </section>
 
-      {/* ATTENTION (dark, one block with Situation): what needs action comes right after what is happening and where.
-          "Do these first": the alerts that need attention by kind (each a link to exactly its rows), then at most five
-          rows ranked by the money SCC can compute, each one link with what, where, the damage and the next step. */}
-      <Chapter className="scene--dark surface-stage attention" label="Attention">
+      {/* TOP ALERTS (paper): what needs action comes right after what is happening and where, on paper so it cannot read
+          as part of the figures above. The alerts that need attention by kind (each a link to exactly its rows), then at
+          most five rows ranked by the money SCC can compute, each one link with what, where, the damage and the next step. */}
+      <Chapter className="scene--paper attention" label="Top alerts">
         <div className="attention__head">
-          <h2 className="scene__title">Do these first</h2>
+          <h2 className="scene__title">Top alerts</h2>
           {kinds.length > 0 && (
             <p className="attention__kinds">
               {kinds.map((k, i) => (

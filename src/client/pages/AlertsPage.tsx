@@ -1,6 +1,6 @@
 // The Alerts page (plan §8.6): severity and type figures on the stage (each a link to its filter), then the alert
 // ledger on the paper floor: severity/type/problem/search filters synced to the hash (problem = the Dashboard's
-// "Do these first" kinds, `kind=`), a "Sort by" for phones, and a paginated
+// "Top alerts" kinds, `kind=`), a "Sort by" for phones, and a paginated
 // table linking each alert's entity back to the page it came from. Read only: no alert actions.
 
 import { useEffect } from 'react';
@@ -41,7 +41,7 @@ const TYPE_FILTER_OPTIONS: SelectOption[] = [
 ];
 const TYPE_FILTER_VALUES = new Set(TYPE_FILTER_OPTIONS.map((o) => o.value));
 
-// The Dashboard's "Do these first" kinds (alerts that need attention), so each of its counts opens exactly its rows.
+// The Dashboard's "Top alerts" kinds (alerts that need attention), so each of its counts opens exactly its rows.
 const KIND_FILTER_OPTIONS: SelectOption[] = [{ value: 'all', label: 'All' }, ...ATTENTION_KINDS.map((k) => ({ value: k, label: ATTENTION_KIND_LABELS[k] }))];
 const KIND_FILTER_VALUES = new Set(KIND_FILTER_OPTIONS.map((o) => o.value));
 

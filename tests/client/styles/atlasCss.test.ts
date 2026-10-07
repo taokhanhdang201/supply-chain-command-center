@@ -95,6 +95,17 @@ describe('atlas.css', () => {
     expect(css).not.toMatch(/\.status-list\s*\{[^}]*grid-column:\s*1 \/ span 3/);
   });
 
+  // Top alerts moved from the dark stage to paper (docs/DASHBOARD-ALERTS.md §9): its rules read only paper inks (the dark
+  // --stage-* inks would be unreadable there), its separators use muted ink (AA on the hover tint), and one rule separates
+  // it from Flow, the paper scene after it.
+  it('draws Top alerts with paper inks only and rules it off from Flow', () => {
+    const block = rules().filter((r) => /\.attention|\.queue|\.alert-glyph/.test(r.selector));
+    expect(block.length).toBeGreaterThan(10);
+    for (const r of block) expect(r.body, r.selector).not.toMatch(/--stage-/);
+    expect(css).toMatch(/\.attention \+ \.flow\s*\{\s*border-top:\s*1px solid var\(--color-line-strong\)/);
+    expect(css).toMatch(/\.queue-row__sep\s*\{\s*color:\s*var\(--color-text-muted\)/);
+  });
+
   it('gives the two bar segments a lightness difference, not only a hue difference', () => {
     expect(css).toMatch(/--bar-slate:\s*#2e3743/);
     expect(css).toMatch(/\.flow-bar--ontime\s*\{[^}]*fill:\s*var\(--bar-slate\)/);

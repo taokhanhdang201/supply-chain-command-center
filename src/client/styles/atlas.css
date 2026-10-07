@@ -1,8 +1,10 @@
-/* Dashboard V2. Five scenes on one twelve-column grid, alternating dark and paper in hard cuts. Loaded after pages.css.
+/* Dashboard V2. Five scenes on one twelve-column grid, dark and paper in hard cuts (dark = the situation, paper = what to
+   act on). Loaded after pages.css.
    Everything is scoped to `.atlas-page`, so no other page can be touched from here. Rules of the system:
    - six type sizes, three weights, two families, no uppercase;
    - one accent, `--signal` red, meaning "late or critical" and nothing else (amber only as an 8px warning glyph);
-   - one line weight (1px), used only where a line measures or separates rows; no boxes, cards, shadows or gradients
+   - one line weight (1px), used only where a line measures or separates rows, or two paper scenes; no boxes, cards,
+     shadows or gradients
      (except the two-stop hard gauge under 85.6%);
    - only drawings animate (lanes, dots, bars, the cost line, rack fills, the gauge); text never moves.
    Nothing here loads a remote resource or a raster image. */
@@ -578,14 +580,14 @@
     grid-column: 1 / span 3;
     grid-row: 2;
     align-self: center;
-    margin-top: 32px;
+    margin-top: 24px;
   }
 
   .atlas-page .status-list {
     grid-column: 4 / span 8;
     grid-row: 2;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin: 32px 0 0;
+    margin: 24px 0 0;
   }
 
   .atlas-page .status-list__link {
@@ -1346,7 +1348,14 @@
   }
 }
 
-/* ---------- 4  ATTENTION (dark): "Do these first" ---------- */
+/* ---------- 4  TOP ALERTS (paper) ----------
+   On paper so it cannot read as part of the figures above (dark = the situation, paper = what to act on). Only paper
+   tokens: ink, muted ink for the sentence and its separators (subtle drops under 4.5:1 on the 7% hover tint), the paper
+   accent for actions and focus, --signal and --warning for the glyphs. Flow follows, also on paper: one rule between. */
+
+.atlas-page .attention + .flow {
+  border-top: 1px solid var(--color-line-strong);
+}
 
 .atlas-page .attention__head {
   display: grid;
@@ -1365,11 +1374,11 @@
 .atlas-page .attention__kinds {
   margin: var(--title-gap) 0 0;
   font: 400 var(--fs-lead) / 32px var(--font-sans);
-  color: var(--stage-text-2);
+  color: var(--color-text-muted);
 }
 
 .atlas-page .attention__kinds a {
-  color: var(--stage-text);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-decoration: underline;
@@ -1383,7 +1392,7 @@
 
 .atlas-page .attention__sep,
 .atlas-page .queue-row__sep {
-  color: var(--stage-text-3);
+  color: var(--color-text-muted);
 }
 
 .atlas-page .attention__head .dash-link {
@@ -1410,7 +1419,7 @@
   margin: 0 -12px;
   padding: 20px 12px;
   border-top: 1px solid var(--dash-line);
-  color: var(--stage-text);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -1419,7 +1428,7 @@
 }
 
 .atlas-page .queue-row:hover {
-  background: color-mix(in srgb, var(--stage-text) 7%, transparent);
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
 }
 
 .atlas-page .queue-row:focus-visible {
@@ -1429,12 +1438,12 @@
 
 .atlas-page .queue-row__text {
   font: 400 var(--fs-lead) / 26px var(--font-sans);
-  color: var(--stage-text-2);
+  color: var(--color-text-muted);
 }
 
 .atlas-page .queue-row__what {
   font-weight: 500;
-  color: var(--stage-text);
+  color: var(--color-text);
 }
 
 .atlas-page .queue-row__damage {
@@ -1483,25 +1492,25 @@
 
 .atlas-page .alert-glyph--info {
   fill: none;
-  stroke: var(--stage-text-3);
+  stroke: var(--color-text-muted);
   stroke-width: 1.5;
 }
 
 .atlas-page .attention__empty {
   font: 400 var(--fs-lead) / 24px var(--font-sans);
-  color: var(--stage-text-2);
+  color: var(--color-text-muted);
 }
 
 /* How these are counted: closed by default; the valuation and the formulas live here, not in the rows. */
 .atlas-page .attention__how {
   margin-top: 20px;
   font: 400 var(--fs-small) / 20px var(--font-sans);
-  color: var(--stage-text-2);
+  color: var(--color-text-muted);
 }
 
 .atlas-page .attention__how > summary {
   width: fit-content;
-  color: var(--stage-text);
+  color: var(--color-text);
   text-decoration: underline;
   text-decoration-color: var(--dash-line);
   text-underline-offset: 4px;

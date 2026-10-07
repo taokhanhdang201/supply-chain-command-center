@@ -1,4 +1,4 @@
-// "Do these first" on the Dashboard (docs/DASHBOARD-ALERTS.md). The alerts that need attention (critical and warning, the
+// "Top alerts" on the Dashboard (docs/DASHBOARD-ALERTS.md). The alerts that need attention (critical and warning, the
 // same count as the KPI tile and the sidebar badge) sorted into kinds, and a queue of at most five rows ranked by the money
 // SCC can compute: stock short before restock, valued at unit cost, and what each carrier billed above typical. The carrier
 // with the most shipments 7+ days late takes the last row. Pure functions of the snapshot: the shared alert, inventory and

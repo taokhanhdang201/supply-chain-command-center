@@ -84,7 +84,7 @@ describe('Dashboard (Atlas): numbers and links are unchanged', () => {
     expect(screen.queryByRole('link', { name: /^(Pending|In transit|Delivered|Cancelled) \d/ })).toBeNull();
     expect(document.querySelector('.hero__gauge')).toBeNull();
     expect(screen.getAllByText('No data for the selected range').length).toBe(2);
-    // "Do these first" (docs/DASHBOARD-ALERTS.md): the empty queue says so (it used to read "No alerts — all clear.")
+    // "Top alerts" (docs/DASHBOARD-ALERTS.md): the empty queue says so (it used to read "No alerts — all clear.")
     expect(screen.getByText('Nothing needs action today.')).toBeInTheDocument();
     expect(screen.getByText('No shipment activity yet.')).toBeInTheDocument();
   });
@@ -116,7 +116,7 @@ describe('Dashboard (Atlas): derived views trace back to existing data', () => {
     }
   });
 
-  // "Do these first" replaced the critical / warning / info figures (they repeated the KPI above): the alerts that need
+  // "Top alerts" replaced the critical / warning / info figures (they repeated the KPI above): the alerts that need
   // attention by kind, adding up to the same count as the KPI tile, each a link to exactly its rows on the Alerts page.
   it('lists the alerts that need attention by kind, adding up to the KPI count, each linking to its filter', async () => {
     const snapshot = scenario();
@@ -152,12 +152,24 @@ describe('Dashboard (Atlas): interaction and accessibility', () => {
     expect(screen.getByRole('table', { name: 'Shipping cost over time data' })).toBeInTheDocument();
   });
 
+  // The alerts region is named by its title, "Top alerts" (it was "Attention"; docs/DASHBOARD-ALERTS.md §9).
   it('labels each chapter as a region and keeps a single h1', async () => {
     await renderWithData(<DashboardPage />, { snapshot: scenario() });
-    for (const name of ['Network situation', 'Flow', 'Nodes', 'Attention', 'Movement']) {
+    for (const name of ['Network situation', 'Flow', 'Nodes', 'Top alerts', 'Movement']) {
       expect(screen.getByRole('region', { name })).toBeInTheDocument();
     }
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
+  // Top alerts sits on paper (docs/DASHBOARD-ALERTS.md §9): dark is the situation, paper is what to act on, so the block
+  // can no longer read as part of the figures above it. It used to be a second dark scene.
+  it('puts Top alerts on paper, not on the dark stage', async () => {
+    await renderWithData(<DashboardPage />, { snapshot: scenario() });
+    const region = screen.getByRole('region', { name: 'Top alerts' });
+    expect(region).toHaveClass('scene--paper');
+    expect(region).not.toHaveClass('scene--dark');
+    expect(region).not.toHaveClass('surface-stage');
+    expect(within(region).getByRole('heading', { level: 2 })).toHaveTextContent('Top alerts');
   });
 
   it('keeps the recent-activity ledger and the alerts link', async () => {

@@ -112,9 +112,10 @@ describe('V1.6 redesign (real Chromium)', () => {
     await ctx.close();
   });
 
-  // "Do these first" (docs/DASHBOARD-ALERTS.md; it replaced the 20/37/10 figures, whose contrast targets moved above):
-  // every row is one link of at most two lines at 1440, Tab reaches the rows in order, and a phone never scrolls sideways.
-  it('atlas dashboard: "Do these first" rows are links of at most two lines at 1440, in tab order, and fit a phone', async () => {
+  // "Top alerts" (docs/DASHBOARD-ALERTS.md; it replaced the 20/37/10 figures, whose contrast targets moved above; renamed
+  // from "Do these first" in §9): every row is one link of at most two lines at 1440, Tab reaches the rows in order, and a
+  // phone never scrolls sideways.
+  it('atlas dashboard: "Top alerts" rows are links of at most two lines at 1440, in tab order, and fit a phone', async () => {
     for (const w of [1440, 390]) {
       const { ctx, page } = await open(w, '', { reducedMotion: 'reduce' });
       const m = await page.evaluate(() => {
@@ -142,6 +143,61 @@ describe('V1.6 redesign (real Chromium)', () => {
       }
       await ctx.close();
     }
+  });
+
+  // Top alerts on paper (docs/DASHBOARD-ALERTS.md §9): Tab through every link in the block (the kinds, "View all alerts",
+  // the five rows, "How these are counted") and each focus ring stands 3:1 off the paper (WCAG 1.4.11); the text on a
+  // hovered row (its 7% tint included) and the open explanation meet AA (4.5:1).
+  it('atlas dashboard: Top alerts on paper keeps focus rings at 3:1 and its text at AA, hovered and open', async () => {
+    const { ctx, page } = await open(1440, '', { reducedMotion: 'reduce' });
+    // ratio of an element's colour (or outline colour) against what is behind it, alpha layers composited
+    const contrast = (target: 'active' | string, prop: 'color' | 'outlineColor') =>
+      page.evaluate(([t, p]: [string, 'color' | 'outlineColor']) => {
+        const parse = (s: string): number[] => {
+          const srgb = s.match(/color\(srgb ([^)]+)\)/);
+          if (srgb) { const v = (srgb[1] as string).split(/[\s/]+/).filter(Boolean).map(Number); return [v[0]! * 255, v[1]! * 255, v[2]! * 255, v[3] ?? 1]; }
+          const v = (s.match(/[\d.]+/g) ?? []).map(Number);
+          return [v[0] ?? 0, v[1] ?? 0, v[2] ?? 0, v[3] ?? 1];
+        };
+        const over = (fg: number[], bg: number[]) => [0, 1, 2].map((i) => fg[i]! * fg[3]! + bg[i]! * (1 - fg[3]!)).concat(1);
+        const behind = (el: Element | null) => {
+          const layers: number[][] = [];
+          for (let e = el; e; e = e.parentElement) { const c = parse(getComputedStyle(e).backgroundColor); if (c[3]! > 0) { layers.push(c); if (c[3]! >= 1) break; } }
+          return layers.reduceRight((bg, l) => over(l, bg), [255, 255, 255, 1]);
+        };
+        const lum = (c: number[]) => { const f = (x: number) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]!) + 0.7152 * f(c[1]!) + 0.0722 * f(c[2]!); };
+        const els = t === 'active' ? [document.activeElement as HTMLElement] : ([...document.querySelectorAll(t)] as HTMLElement[]);
+        return els.map((el) => {
+          // a ring is drawn outside the element, over its parent; text sits on the element's own background
+          const bg = behind(p === 'outlineColor' ? el.parentElement : el);
+          const fg = over(parse(getComputedStyle(el)[p]), bg);
+          const a = lum(fg), b = lum(bg);
+          return { what: `${el.className} ${(el.textContent ?? '').trim().slice(0, 30)}`, inBlock: Boolean(el.closest('.attention')), ring: getComputedStyle(el).outlineStyle, ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) };
+        });
+      }, [target, prop] as [string, 'color' | 'outlineColor']);
+
+    const stops = await page.locator('.attention a[href], .attention summary').count();
+    const kinds = await page.locator('.attention__kinds a').count();
+    expect(kinds).toBeGreaterThan(0);
+    expect(stops).toBe(kinds + 1 + 5 + 1); // the kinds, View all alerts, five rows, the explanation
+    await page.locator('.status-list__link').last().focus();
+    for (let i = 0; i < stops; i += 1) {
+      await page.keyboard.press('Tab');
+      const [r] = await contrast('active', 'outlineColor');
+      expect(r!.inBlock, r!.what).toBe(true);
+      expect(r!.ring, r!.what).toBe('solid');
+      expect(r!.ratio, r!.what).toBeGreaterThanOrEqual(3);
+    }
+
+    await page.locator('.attention .queue-row').first().hover();
+    for (const r of await contrast('.attention .queue-row:hover .queue-row__text *, .attention .queue-row:hover .queue-row__text', 'color')) expect(r.ratio, r.what).toBeGreaterThanOrEqual(4.5);
+    await page.mouse.move(0, 0);
+
+    await page.locator('.attention__how > summary').click();
+    const explained = await contrast('.attention__how > summary, .attention__how > p', 'color');
+    expect(explained).toHaveLength(2);
+    for (const r of explained) expect(r.ratio, r.what).toBeGreaterThanOrEqual(4.5);
+    await ctx.close();
   });
 
   // The design rules the V2 specification measures (section i): one grid, five identical racks, six type sizes, no uppercase.
@@ -190,12 +246,13 @@ describe('V1.6 redesign (real Chromium)', () => {
       expect(m.weights.length, `${w}: weights ${m.weights}`).toBeLessThanOrEqual(3);
       expect(m.upper).toBe(0);
       expect(m.overflow).toBeLessThanOrEqual(0);
-      // Scene order: Situation (dark), Attention (dark), Flow (paper), Nodes (dark), Movement (paper).
+      // Scene order: Situation (dark), Top alerts (paper), Flow (paper), Nodes (dark), Movement (paper). Top alerts was a
+      // second dark scene until it moved to paper (docs/DASHBOARD-ALERTS.md §9), so the dark/paper pairs changed.
       expect(m.sceneBg.length).toBe(5);
-      expect(m.sceneBg[0]).toBe(m.sceneBg[1]);
-      expect(m.sceneBg[1]).toBe(m.sceneBg[3]);
+      expect(m.sceneBg[0]).toBe(m.sceneBg[3]);
+      expect(m.sceneBg[1]).toBe(m.sceneBg[2]);
       expect(m.sceneBg[2]).toBe(m.sceneBg[4]);
-      expect(m.sceneBg[0]).not.toBe(m.sceneBg[2]);
+      expect(m.sceneBg[0]).not.toBe(m.sceneBg[1]);
       await ctx.close();
     }
   }, 60_000);

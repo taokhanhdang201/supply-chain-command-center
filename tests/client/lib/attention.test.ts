@@ -1,4 +1,4 @@
-// "Do these first" (docs/DASHBOARD-ALERTS.md): the kinds and their counts, the money formulas, move or reorder, the queue's
+// "Top alerts" (docs/DASHBOARD-ALERTS.md): the kinds and their counts, the money formulas, move or reorder, the queue's
 // order and every tie-break, carrier grouping, the 3-row stock cap, the reserved late row, and the seed-42 queue.
 
 import { describe, expect, it } from 'vitest';
