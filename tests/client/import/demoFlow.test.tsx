@@ -72,7 +72,8 @@ describe('demo flow: No file? Try one.', { timeout: 30_000 }, () => {
     expect(screen.getByText(`${ARRIVED} shipments have this status. SCC does not guess.`)).toBeInTheDocument();
     const answers = within(screen.getByRole('group', { name: 'Answers' })).getAllByRole('button');
     expect(answers.map((b) => b.textContent)).toEqual(['In transit', 'Delivered', 'Pending', 'Cancelled']);
-    expect(answers[0]).toHaveClass('button--primary');
+    // every answer looks the same: none is the main button, so SCC does not hint at one (it used to make the first one primary)
+    expect(new Set(answers.map((b) => b.className))).toEqual(new Set(['button']));
     expect(state().closest('section')).toHaveClass('ingest-state--warning');
     expect(document.activeElement).toBe(state());
     await user.click(answers[0] as HTMLElement);
@@ -93,8 +94,10 @@ describe('demo flow: No file? Try one.', { timeout: 30_000 }, () => {
     expect(importCsv).toHaveBeenCalledTimes(1);
     expect(importCsv.mock.calls[0]?.[0]).toBe('shipments');
     expect((importCsv.mock.calls[0]?.[1] as File).name).toBe(CARRIER_EXPORT_NAME);
-    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
+    // the main action is Open Dashboard; Undo is the small link (it used to be the main button)
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveClass('ingest-link');
     expect(screen.getByRole('link', { name: 'Open Dashboard' })).toHaveAttribute('href', '#/');
+    expect(screen.getByRole('link', { name: 'Open Dashboard' })).toHaveClass('button', 'button--primary');
     await waitFor(() => expect(document.activeElement).toBe(state()));
   });
 
@@ -142,7 +145,7 @@ describe('demo flow: No file? Try one.', { timeout: 30_000 }, () => {
     const heading = await screen.findByRole('heading', { name: '7 rows need fixing.' });
     await settled();
     expect(heading.closest('section')).toHaveClass('ingest-state--critical');
-    expect(screen.getByText('Lines 5, 7, 10 and 4 more. Nothing was imported.')).toBeInTheDocument();
+    expect(screen.getByText('Rows 5, 7, 10 and 4 more. Nothing was imported.')).toBeInTheDocument(); // "Rows" (was "Lines")
     expect(screen.getByRole('button', { name: 'Download the 7 rows to fix' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Use this data' })).not.toBeInTheDocument();
     // behind "See every problem": the problems grouped by column, each with a short fix, and the import locked

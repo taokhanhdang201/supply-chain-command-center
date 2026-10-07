@@ -24,6 +24,14 @@ describe('ImportPage: presentation', () => {
     expect(screen.getByText('Drop your file')).toBeInTheDocument();
   });
 
+  it('keeps the dark stage a slim band: the title only, no stage body and no figures', async () => {
+    await renderWithData(<ImportPage />, { snapshot: makeSnapshot([], [], { today: TODAY }) });
+    const stage = document.querySelector('.page-stage') as HTMLElement;
+    expect(stage).toHaveClass('page-stage--slim');
+    expect(stage.querySelector('.page-stage__body')).toBeNull();
+    expect(stage.textContent).toBe('Data Import');
+  });
+
   it('has no step bar: the waiting state is one sentence, one line, one main button and one small link', async () => {
     await renderWithData(<ImportPage />, { snapshot: makeSnapshot([], [], { today: TODAY }) });
     expect(screen.queryByRole('list', { name: 'How importing works' })).toBeNull();

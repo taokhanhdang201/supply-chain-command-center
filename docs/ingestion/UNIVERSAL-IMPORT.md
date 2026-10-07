@@ -264,6 +264,11 @@ Different from the design, and why:
 | "Cannot import" line from the catalogue | The refusal's own hint only; the list of formats sits behind "What SCC can read" | The catalogue text is several sentences; the state allows one line. |
 | "Current data sources" figures removed | Removed; the top bar now reads a sample file as "Sample data (seed 7)" | That label used to be shown only on the removed figures. |
 
+After the owner's review of G1: the answers to a question all look the same (no answer is the main button, so none is
+hinted); in Done the main action is **Open Dashboard** and Undo is the small link; the date question's line reads "No other
+date in this column tells us which."; "has errors" names "Rows" (a file line is its spreadsheet row); the dark stage of
+Data Import is a slim band (`PageStage variant="slim"`), since it holds only the title.
+
 Known limits of G1: Undo lives in the card, so it is gone once the user leaves Data Import (Restore sample data stays the
 fallback); the rows-to-fix file lists at most the first 500 problems (`MAX_ERRORS_RETURNED`); the date question names the
 column, not the row.

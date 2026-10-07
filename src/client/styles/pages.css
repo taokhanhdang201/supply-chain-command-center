@@ -29,6 +29,17 @@
   }
 }
 
+/* Slim: a stage that holds only its title (Data Import), so it stays a thin band. */
+.page-stage.page-stage--slim {
+  padding: var(--space-5) var(--gutter);
+}
+
+@media (max-width: 640px) {
+  .page-stage.page-stage--slim {
+    padding: var(--space-4) var(--gutter);
+  }
+}
+
 .page-stage__inner {
   max-width: var(--content-max);
   margin-inline: auto;
@@ -671,6 +682,11 @@
   align-items: center;
   gap: var(--space-3) var(--space-6);
   margin: var(--space-3) 0 0;
+}
+
+/* "Open Dashboard" is a link that looks like the main button. */
+.ingest-state__actions a.button {
+  text-decoration: none;
 }
 
 .ingest-answers {

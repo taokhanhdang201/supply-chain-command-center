@@ -455,7 +455,7 @@ export function ImportPage() {
 
   return (
     <div className="page">
-      <PageStage title="Data Import" />
+      <PageStage title="Data Import" variant="slim" />
       <div className="page-floor import-floor">
         <UniversalImportCard incoming={incoming} more={more} />
       </div>

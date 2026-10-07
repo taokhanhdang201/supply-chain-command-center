@@ -691,6 +691,20 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   });
 
+  // G1 fix: the stage of Data Import holds only its title, so it is a slim band (it was 112px tall and empty at 1440).
+  it('data import: the dark stage is a slim band holding only the title, from phone to desktop', async () => {
+    for (const w of [390, 768, 1100, 1440]) {
+      const { ctx, page } = await open(w, 'import', { reducedMotion: 'reduce' });
+      const stage = await page.evaluate(() => {
+        const s = document.querySelector('.page-stage') as HTMLElement;
+        return { height: s.getBoundingClientRect().height, text: s.innerText.trim() };
+      });
+      await ctx.close();
+      expect(stage.text, `${w}`).toBe('Data Import');
+      expect(stage.height, `${w}`).toBeLessThanOrEqual(64);
+    }
+  });
+
   // V16-BUG-1 (pre-existing since V1.5), fixed in V1.6 fix round 1 (S-1).
   it('V16-BUG-1: with the mobile drawer closed, keyboard Tab must not land on off-screen sidebar links', async () => {
     const { ctx, page } = await open(390, '');

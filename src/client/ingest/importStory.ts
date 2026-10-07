@@ -103,7 +103,7 @@ function dateQuestion(preview: PreviewModel, field: string | undefined): Questio
     });
     return {
       sentence: `Is ${column.example} ${answers.map((a) => a.label).join(' or ')}?`,
-      line: `Column ${quote(column.header)}. No date in it settles the order.`,
+      line: `Column ${quote(column.header)}. No other date in this column tells us which.`,
       answers
     };
   }
@@ -331,6 +331,7 @@ export function errorsText(preview: PreviewModel): { sentence: string; line: str
   const shown = byLine ? lineNumbers : wheres;
   // "5, 7 and 10" or, past three, "5, 7, 10 and 4 more"
   const list = shown.length <= 1 ? (shown[0] ?? '') : shown.length <= 3 ? `${shown.slice(0, -1).join(', ')} and ${shown[shown.length - 1]}` : `${shown.slice(0, 3).join(', ')} and ${shown.length - 3} more`;
-  const named = byLine ? `${lineNumbers.length === 1 ? 'Line' : 'Lines'} ${list}` : capitalized(list);
+  // A file's line number is its row number in a spreadsheet (the header is row 1), so the user reads "Rows".
+  const named = byLine ? `${lineNumbers.length === 1 ? 'Row' : 'Rows'} ${list}` : capitalized(list);
   return { sentence, line: `${named}. Nothing was imported.` };
 }

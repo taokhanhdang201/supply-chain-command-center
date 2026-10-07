@@ -104,6 +104,6 @@ describe('what SCC fixed, the effect, the problems', () => {
     expect(csv[0]).toBe('row,column,problem');
     expect(csv).toHaveLength(3);
     expect(csv[1]).toMatch(/^line 2,shipping_cost,/);
-    expect(errorsText(a.preview)).toEqual({ sentence: '2 rows have problems in the shipping cost.', line: 'Lines 2 and 3. Nothing was imported.' });
+    expect(errorsText(a.preview)).toEqual({ sentence: '2 rows have problems in the shipping cost.', line: 'Rows 2 and 3. Nothing was imported.' }); // "Rows" (was "Lines"): a line number is the spreadsheet row
   });
 });

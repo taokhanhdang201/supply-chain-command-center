@@ -277,9 +277,10 @@ export function UniversalImportCard({ incoming = null, runner, more }: Universal
             Open the details
           </button>
         ) : (
+          // Every answer looks the same: SCC does not hint which one is right.
           <div className="ingest-answers" role="group" aria-label="Answers">
             {view.question.answers.map((a, i) => (
-              <button key={`${i}|${a.label}`} type="button" className={`button${i === 0 ? ' button--primary' : ''}`} disabled={busy} onClick={() => answer(a.answer)}>
+              <button key={`${i}|${a.label}`} type="button" className="button" disabled={busy} onClick={() => answer(a.answer)}>
                 {a.label}
               </button>
             ))}
@@ -325,20 +326,21 @@ export function UniversalImportCard({ incoming = null, runner, more }: Universal
       const failed = result?.tone === 'critical';
       sentence = failed ? splitMessage(result?.title ?? '').sentence : 'Done. Dashboard updated.';
       line = failed ? splitMessage(result?.title ?? '').rest : (result?.title ?? '');
+      // The main action is to look at the result; Undo (or, once it cannot be undone, another file) is the small link.
       actions = (
         <>
+          <a className="button button--primary" href={buildHash('dashboard')}>
+            Open Dashboard
+          </a>
           {result?.imported?.version !== undefined ? (
-            <button type="button" className="button button--primary" disabled={flow.undoing} aria-busy={flow.undoing} onClick={() => void flow.undo()}>
+            <button type="button" className="ingest-link" disabled={flow.undoing} aria-busy={flow.undoing} onClick={() => void flow.undo()}>
               {flow.undoing ? 'Undoing…' : 'Undo'}
             </button>
           ) : (
-            <button type="button" className="button button--primary" onClick={chooseAnother}>
+            <button type="button" className="ingest-link" onClick={chooseAnother}>
               Choose a file
             </button>
           )}
-          <a className="ingest-link" href={buildHash('dashboard')}>
-            Open Dashboard
-          </a>
         </>
       );
       break;

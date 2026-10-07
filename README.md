@@ -68,9 +68,9 @@ purpose so that every alert type appears. Its dates are counted from today, so i
 
 ## Quality
 
-- **2,176 automated tests** (Vitest) cover the calculations, the import pipeline, the server and every page.
+- **2,178 automated tests** (Vitest) cover the calculations, the import pipeline, the server and every page.
   9 of them compare against the private development history and are skipped in this repository.
-- **42 browser tests** drive real Chromium against the built app. They check that no page scrolls sideways
+- **43 browser tests** drive real Chromium against the built app. They check that no page scrolls sideways
   from 360px to 1440px wide, that the dashboard text meets WCAG AA contrast, that focus moves to the page heading
   after each navigation, and that reduced-motion settings are respected. Playwright is not a project dependency;
   see Run locally.
@@ -212,9 +212,9 @@ xuất hiện. Ngày tháng được tính từ hôm nay nên dữ liệu luôn 
 
 ## Chất lượng
 
-- **2.176 test tự động** (Vitest) cho phần tính toán, quy trình nhập, server và từng trang. 9 test trong số đó so
+- **2.178 test tự động** (Vitest) cho phần tính toán, quy trình nhập, server và từng trang. 9 test trong số đó so
   với lịch sử phát triển riêng nên được bỏ qua trong repo này.
-- **42 test trình duyệt** chạy Chromium thật trên bản đã build. Các test kiểm tra không trang nào cuộn ngang từ
+- **43 test trình duyệt** chạy Chromium thật trên bản đã build. Các test kiểm tra không trang nào cuộn ngang từ
   360px đến 1440px, chữ trên dashboard đạt độ tương phản WCAG AA, focus chuyển tới tiêu đề trang sau mỗi lần
   chuyển trang, và tôn trọng thiết lập giảm chuyển động. Playwright không nằm trong dependency của dự án; xem phần
   Chạy trên máy.

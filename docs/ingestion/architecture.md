@@ -151,7 +151,7 @@ enforces the parse and validation budgets.
 
 The card shows one state at a time, each with one sentence, one line, one main action and one small link (G1): waiting
 (the drop area; its line is generated from the registry and the size limit), reading (Cancel), a question, has errors,
-cannot import, ready ("480 shipments. Ready." with the effect on the on-time rate or low-stock count) and done (Undo). The
+cannot import, ready ("480 shipments. Ready." with the effect on the on-time rate or low-stock count) and done (Open Dashboard, with Undo as its link). The
 state is derived from the flow (`viewOf`), never stored. `src/client/ingest/importStory.ts` holds the words, as pure
 functions of the preview: `questionFor` turns the first open blocker into one question whose answers are the buttons
 (each answer is a decision: a date preset for one column, a status or warehouse mapping, a dataset, a column assignment,

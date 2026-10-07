@@ -125,7 +125,7 @@ describe('demo import (real Chromium, real server)', () => {
     await openMore(page);
     await page.getByRole('button', { name: 'Try a file with errors' }).click();
     await heading(page, '7 rows need fixing.');
-    expect(await page.getByText('Lines 5, 7, 10 and 4 more. Nothing was imported.').count()).toBe(1);
+    expect(await page.getByText('Rows 5, 7, 10 and 4 more. Nothing was imported.').count()).toBe(1); // "Rows" (was "Lines")
     const colors = await page.evaluate(() => {
       const probe = document.createElement('div');
       probe.style.color = 'var(--critical)';

@@ -59,7 +59,7 @@ describe('the seven states of the import card', { timeout: 20_000 }, () => {
     const r = await renderCard();
     await review(r, fileOf(shipments(['04/03/2026', '05/06/2026']), 'dates.csv'));
     expect(heading()).toHaveTextContent('Is 04/03/2026 April 3 or March 4?');
-    expect(line()).toBe('Column “ship_date”. No date in it settles the order.');
+    expect(line()).toBe('Column “ship_date”. No other date in this column tells us which.');
     expect(section()).toHaveClass('ingest-state--warning');
     const answers = within(screen.getByRole('group', { name: 'Answers' })).getAllByRole('button');
     expect(answers.map((b) => b.textContent)).toEqual(['April 3', 'March 4']);
@@ -91,7 +91,7 @@ describe('the seven states of the import card', { timeout: 20_000 }, () => {
     const r = await renderCard();
     await review(r, buildSampleFile('errors', TODAY));
     expect(heading()).toHaveTextContent('7 rows need fixing.');
-    expect(line()).toBe('Lines 5, 7, 10 and 4 more. Nothing was imported.');
+    expect(line()).toBe('Rows 5, 7, 10 and 4 more. Nothing was imported.');
     expect(section()).toHaveClass('ingest-state--critical');
     expect(screen.getByText('See every problem')).toBeInTheDocument();
     await r.user.click(screen.getByRole('button', { name: 'Download the 7 rows to fix' }));
@@ -128,7 +128,21 @@ describe('the seven states of the import card', { timeout: 20_000 }, () => {
     expect(r.importCsv).not.toHaveBeenCalled();
   });
 
-  it('7 done, then Undo: "Done. Dashboard updated." with Undo and Open Dashboard; Undo brings the data back', async () => {
+  it('3 a question: every answer button has the same class and none is the main button, for a date and for a status', async () => {
+    const r = await renderCard();
+    const classesOfAnswers = (): string[] => within(screen.getByRole('group', { name: 'Answers' })).getAllByRole('button').map((b) => b.className);
+    await review(r, fileOf(shipments(['04/03/2026', '05/06/2026']), 'dates.csv'));
+    expect(heading()).toHaveTextContent(/^Is 04\/03\/2026 /);
+    expect(new Set(classesOfAnswers())).toEqual(new Set(['button']));
+    await review(r, fileOf(shipments(['2026-04-03', '2026-05-06']).replace(',delivered,2026-04-03', ',Arrived,2026-04-03'), 'status.csv'));
+    expect(heading()).toHaveTextContent('What does “Arrived” mean?');
+    const classes = classesOfAnswers();
+    expect(classes).toHaveLength(4);
+    expect(new Set(classes)).toEqual(new Set(['button']));
+    expect(section().querySelector('.button--primary')).toBeNull();
+  });
+
+  it('7 done, then Undo: "Done. Dashboard updated." with Open Dashboard as the main action and Undo as the link; Undo brings the data back', async () => {
     const importCsv = vi.fn().mockResolvedValue({ ...SUCCESS, undo: { version: 9 } });
     const undoImport = vi.fn().mockResolvedValue(undefined);
     const r = await renderCard({ api: { importCsv, undoImport } });
@@ -137,8 +151,11 @@ describe('the seven states of the import card', { timeout: 20_000 }, () => {
     expect(await screen.findByRole('heading', { name: 'Done. Dashboard updated.' })).toBe(heading());
     expect(line()).toBe('12 shipments from alder_freight.csv.');
     await waitFor(() => expect(document.activeElement).toBe(heading()));
-    expect(within(section()).getByRole('button', { name: 'Undo' })).toHaveClass('button--primary');
+    // Open Dashboard is the main action and Undo the small link (Undo used to be the main button)
+    expect(within(section()).getByRole('link', { name: 'Open Dashboard' })).toHaveClass('button', 'button--primary');
     expect(within(section()).getByRole('link', { name: 'Open Dashboard' })).toHaveAttribute('href', '#/');
+    expect(within(section()).getByRole('button', { name: 'Undo' })).toHaveClass('ingest-link');
+    expect(section().querySelectorAll('.button--primary')).toHaveLength(1);
     expect(document.getElementById('ingest-details')).toBeNull();
     await r.user.click(screen.getByRole('button', { name: 'Undo' }));
     expect(await screen.findByRole('heading', { name: 'Undone. The data is back as it was.' })).toBe(heading());

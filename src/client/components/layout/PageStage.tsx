@@ -11,7 +11,8 @@ export interface PageStageProps {
   actions?: ReactNode;
   /** Stage content: hero figures, map, briefing. */
   children?: ReactNode;
-  variant?: 'compact' | 'full';
+  /** `slim`: a stage with nothing but its title (Data Import), kept to a thin band. */
+  variant?: 'compact' | 'full' | 'slim';
 }
 
 /** The dark page stage: h1 eyebrow, optional display headline, and optional stage content. */
