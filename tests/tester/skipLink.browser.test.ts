@@ -96,4 +96,43 @@ describe('Skip link (real Chromium)', () => {
     expect(after.mainText).not.toContain('Page not found');
     expect(errors).toEqual([]);
   });
+
+  // While a page has no h1 (the data is loading, or failed to load) the skip link falls back to <main>, which must take focus
+  // without a ring, as the h1 does (base.css). Both states are reached through the app itself, by holding or failing the
+  // snapshot request, and the ring is read after the real keyboard path (Enter on the skip link). The `:focus-visible` check
+  // proves the page would draw the global ring here: without it an outline of `none` could mean nothing was ever focused.
+  it.each([
+    { state: 'still loading', waitFor: '.loading-state', fulfill: undefined },
+    { state: 'failed to load', waitFor: '.error-state', fulfill: { status: 500, contentType: 'application/json', body: '{"error":{"code":"DOWN","message":"down"}}' } }
+  ])('while the data is $state, Enter on the skip link focuses <main> and it shows no focus ring', async ({ waitFor, fulfill }) => {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+    const page = await ctx.newPage();
+    const errors: string[] = [];
+    page.on('pageerror', (e: any) => errors.push(String(e)));
+    // A held request is never answered; a failed one gets the server's error status.
+    await page.route('**/api/snapshot', (route: any) => (fulfill ? route.fulfill(fulfill) : undefined));
+    await page.goto(`${base}/#/shipments`);
+    await page.locator(waitFor).waitFor({ state: 'attached' });
+    expect(await page.locator('main h1').count(), 'no page is mounted, so there is no h1').toBe(0);
+
+    await page.locator('.skip-link').focus();
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(200);
+
+    const after = await page.evaluate(() => {
+      const main = document.querySelector('main') as HTMLElement;
+      return {
+        hash: location.hash,
+        mainFocused: document.activeElement === main,
+        focusVisible: main.matches(':focus-visible'),
+        outline: getComputedStyle(main).outlineStyle
+      };
+    });
+    await ctx.close();
+    expect(after.mainFocused, '<main> is document.activeElement').toBe(true);
+    expect(after.focusVisible, 'keyboard-initiated focus: the global ring would apply').toBe(true);
+    expect(after.outline).toBe('none');
+    expect(after.hash).toBe('#/shipments');
+    expect(errors).toEqual([]);
+  });
 });

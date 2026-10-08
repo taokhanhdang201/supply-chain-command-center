@@ -11,6 +11,9 @@
   --stage-raised: #111823;
   --stage-field: #0f1520;
   --map-field: #0c121b;
+  --map-land: #131b27;
+  --map-land-line: rgba(169, 179, 193, 0.35);
+  --map-node: #8994a6;
   --stage-line: rgba(214, 224, 238, 0.1);
   --stage-line-strong: rgba(214, 224, 238, 0.22);
   --stage-grid: rgba(237, 233, 224, 0.035);
@@ -39,6 +42,10 @@
   --color-sidebar-text: #a9b3c1;
   --color-sidebar-text-active: #ede9e0;
   --color-sidebar-border: rgba(214, 224, 238, 0.1);
+  --color-sidebar-bg-hover: rgba(237, 233, 224, 0.03);
+  --color-sidebar-badge-bg: rgba(242, 100, 90, 0.18);
+  --color-sidebar-badge-text: #ffb4ac;
+  --color-sidebar-badge-border: rgba(242, 100, 90, 0.4);
 
   /* The single operational blue */
   --color-accent: #2552c4;
@@ -95,6 +102,10 @@
   --content-max: 1280px;
   --sidebar-width: 240px;
   --topbar-height: 56px;
+
+  /* Controls. A data-URI cannot read a custom property, so the select chevron's ink is written here: the same ink as
+     --color-text-muted (the stage copy below uses --stage-text-2). */
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234A5360' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 
   /* Radii (industrial, near-square) & shadows */
   --radius-sm: 2px;
@@ -195,4 +206,5 @@
   --info-border: rgba(110, 151, 255, 0.35);
   --neutral-bg: rgba(237, 233, 224, 0.06);
   --neutral-border: rgba(237, 233, 224, 0.18);
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A9B3C1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }

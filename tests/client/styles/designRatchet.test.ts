@@ -140,7 +140,7 @@ function durations(model: Model): Array<{ decl: Decl; ms: number[] }> {
 const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Model) => Counted }> = [
   {
     name: 'font sizes off the six-step scale',
-    limit: 18,
+    limit: 6,
     target: 0,
     count: (m) => {
       const sized = fontSizes(m);
@@ -149,7 +149,7 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'distinct font sizes',
-    limit: 18,
+    limit: 12,
     target: 6,
     count: (m) => {
       const sized = fontSizes(m);
@@ -168,7 +168,7 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'margin/padding/gap off the 4/8 scale',
-    limit: 32,
+    limit: 12,
     target: 2,
     count: (m) => {
       // var() is not followed, so a spacing held in a custom property is NOT checked here (atlas.css --dash-margin: 56px,
@@ -180,19 +180,19 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'raw colours outside custom properties',
-    limit: 22,
+    limit: 10,
     target: 0,
     count: (m) => ({ scanned: m.decls.length, offenders: m.decls.flatMap((d) => (d.value.match(RAW_COLOUR) ?? []).map((c) => `${offender(d)} -> ${c}`)) })
   },
   {
     name: '@media widths off the breakpoint list',
-    limit: 17,
+    limit: 11,
     target: 0,
     count: (m) => ({ scanned: m.widths.length, offenders: m.widths.filter((w) => !BREAKPOINTS.has(w.px)).map((w) => `${w.where} -> ${w.px}px`) })
   },
   {
     name: 'durations other than 120/200/800ms',
-    limit: 9,
+    limit: 8,
     target: 1,
     count: (m) => {
       // Under 1ms is "off" (reduced motion); skeleton loops and delays are not transitions and are not counted as delays.

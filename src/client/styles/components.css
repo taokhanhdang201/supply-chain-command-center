@@ -7,12 +7,12 @@
   justify-content: center;
   gap: var(--space-2);
   height: 36px;
-  padding: 0 14px;
+  padding: 0 var(--space-4);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-field);
   color: var(--color-text);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   white-space: nowrap;
   transition:
@@ -33,7 +33,7 @@
 .button--primary {
   background: var(--color-accent);
   border-color: var(--color-accent);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .button--primary:hover:not(:disabled) {
@@ -58,16 +58,16 @@
 }
 
 .button--sm {
-  height: 28px;
-  padding: 0 10px;
-  font-size: 0.75rem;
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
 .button--danger {
   background: var(--critical);
   border-color: var(--critical);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .button--danger:hover:not(:disabled) {
@@ -84,7 +84,7 @@
   padding: var(--space-6);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .card {
     padding: var(--space-4);
   }
@@ -113,7 +113,7 @@
 }
 
 .card__title {
-  font-size: 1rem;
+  font-size: var(--text-md);
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: -0.005em;
@@ -121,7 +121,7 @@
 
 .card__subtitle {
   color: var(--color-text-subtle);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   margin-top: var(--space-1);
 }
 
@@ -138,7 +138,7 @@
 .kpi-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
   padding: var(--space-5);
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
@@ -178,7 +178,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .kpi-card__label {
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: var(--tracking-label);
@@ -187,7 +187,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .kpi-card__value {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   font-stretch: 106%;
   line-height: 1.05;
@@ -195,13 +195,12 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .kpi-card__detail {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
 .kpi-card--hero .kpi-card__value {
-  font-size: clamp(3.5rem, 7vw, 8rem);
-  font-size: clamp(3.5rem, 9cqi, 8rem);
+  font-size: var(--text-display);
   font-weight: 600;
   font-stretch: 112%;
   line-height: 0.9;
@@ -209,19 +208,18 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .kpi-card--hero .kpi-card__detail {
-  font-size: var(--font-size-md);
+  font-size: var(--text-md);
 }
 
 .kpi-card--large .kpi-card__value {
-  font-size: clamp(2.25rem, 3.2vw, 3.5rem);
-  font-size: clamp(2.25rem, 4.2cqi, 3.5rem);
+  font-size: var(--text-xl);
   font-stretch: 108%;
   line-height: 1;
   letter-spacing: -0.02em;
 }
 
 .kpi-card--medium .kpi-card__value {
-  font-size: 1.75rem;
+  font-size: var(--text-lg);
   font-stretch: 106%;
   line-height: 1.05;
 }
@@ -242,11 +240,11 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 22px;
+  gap: var(--space-2);
+  height: 24px;
   padding: 0 var(--space-2);
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1;
   letter-spacing: var(--tracking-label);
@@ -257,8 +255,8 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 /* Decorative status square; the badge text always carries the meaning. */
 .badge::before {
   content: '';
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 1px;
   background: currentColor;
 }
@@ -339,17 +337,17 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .banner__title {
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .banner__message {
   margin-top: var(--space-1);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
 }
 
 /* DataTable */
 .data-table {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   line-height: 1.4;
 }
 
@@ -367,7 +365,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   background: var(--color-surface);
   border-bottom-color: var(--color-line-strong);
   vertical-align: bottom;
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: var(--tracking-label);
@@ -410,7 +408,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .data-table--compact td,
 .data-table--compact th {
-  padding: 6px 10px;
+  padding: var(--space-1) var(--space-2);
 }
 
 .data-table__sort-button {
@@ -485,7 +483,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   .data-table--stack .data-table__phone-label {
     display: inline;
     margin-right: var(--space-1);
-    font-size: var(--font-size-xs);
+    font-size: var(--text-xs);
     letter-spacing: var(--tracking-label);
     color: var(--color-text-muted);
   }
@@ -509,12 +507,12 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .pagination__page {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
 }
 
 .pagination__summary {
   margin-left: auto;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -523,12 +521,12 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 .select-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .search-input__label,
 .select-field__label {
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: var(--tracking-label);
@@ -549,7 +547,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   border-radius: var(--radius-md);
   background: var(--color-field);
   color: var(--color-text);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .search-input__field {
@@ -560,24 +558,20 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   appearance: none;
   min-width: 132px;
   padding-right: 32px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234A5360' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: var(--select-chevron);
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 10px 6px;
 }
 
-.surface-stage .select-field__control {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A9B3C1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-
 .search-input__clear {
-  height: 28px;
-  padding: 0 10px;
+  height: 32px;
+  padding: 0 var(--space-3);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   transition:
     border-color var(--dur-1) var(--ease-out),
@@ -634,7 +628,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 .empty-state__title,
 .error-state__title {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   font-stretch: 104%;
   color: var(--color-text);
@@ -690,15 +684,15 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .sidebar__brand-name {
   font-family: var(--font-display);
-  font-size: var(--font-size-lg);
-  font-weight: 800;
+  font-size: var(--text-md);
+  font-weight: 600;
   font-stretch: 118%;
   letter-spacing: 0.04em;
   color: var(--color-sidebar-text-active);
 }
 
 .sidebar__brand-sub {
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
   color: var(--stage-text-3);
@@ -710,8 +704,8 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .sidebar__group-label {
   display: block;
-  padding: 20px 20px 6px;
-  font-size: var(--font-size-xs);
+  padding: var(--space-5) var(--space-5) var(--space-2);
+  font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: var(--tracking-label);
@@ -725,7 +719,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   height: 38px;
   padding: 0 var(--space-5);
   color: var(--color-sidebar-text);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   text-decoration: none;
   position: relative;
@@ -735,7 +729,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .sidebar__link:hover {
-  background: rgba(237, 233, 224, 0.03);
+  background: var(--color-sidebar-bg-hover);
   color: var(--color-sidebar-text-active);
 }
 
@@ -763,15 +757,15 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   margin-left: auto;
   min-width: 22px;
   height: 18px;
-  padding: 0 6px;
+  padding: 0 var(--space-1);
   border-radius: 2px;
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   line-height: 16px;
   text-align: center;
-  background: rgba(242, 100, 90, 0.18);
-  color: #ffb4ac;
-  border: 1px solid rgba(242, 100, 90, 0.4);
+  background: var(--color-sidebar-badge-bg);
+  color: var(--color-sidebar-badge-text);
+  border: 1px solid var(--color-sidebar-badge-border);
 }
 
 /* Topbar */
@@ -803,13 +797,13 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .topbar__page-title {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
 
 .topbar__date {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--stage-text-3);
 }
 
@@ -822,8 +816,8 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 .topbar__chip {
   border: 1px solid var(--stage-line-strong);
   border-radius: 2px;
-  padding: 2px var(--space-2);
-  font-size: var(--font-size-xs);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--stage-text-2);
 }
@@ -901,7 +895,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .chart-frame__note {
   margin: var(--space-2) 0 0;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }
 
@@ -912,8 +906,8 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   color: var(--stage-text);
   border: 1px solid var(--stage-line-strong);
   border-radius: var(--radius-sm);
-  padding: 6px var(--space-2);
-  font: 500 0.75rem/1.3 var(--font-sans);
+  padding: var(--space-1) var(--space-2);
+  font: 500 var(--text-xs)/1.3 var(--font-sans);
   box-shadow: var(--shadow-md);
   white-space: nowrap;
   pointer-events: none;
@@ -931,7 +925,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
 }
 
 .chart__legend-swatch {
@@ -961,7 +955,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   gap: var(--space-8);
 }
 
-@media (max-width: 800px) {
+@media (max-width: 767px) {
   .route-map__grid {
     grid-template-columns: 1fr;
   }
@@ -977,8 +971,8 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .route-map__outline {
-  fill: #131b27;
-  stroke: rgba(169, 179, 193, 0.35);
+  fill: var(--map-land);
+  stroke: var(--map-land-line);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
@@ -1014,7 +1008,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .route-map__marker-shape {
-  fill: #8994a6;
+  fill: var(--map-node);
 }
 
 .route-map__marker rect.route-map__marker-shape {
@@ -1042,12 +1036,6 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   max-height: 520px;
   overflow-y: auto;
   border-top: 1px solid var(--color-border-subtle);
-}
-
-@media (max-width: 800px) {
-  .route-map__list {
-    max-height: 360px;
-  }
 }
 
 /* "Show all lanes" is a phone affordance; above 767px the list scrolls inside its column and shows every lane. */
@@ -1083,9 +1071,9 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: var(--space-1);
   width: 100%;
-  padding: var(--space-3) var(--space-3) var(--space-3) 14px;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
   border: 0;
   border-bottom: 1px solid var(--color-border-subtle);
   border-radius: 0;
@@ -1123,12 +1111,12 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .route-map__list-label {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
 .route-map__list-detail {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
@@ -1137,7 +1125,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   flex-wrap: wrap;
   gap: var(--space-2) 20px;
   margin-top: var(--space-4);
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
   color: var(--color-text-muted);
@@ -1146,7 +1134,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 .route-map__key-item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .route-map__key-line {
@@ -1190,12 +1178,12 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #8994a6;
+  background: var(--map-node);
 }
 
 .route-map__legend {
   margin-top: var(--space-2);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }
 
@@ -1221,9 +1209,9 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 10px 0;
+  padding: var(--space-2) 0;
   border-top: 1px solid var(--color-border-subtle);
-  font-size: var(--font-size-md);
+  font-size: var(--text-md);
 }
 
 .risk-summary__label {
@@ -1260,7 +1248,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .risk-summary__value {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: var(--text-lg);
   font-weight: 600;
 }
 
@@ -1278,12 +1266,12 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .meter-list__label {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
 .meter-list__value {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   text-align: right;
 }
@@ -1301,7 +1289,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   display: block;
   height: 100%;
   background: var(--neutral);
-  transition: width var(--dur-3) var(--ease-out);
+  transition: width var(--dur-2) var(--ease-out);
 }
 
 .meter--warning .meter__bar {
@@ -1336,18 +1324,18 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 .formula-list__formula {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   background: var(--neutral-bg);
   border: 1px solid var(--color-border-subtle);
   border-radius: 2px;
-  padding: 2px 6px;
+  padding: var(--space-1) var(--space-2);
   white-space: normal;
 }
 
 .formula-list__notes {
   margin: var(--space-1) 0 0;
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
 }
 
 /* Data Import page */
@@ -1358,7 +1346,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .data-sources dt {
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
   color: var(--color-text-muted);
@@ -1366,7 +1354,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .data-sources dd {
   margin-left: 0;
-  font-size: var(--font-size-md);
+  font-size: var(--text-md);
   font-weight: 500;
 }
 
@@ -1430,7 +1418,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .mapping-panel h3 {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: var(--text-md);
   font-weight: 600;
   font-stretch: 104%;
   line-height: 1.25;
@@ -1439,26 +1427,26 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .mapping-panel h4 {
   margin: var(--space-6) 0 var(--space-2);
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
 }
 
 .mapping-panel [role='status'] {
   margin: var(--space-4) 0;
-  padding-left: 10px;
+  padding-left: var(--space-3);
   border-left: 3px solid var(--color-accent);
   font-weight: 600;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
 }
 
 .mapping-panel__table td:nth-child(1) {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
-@media (min-width: 641px) {
+@media (min-width: 768px) {
   .mapping-panel__table td:nth-child(3) {
     white-space: nowrap;
   }
@@ -1482,14 +1470,14 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .mapping-panel__hint {
   display: block;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin-top: var(--space-1);
 }
 
 /* Phone width: stack each column's row (file column + example, then the field select, then the status) so the
    select and status are not pushed out of view by horizontal scrolling. */
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .mapping-panel__table thead {
     position: absolute;
     width: 1px;
@@ -1545,7 +1533,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .ingest-panel h3 {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: var(--text-md);
   font-weight: 600;
   font-stretch: 104%;
   line-height: 1.25;
@@ -1555,7 +1543,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .ingest-panel h4 {
   margin: var(--space-5) 0 var(--space-2);
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
 }
@@ -1568,10 +1556,10 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 .ingest-summary,
 .ingest-status:not(:empty) {
   margin: var(--space-3) 0;
-  padding-left: 10px;
+  padding-left: var(--space-3);
   border-left: 3px solid var(--color-accent);
   font-weight: 600;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   overflow-wrap: anywhere;
 }
 
@@ -1605,7 +1593,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   background: var(--color-field);
   color: var(--color-text);
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
+  font-size: var(--text-sm);
   line-height: 1.45;
   resize: vertical;
 }
@@ -1619,7 +1607,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .ingest-field__label {
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
   color: var(--color-text-muted);
@@ -1627,7 +1615,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .ingest-field__hint {
   display: block;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
@@ -1639,13 +1627,13 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   border-radius: var(--radius-md);
   background: var(--color-field);
   color: var(--color-text);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .ingest-small-button {
-  height: 30px;
+  height: 32px;
   padding: 0 var(--space-3);
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
 }
 
 .ingest-why {
@@ -1653,11 +1641,11 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   align-items: center;
   gap: 4px;
   margin-top: var(--space-1);
-  padding: 2px 0;
+  padding: var(--space-1) 0;
   border: 0;
   background: none;
   color: var(--color-accent);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
@@ -1673,7 +1661,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 .ingest-evidence {
   margin: var(--space-2) 0 0;
   padding-left: var(--space-5);
-  font-size: 0.8125rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
@@ -1682,7 +1670,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   list-style: none;
   margin: var(--space-3) 0;
   padding: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
 }
 
 .ingest-notices li {
@@ -1694,7 +1682,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .ingest-notices svg {
   flex: none;
-  margin-top: 3px;
+  margin-top: var(--space-1);
   color: var(--color-accent);
 }
 
@@ -1725,13 +1713,13 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .ingest-radio__hint {
   color: var(--color-text-muted);
-  font-size: 0.8125rem;
+  font-size: var(--text-sm);
 }
 
 .ingest-details > summary {
   cursor: pointer;
   font-weight: 600;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
 }
 
 .ingest-sample {
@@ -1743,7 +1731,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .ingest-sample__title {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--color-text-muted);
 }
@@ -1752,7 +1740,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   margin: var(--space-1) 0 0;
   padding-left: var(--space-5);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   overflow-wrap: anywhere;
 }
 
@@ -1764,7 +1752,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .ingest-table .ingest-table__name {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
@@ -1778,7 +1766,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .ingest-canon {
   display: block;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-accent);
 }
 
@@ -1796,7 +1784,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   border: 1px solid var(--warning-border);
   border-radius: var(--radius-md);
   background: var(--warning-bg);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
 }
 
 .ingest-todo__title {
@@ -1824,7 +1812,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 .ingest-reason {
   margin-top: var(--space-2);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
@@ -1838,7 +1826,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 /* Phone width: each mapping or value row stacks (name and example, then the select, then the status). */
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .ingest-table:not(.ingest-table--wide) thead {
     position: absolute;
     width: 1px;
