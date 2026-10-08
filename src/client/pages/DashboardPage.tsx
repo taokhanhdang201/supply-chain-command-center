@@ -32,6 +32,7 @@ import { AtlasCaption, AtlasScene } from '../components/atlas/AtlasScene';
 import { buildTransitDots, laneTone } from '../components/atlas/atlasGeometry';
 import { CostChart, FlowFigure, ReliabilityChart } from '../components/atlas/FlowCharts';
 import { WarehouseRacks } from '../components/atlas/WarehouseRacks';
+import { STATUS_TONE } from '../components/charts/statusTones';
 import { RouteLabel } from '../components/ui/RouteLabel';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { notMeasurableNote, ON_TIME_FLOOR, ON_TIME_TARGET, onTimeTone, type TargetTone } from '../lib/targets';
@@ -84,10 +85,11 @@ function Separator({ className }: { className: string }) {
   );
 }
 
-/** An 8px status marker in a fixed slot, so the status words align: filled circle, hollow circle or a dash. The word is the text. */
+/** An 8px status marker in a fixed slot, so the status words align: filled circle, hollow circle or a dash, in the status's
+ *  tone (statusTones.ts, as the Shipments badge and the Analytics status bar). The word is the text. */
 function StatusMark({ status }: { status: ShipmentStatus }) {
   return (
-    <svg className={`status-mark status-mark--${status}`} viewBox="0 0 8 8" aria-hidden="true" focusable="false">
+    <svg className={`status-mark status-mark--${status}`} style={{ color: `var(--${STATUS_TONE[status]})` }} viewBox="0 0 8 8" aria-hidden="true" focusable="false">
       {status === 'cancelled' ? <rect x="0" y="3.25" width="8" height="1.5" /> : <circle cx="4" cy="4" r={status === 'pending' ? 3.25 : 4} />}
     </svg>
   );

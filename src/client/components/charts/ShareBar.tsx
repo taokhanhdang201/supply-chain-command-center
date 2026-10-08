@@ -1,15 +1,15 @@
 // A single 100% stacked bar with a labelled legend: shares of one whole (e.g. shipments by status). Easier to compare
-// than a donut when one part dominates, because every part keeps its count and percentage in words.
+// than a donut when one part dominates, because every part keeps its count and percentage in words. Each part and its swatch
+// are drawn in the token of its tone (var(--good), var(--neutral)…), the tones the badges and the other charts use.
 
 import { formatPercent } from '../../../shared/format';
-
-export type ShareTone = 'ink' | 'accent' | 'soft' | 'muted';
+import type { ChartTone } from './StackedBarChart';
 
 export interface ShareDatum {
   key: string;
   label: string;
   value: number;
-  tone: ShareTone;
+  tone: ChartTone;
 }
 
 export interface ShareBarProps {
@@ -30,13 +30,13 @@ export function ShareBar({ data, valueFormat, ariaLabel }: ShareBarProps) {
         {data
           .filter((d) => d.value > 0)
           .map((d) => (
-            <span key={d.key} className={`share-bar__segment share-bar__segment--${d.tone}`} style={{ width: `${share(d) * 100}%` }} />
+            <span key={d.key} className={`share-bar__segment share-bar__segment--${d.tone}`} style={{ width: `${share(d) * 100}%`, background: `var(--${d.tone})` }} />
           ))}
       </div>
       <ul className="share-bar__legend" aria-hidden="true">
         {data.map((d) => (
           <li key={d.key} className="share-bar__item">
-            <span className={`share-bar__swatch share-bar__segment--${d.tone}`} />
+            <span className={`share-bar__swatch share-bar__segment--${d.tone}`} style={{ background: `var(--${d.tone})` }} />
             <span className="share-bar__label">{d.label}</span>
             <span className="share-bar__value">{valueFormat(d.value)}</span>
             <span className="share-bar__share">{formatPercent(share(d), 0)}</span>

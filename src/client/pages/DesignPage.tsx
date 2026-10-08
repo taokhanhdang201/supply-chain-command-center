@@ -1,13 +1,17 @@
 // The design reference at #/_design: the six type sizes and the type roles, the colors with their contrast on paper and on
-// the band, the spacing scale, the 12-column grid, and the shared components most pages use, with their states. The hover,
-// pressed and focus samples are static copies of the live rules (design.css; DesignPage.test.tsx compares them).
+// the band, the spacing scale, the 12-column grid, the shared components most pages use, with their states, and the tone of
+// each shipment status. The hover, pressed and focus samples are static copies of the live rules (design.css;
+// DesignPage.test.tsx compares them).
 // Development builds only: AppLayout loads it at #/_design when import.meta.env.DEV, so neither this module nor design.css
 // reaches the production bundle (tests/tester/designPage.browser.test.ts reads dist/). It is not one of ROUTES, reads no
 // data, and its controls change nothing.
 
 import { Fragment, type ReactNode } from 'react';
-import { formatNumber } from '../../shared/format';
+import { formatNumber, statusLabel } from '../../shared/format';
+import type { ShipmentStatus } from '../../shared/types';
 import { PageStage } from '../components/layout/PageStage';
+import { ShareBar } from '../components/charts/ShareBar';
+import { STATUS_TONE } from '../components/charts/statusTones';
 import { Badge, type BadgeTone } from '../components/ui/Badge';
 import { Button, type ButtonVariant } from '../components/ui/Button';
 import { DataTable, type Column } from '../components/ui/DataTable';
@@ -114,7 +118,7 @@ interface Swatch {
 
 const COLORS: Swatch[] = [
   { token: '--critical', name: 'Critical', meaning: 'late, out of stock or blocking; the only red', paper: '5.5:1', band: '6.2:1' },
-  { token: '--warning', name: 'Warning', meaning: 'needs attention soon: low stock, a lane 10–19% delayed', paper: '4.9:1', band: '9.2:1' },
+  { token: '--warning', name: 'Warning', meaning: 'needs attention soon: low stock, a lane 10–20% delayed; from 20% it is critical', paper: '4.9:1', band: '9.2:1' },
   { token: '--neutral', name: 'Neutral', meaning: 'normal, in progress or unknown', paper: '6.5:1', band: '9.1:1' },
   { token: '--good', name: 'Good', meaning: 'good or done: delivered, healthy, on target', paper: '5.2:1', band: '8.7:1' },
   { token: '--color-accent', name: 'Accent', meaning: 'interaction and information: links, focus, the selected mark', paper: '5.7:1', band: '6.9:1' },
@@ -199,6 +203,26 @@ const BADGES: ReadonlyArray<{ tone: BadgeTone; label: string }> = [
   { tone: 'good', label: 'Good' },
   { tone: 'warning', label: 'Warning' },
   { tone: 'critical', label: 'Critical' }
+];
+
+/** DESIGN.md "Shipment status": the one table of status tones the pages read (statusTones.ts), as a table, its badges and the
+ *  status bar. The bar's counts are a sample. */
+interface StatusRow {
+  status: ShipmentStatus;
+  count: number;
+}
+
+const STATUS_SAMPLE: StatusRow[] = [
+  { status: 'pending', count: 14 },
+  { status: 'in_transit', count: 20 },
+  { status: 'delivered', count: 433 },
+  { status: 'cancelled', count: 13 }
+];
+
+const STATUS_COLUMNS: Column<StatusRow>[] = [
+  { key: 'status', header: 'Status', render: (r) => statusLabel(r.status) },
+  { key: 'tone', header: 'Tone', render: (r) => `--${STATUS_TONE[r.status]}` },
+  { key: 'badge', header: 'Badge', render: (r) => <Badge tone={STATUS_TONE[r.status]}>{statusLabel(r.status)}</Badge> }
 ];
 
 /** The options of the select samples below. */
@@ -544,6 +568,21 @@ export function DesignPage() {
                 </Badge>
               ))}
             </div>
+          </Block>
+
+          <Block id="design-status" title="Shipment status">
+            <p className="design-sheet__note">
+              One table gives each shipment status its tone (statusTones.ts), and every page that draws a status reads it: the badge
+              on Shipments, the mark beside a status in the Dashboard&apos;s recent activity and the status bar on Analytics. Pending
+              and in transit are neutral (normal, in progress), and so is cancelled (ended, nothing left to do); delivered is good
+              (done). Late is a flag, not a status: the Delayed badge is critical.
+            </p>
+            <DataTable caption="Shipment status tones" columns={STATUS_COLUMNS} rows={STATUS_SAMPLE} rowKey={(r) => r.status} />
+            <ShareBar
+              data={STATUS_SAMPLE.map((r) => ({ key: r.status, label: statusLabel(r.status), value: r.count, tone: STATUS_TONE[r.status] }))}
+              valueFormat={formatNumber}
+              ariaLabel="Shipments by status, a sample"
+            />
           </Block>
 
           <Block id="design-band" title="Page band">

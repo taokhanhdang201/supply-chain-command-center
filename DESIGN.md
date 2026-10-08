@@ -282,7 +282,7 @@ Use semantic colors only for semantic meaning.
 
 
 
-`--warning`: needs attention soon (low stock, a lane 10–19% delayed).
+`--warning`: needs attention soon (low stock, a lane 10–20% delayed; from 20% it is critical).
 
 
 
@@ -307,6 +307,14 @@ Use semantic colors only for semantic meaning.
 
 
 `--neutral`: normal, in progress or unknown. An unknown risk is neutral, never a warning.
+
+
+
+### Shipment status
+
+
+
+One table gives each shipment status its tone (`src/client/components/charts/statusTones.ts`), and every page that draws a status reads it: the badge on Shipments, the mark beside a status in the Dashboard's recent activity and the status bar on Analytics. Pending and in transit are neutral (normal, in progress), and so is cancelled (ended, nothing left to do); delivered is good (done). Late is a flag, not a status: the Delayed badge is critical. The server's statuses do not change; only their tone is chosen here, and #/_design shows the table.
 
 
 

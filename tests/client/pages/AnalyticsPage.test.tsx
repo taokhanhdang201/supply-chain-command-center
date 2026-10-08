@@ -98,8 +98,9 @@ describe('AnalyticsPage: range in the URL, charts in system colours', () => {
     const bar = screen.getByRole('img', { name: /^Shipments by status:/ });
     expect(bar.getAttribute('aria-label')).toContain('Delivered 9 (90%)');
     expect(bar.getAttribute('aria-label')).toContain('In transit 1 (10%)');
-    expect(container.querySelector('.share-bar__track .share-bar__segment--ink')).toBeInTheDocument();
-    expect(container.querySelector('.share-bar__track .share-bar__segment--accent')).toBeInTheDocument();
+    // The status bar reads the shared status tones (statusTones.ts): delivered good, in transit neutral.
+    expect((container.querySelector('.share-bar__track .share-bar__segment--good') as HTMLElement).style.background).toBe('var(--good)');
+    expect((container.querySelector('.share-bar__track .share-bar__segment--neutral') as HTMLElement).style.background).toBe('var(--neutral)');
   });
 
   it('draws on-time months in ink, not green; delayed stays red', async () => {

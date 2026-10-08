@@ -137,26 +137,32 @@ describe('3 and 4. Dashboard Top alerts: info alerts left out, Overdue said plai
 describe('5. Routes: the lanes on the map and the lanes that are not', () => {
   it('seed 42: 25 of the 32 lanes on the map, the button names them', async () => {
     await renderWithData(<RoutesPage />, { snapshot: seed42 });
-    expect(text('.routes__summary')).toBe('32 lanes · the map shows the top 25 · 7 lanes are not on the map');
+    expect(text('.routes__summary')).toBe('32 lanes · the map shows the top 25 of 30 · 2 are unmapped');
     expect(screen.getByRole('button', { name: 'Show all 25 lanes in the list' })).toBeInTheDocument();
   });
 
   it('seed 42 with every lane shown: only the 2 without coordinates are off the map', async () => {
     window.location.hash = '#/routes?top=all';
     await renderWithData(<RoutesPage />, { snapshot: seed42 });
-    expect(text('.routes__summary')).toBe('32 lanes · 2 lanes are not on the map');
+    expect(text('.routes__summary')).toBe('32 lanes · 2 are unmapped');
     expect(screen.getByRole('button', { name: 'Show all 30 lanes in the list' })).toBeInTheDocument();
   });
 
-  it('one lane off the map reads "1 lane is"; none off the map adds nothing', async () => {
+  it('one unmapped lane reads "1 is unmapped"; none adds nothing', async () => {
     const lane = (destination: string) => makeShipmentRecord({ origin: 'WH-DFW', destination });
     const mapped = [lane('HOU'), lane('PHX'), makeShipmentRecord({ origin: 'WH-ATL', destination: 'MIA' })];
     const one = await renderWithData(<RoutesPage />, { snapshot: makeSnapshot([], [...mapped, lane('Plant 7')], { today: TODAY }) });
-    expect(text('.routes__summary')).toBe('4 lanes · 1 lane is not on the map');
+    expect(text('.routes__summary')).toBe('4 lanes · 1 is unmapped');
     one.unmount();
     await renderWithData(<RoutesPage />, { snapshot: makeSnapshot([], mapped, { today: TODAY }) });
     expect(text('.routes__summary')).toBe('3 lanes');
     expect(screen.queryByRole('button', { name: /^Show all/ })).toBeNull();
+  });
+
+  it('seed 42, Delayed 10–20% at the top 10: the map part says how many of the mapped lanes it shows; nothing is unmapped', async () => {
+    window.location.hash = '#/routes?lane=watch&top=10';
+    await renderWithData(<RoutesPage />, { snapshot: seed42 });
+    expect(text('.routes__summary')).toBe('16 lanes · the map shows the top 10 of 16');
   });
 });
 

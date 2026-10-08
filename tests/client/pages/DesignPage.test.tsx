@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 // The design reference (#/_design) renders without a console error, under one h1, and holds every block: the six type sizes;
 // the type roles, each still declared by its stylesheet rule; the colors with their contrast on paper and on the band,
-// recomputed from tokens.css; the spacing scale and the 12-column grid; and the shared components in their states, whose
-// static hover, pressed and focus samples copy the live rules declaration for declaration.
+// recomputed from tokens.css; the spacing scale and the 12-column grid; the shared components in their states, whose
+// static hover, pressed and focus samples copy the live rules declaration for declaration; and the shipment status tones.
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
@@ -26,6 +26,7 @@ const BLOCKS = [
   'Loading and error',
   'Figures',
   'Badges',
+  'Shipment status',
   'Page band',
   'Chip'
 ];
@@ -282,5 +283,38 @@ describe('DesignPage', () => {
     expect(block('Page band').querySelector('.page-stage--slim .page-stage__title')?.tagName).toBe('P');
     expect([...block('Chip').querySelectorAll('.topbar__chip')].map((c) => c.textContent)).toEqual(['Sample data', 'Inventory: carrier-export.csv']);
     expect(document.querySelector('.topbar__chip--sample')).toBeNull(); // the anchor name belongs to the real top bar
+  });
+
+  // DESIGN.md "Shipment status": the page draws the one table of status tones the pages read, as badges and as the status bar.
+  it('shipment status: each status with the tone the shared table gives it, its badge in that tone, and the status bar in those tones', () => {
+    render(<DesignPage />);
+    const status = block('Shipment status');
+    expect(cellsOf(within(status).getByRole('table', { name: 'Shipment status tones' }))).toEqual([
+      ['Pending', '--neutral', 'Pending'],
+      ['In transit', '--neutral', 'In transit'],
+      ['Delivered', '--good', 'Delivered'],
+      ['Cancelled', '--neutral', 'Cancelled']
+    ]);
+    expect([...status.querySelectorAll('tbody .badge')].map((b) => b.className)).toEqual([
+      'badge badge--neutral',
+      'badge badge--neutral',
+      'badge badge--good',
+      'badge badge--neutral'
+    ]);
+    expect([...status.querySelectorAll('.share-bar__track .share-bar__segment')].map((s) => (s as HTMLElement).style.background)).toEqual([
+      'var(--neutral)',
+      'var(--neutral)',
+      'var(--good)',
+      'var(--neutral)'
+    ]);
+  });
+
+  // The amber band is written one way, as the Lane filter writes it and the code tests it (from 10% up to, not including, 20%).
+  it('color: warning is a lane 10–20% delayed, on this page and in DESIGN.md, never 10–19%', () => {
+    render(<DesignPage />);
+    expect(within(block('Color')).getByText(/a lane 10–20% delayed; from 20% it is critical/)).toBeInTheDocument();
+    const design = fs.readFileSync(path.resolve('DESIGN.md'), 'utf8');
+    expect(design).toContain('a lane 10–20% delayed; from 20% it is critical');
+    expect(design).not.toMatch(/10[–-]19%/);
   });
 });

@@ -1715,30 +1715,19 @@
   color: var(--color-text);
 }
 
+/* The mark takes its status's tone as its colour (statusTones.ts, set on the mark); its shape tells the four apart. */
 .atlas-page .status-mark {
   flex: none;
   width: 8px;
   height: 8px;
   overflow: visible;
-}
-
-.atlas-page .status-mark--delivered {
-  fill: var(--color-text);
-  fill-opacity: 0.35;
-}
-
-.atlas-page .status-mark--in_transit {
-  fill: var(--color-text);
+  fill: currentColor;
 }
 
 .atlas-page .status-mark--pending {
   fill: none;
-  stroke: var(--color-text-muted);
+  stroke: currentColor;
   stroke-width: 1.5;
-}
-
-.atlas-page .status-mark--cancelled {
-  fill: var(--color-text-subtle);
 }
 
 /* Phone and tablet: a three-line record per shipment. The header row stays in the accessibility tree. */

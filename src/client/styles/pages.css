@@ -480,22 +480,6 @@
   box-shadow: inset 2px 0 0 var(--color-surface);
 }
 
-.share-bar__segment--ink {
-  background: var(--neutral);
-}
-
-.share-bar__segment--accent {
-  background: var(--color-accent);
-}
-
-.share-bar__segment--soft {
-  background: var(--chart-2);
-}
-
-.share-bar__segment--muted {
-  background: var(--muted);
-}
-
 .share-bar__legend {
   display: grid;
   margin: var(--space-4) 0 0;

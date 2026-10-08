@@ -36,6 +36,9 @@ const MIN_LABEL_FONT_UNITS = 12;
 // colour alone) from 20%. The tone thresholds are the Dashboard atlas's.
 const toneForRoute = (route: RouteSummary) => laneTone(route.delayedShare);
 
+/** The amber band as the Lane filter and the figures write it: from 10% up to 20%, where red begins (DESIGN.md §3). */
+const WATCH_BAND = `${Math.round(ROUTE_DELAY_WARNING_SHARE * 100)}–${formatPercent(ROUTE_DELAY_CRITICAL_SHARE, 0)}`;
+
 const ROUTE_STROKE = { neutral: 'var(--route)', warning: 'var(--warning)', critical: 'var(--critical)' } as const;
 
 /** On phones the list flows with the page instead of scrolling inside it, so a long list shows its first lanes. */
@@ -221,7 +224,7 @@ export function RouteMap({ routes, locations, selectedKey, onSelect }: RouteMapP
         </span>
         <span className="route-map__key-item">
           <span className="route-map__key-line route-map__key-line--warning" />
-          {formatPercent(ROUTE_DELAY_WARNING_SHARE, 0)}–{formatPercent(ROUTE_DELAY_CRITICAL_SHARE, 0)} delayed
+          {WATCH_BAND} delayed
         </span>
         <span className="route-map__key-item">
           <span className="route-map__key-line route-map__key-line--critical" />≥{formatPercent(ROUTE_DELAY_CRITICAL_SHARE, 0)} delayed
@@ -241,7 +244,7 @@ export function RouteMap({ routes, locations, selectedKey, onSelect }: RouteMapP
       </div>
 
       <p className="route-map__legend">
-        Line color: gray = on track, amber {formatPercent(ROUTE_DELAY_WARNING_SHARE, 0)}–{formatPercent(ROUTE_DELAY_CRITICAL_SHARE, 0)} delayed,
+        Line color: gray = on track, amber {WATCH_BAND} delayed,
         dashed red ≥{formatPercent(ROUTE_DELAY_CRITICAL_SHARE, 0)} delayed. Line width is proportional to shipment count.
         Squares are warehouses, circles are cities. Schematic projection; not to scale.
       </p>

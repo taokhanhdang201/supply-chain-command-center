@@ -1,7 +1,7 @@
 // One system across the pages, in a real browser. Inventory names keep one line
 // at 1440; one h1 (ink, type, baseline) on every page with a page band and on the Dashboard, whose first screen does not move;
 // rendered text uses 400, 500 and 600 only; one heading type on paper; Top alerts rows inside a phone's margin; Analytics
-// labels and details in line.
+// labels and details in line; a shipment status in one colour on Shipments, the Dashboard and Analytics.
 // OPT-IN (`*.browser.test.ts`). Run: npm run build && SCC_PW_DIR=<dir with playwright> npm run test:browser
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
@@ -193,4 +193,40 @@ describe('consistency across pages (real Chromium)', () => {
       }
     }
   });
+
+  // One table gives each shipment status its tone (DESIGN.md "Shipment status"): the badge on Shipments, the mark in the
+  // Dashboard's recent activity and the swatch of the Analytics status bar draw a status in one colour. On paper --neutral is
+  // #4a5360 and --good #1b6e44. In transit was blue on Shipments and Analytics and black on the Dashboard.
+  it('a shipment status reads one colour on Shipments, the Dashboard and Analytics', async () => {
+    const NEUTRAL = 'rgb(74, 83, 96)';
+    const GOOD = 'rgb(27, 110, 68)';
+    const expected: Record<string, string> = { pending: NEUTRAL, in_transit: NEUTRAL, delivered: GOOD, cancelled: NEUTRAL };
+    const labels: Record<string, string> = { pending: 'Pending', in_transit: 'In transit', delivered: 'Delivered', cancelled: 'Cancelled' };
+    for (const status of Object.keys(expected)) {
+      const { ctx, page } = await open(1440, `shipments?status=${status}`);
+      const colors: string[] = await page.locator('td.data-table__col--status .badge').evaluateAll((els: Element[]) => els.map((e) => getComputedStyle(e).color));
+      await ctx.close();
+      expect(colors.length, `Shipments ${status}`).toBeGreaterThan(0);
+      for (const c of colors) expect(c, `Shipments ${status} badge`).toBe(expected[status]);
+    }
+    let { ctx, page } = await open(1440, '');
+    const marks: Array<{ status: string; color: string }> = await page.locator('.activity svg.status-mark').evaluateAll((els: Element[]) =>
+      els.map((e) => {
+        const s = getComputedStyle(e);
+        return { status: /status-mark--(\w+)/.exec(e.getAttribute('class') ?? '')?.[1] ?? '', color: s.fill === 'none' ? s.stroke : s.fill };
+      })
+    );
+    await ctx.close();
+    expect(new Set(marks.map((m) => m.status)).size, 'Dashboard: more than one status').toBeGreaterThan(1);
+    for (const m of marks) expect(m.color, `Dashboard ${m.status} mark`).toBe(expected[m.status]);
+    ({ ctx, page } = await open(1440, 'analytics'));
+    for (const status of Object.keys(expected)) {
+      const swatch: string = await page
+        .locator('.share-bar__item', { has: page.locator('.share-bar__label', { hasText: new RegExp(`^${labels[status]}$`) }) })
+        .locator('.share-bar__swatch')
+        .evaluate((e: Element) => getComputedStyle(e).backgroundColor);
+      expect(swatch, `Analytics ${status} swatch`).toBe(expected[status]);
+    }
+    await ctx.close();
+  }, 60_000);
 });

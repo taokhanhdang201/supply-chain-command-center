@@ -1,7 +1,8 @@
 // The Analytics page (plan §8.6): range figures on the stage (on-time rate with its target gauge, shipping cost,
 // average delivery, shipments in range), the range synced to the hash, six charts in ink gray (colour only where it
-// means risk), a metrics section (turnover, cost, delivery, on-time rate, stockout risk distribution, warehouse
-// utilization meters), and the "How these are calculated" formula reference driven by `METRIC_DEFINITIONS`.
+// means something: red delays, the shipment status tones in the status bar), a metrics section (turnover, cost, delivery,
+// on-time rate, stockout risk distribution, warehouse utilization meters), and the "How these are calculated" formula
+// reference driven by `METRIC_DEFINITIONS`.
 
 import { useState, type CSSProperties } from 'react';
 import type { DateRange } from '../../shared/domain/analytics';
@@ -28,7 +29,8 @@ import { SectionHeader } from '../components/ui/SectionHeader';
 import { Figure } from '../components/ui/Figure';
 import { ChartFrame } from '../components/charts/ChartFrame';
 import { BarChart } from '../components/charts/BarChart';
-import { ShareBar, type ShareTone } from '../components/charts/ShareBar';
+import { ShareBar } from '../components/charts/ShareBar';
+import { STATUS_TONE } from '../components/charts/statusTones';
 import { LineChart } from '../components/charts/LineChart';
 import { StackedBarChart } from '../components/charts/StackedBarChart';
 
@@ -58,9 +60,6 @@ const RANGE_VALUES = new Set(RANGE_OPTIONS.map((o) => o.value));
 const DEFAULT_RANGE: DateRange = '180d';
 
 const TOP_ROUTES_LIMIT = 10;
-
-/** Shipment status shares in the system's neutral tones: delivered ink, in transit accent, pending soft, cancelled muted. */
-const STATUS_SHARE_TONE: Record<ShipmentStatus, ShareTone> = { delivered: 'ink', in_transit: 'accent', pending: 'soft', cancelled: 'muted' };
 
 const ROUTE_SORT_OPTIONS: SelectOption[] = [
   { value: 'count', label: 'Shipment count' },
@@ -171,7 +170,7 @@ export function AnalyticsPage() {
               table={{ columns: ['Status', 'Count'], rows: statusCounts.map((d) => [statusLabel(d.status as ShipmentStatus), d.count]) }}
             >
               <ShareBar
-                data={statusCounts.map((d) => ({ key: d.status, label: statusLabel(d.status as ShipmentStatus), value: d.count, tone: STATUS_SHARE_TONE[d.status as ShipmentStatus] }))}
+                data={statusCounts.map((d) => ({ key: d.status, label: statusLabel(d.status as ShipmentStatus), value: d.count, tone: STATUS_TONE[d.status as ShipmentStatus] }))}
                 valueFormat={(n) => n.toLocaleString('en-US')}
                 ariaLabel="Shipments by status"
               />

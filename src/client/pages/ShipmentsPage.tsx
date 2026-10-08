@@ -15,10 +15,11 @@ import { RouteLabel } from '../components/ui/RouteLabel';
 import { Pagination } from '../components/ui/Pagination';
 import { SearchInput } from '../components/ui/SearchInput';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
-import { Badge, type BadgeTone } from '../components/ui/Badge';
+import { Badge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IdText } from '../components/ui/IdText';
 import { Figure } from '../components/ui/Figure';
+import { STATUS_TONE } from '../components/charts/statusTones';
 
 const STATUS_FILTER_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'All' },
@@ -38,13 +39,6 @@ const FLAG_FILTER_OPTIONS: SelectOption[] = [
   { value: 'any_issue', label: 'Any issue' }
 ];
 const FLAG_FILTER_VALUES = new Set(FLAG_FILTER_OPTIONS.map((o) => o.value));
-
-const STATUS_BADGE_TONE: Record<Shipment['status'], BadgeTone> = {
-  pending: 'neutral',
-  in_transit: 'info',
-  delivered: 'good',
-  cancelled: 'neutral'
-};
 
 type SortAccessor = (s: Shipment) => string | number | null;
 
@@ -190,7 +184,7 @@ export function ShipmentsPage() {
       key: 'status',
       header: 'Status',
       sortable: true,
-      render: (s) => <Badge tone={STATUS_BADGE_TONE[s.status]}>{statusLabel(s.status)}</Badge>
+      render: (s) => <Badge tone={STATUS_TONE[s.status]}>{statusLabel(s.status)}</Badge>
     },
     { key: 'shipDate', header: 'Ship date', sortable: true, phoneLabel: 'Ship', render: (s) => formatDay(s.shipDate) },
     { key: 'eta', header: 'ETA', sortable: true, phoneLabel: 'ETA', render: (s) => formatDay(s.estimatedDelivery) },

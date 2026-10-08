@@ -77,6 +77,14 @@ describe('RouteMap', () => {
     expect(screen.getByText(/Schematic projection; not to scale\./)).toBeInTheDocument();
   });
 
+  it('writes the amber band as the Lane filter does: 10–20% delayed, then ≥20%', () => {
+    const { container } = render(<RouteMap routes={[]} locations={LOCATIONS} selectedKey={null} onSelect={vi.fn()} />);
+    const key = container.querySelector('.route-map__key')?.textContent ?? '';
+    expect(key).toContain('10–20% delayed');
+    expect(key).toContain('≥20% delayed');
+    expect(container.querySelector('.route-map__legend')?.textContent).toContain('amber 10–20% delayed, dashed red ≥20% delayed');
+  });
+
   it('draws lanes in the stage tones: gray, solid --warning amber from 10%, dashed red from 20%, no hard-coded amber', () => {
     const routes = [
       makeRoute({ routeKey: 'A', delayedShare: 0.05 }),

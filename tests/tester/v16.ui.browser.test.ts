@@ -557,7 +557,7 @@ describe('V1.6 redesign (real Chromium)', () => {
 
     ({ ctx, page } = await open(1440, 'routes'));
     const [routes] = await read(page, ['.routes__summary']);
-    expect(routes!.text).toBe('32 lanes · the map shows the top 25 · 7 lanes are not on the map');
+    expect(routes!.text).toBe('32 lanes · the map shows the top 25 of 30 · 2 are unmapped');
     await ctx.close();
   }, 60_000);
 
@@ -1185,26 +1185,29 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   });
 
-  // Analytics: no sideways scroll from phone to desktop, no free green or blue in the charts (ink data, red delays).
+  // Analytics: no sideways scroll from phone to desktop; green only where it means delivered (the status bar reads the shared
+  // status tones), ink data, red delays.
   it('analytics: nothing scrolls sideways at 390/768/1440 and charts use the system tones', async () => {
     for (const w of [390, 768, 1440]) {
       const { ctx, page } = await open(w, 'analytics', { reducedMotion: 'reduce' });
       const m = await page.evaluate(() => {
         const floor = [...document.querySelectorAll('.page *')];
-        const colors = floor.map((e) => `${getComputedStyle(e).fill} ${getComputedStyle(e).backgroundColor}`).join(' ');
+        const colors = floor.filter((e) => !e.closest('.share-bar')).map((e) => `${getComputedStyle(e).fill} ${getComputedStyle(e).backgroundColor}`).join(' ');
         return {
           page: document.documentElement.scrollWidth - window.innerWidth,
           sideways: floor
             .filter((e) => e.scrollWidth > e.clientWidth + 1 && !['visible', 'hidden', 'clip'].includes(getComputedStyle(e).overflowX))
             .map((e) => String((e as HTMLElement).className)),
           green: colors.includes('rgb(27, 110, 68)'),
+          delivered: [...document.querySelectorAll('.share-bar__item')].filter((li) => li.querySelector('.share-bar__label')?.textContent === 'Delivered').map((li) => getComputedStyle(li.querySelector('.share-bar__swatch')!).backgroundColor),
           barRight: document.querySelector('.share-bar__track')!.getBoundingClientRect().right
         };
       });
       await ctx.close();
       expect(m.page, `${w}`).toBeLessThanOrEqual(0);
       expect(m.sideways, `${w}`).toEqual([]);
-      expect(m.green, `${w}: no green on the page`).toBe(false);
+      expect(m.green, `${w}: no green outside the status bar`).toBe(false);
+      expect(m.delivered, `${w}: Delivered is --good`).toEqual(['rgb(27, 110, 68)']);
       expect(m.barRight, `${w}`).toBeLessThanOrEqual(w);
     }
   });
