@@ -560,8 +560,10 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   gap: var(--space-3);
 }
 
+/* Tabular figures: Next stays put while the page number changes. */
 .pagination__page {
   font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .pagination__summary {
@@ -1263,7 +1265,8 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   background: var(--tone, var(--neutral));
 }
 
-/* Same tones as the Inventory risk badges: high amber, medium neutral, low green; unknown muted. */
+/* High, medium and low wear the tones of the Inventory risk badges (amber, neutral, green). Unknown is muted here, not
+   the neutral of its badge, so its square stays apart from Medium's. */
 .risk-summary__item--high {
   --tone: var(--warning);
 }
@@ -1284,6 +1287,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .meter-list {
@@ -1308,6 +1312,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   font-size: var(--text-sm);
   font-weight: 600;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .meter {

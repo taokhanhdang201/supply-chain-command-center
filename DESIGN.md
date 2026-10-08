@@ -672,7 +672,7 @@ A component sets its text with a role (`font: var(--type-label)`), not with a si
 
 
 
-The page h1 is `--type-title` (24px, 600). A section h2 on paper is lg at 500: it differs from the h1 by weight and place. Figures use `--type-figure` (36px).
+The page h1 is `--type-title` (24px, 600). In the page band it sits on a 30px line in `--stage-text`. The Dashboard has no page band: its h1 heads the map scene on a 32px line (24px from 1100px) in `--stage-text-2`. A section h2 on paper is lg at 500: it differs from the h1 by weight and place. Figures use `--type-figure` (36px).
 
 
 
@@ -701,6 +701,10 @@ Use:
 
 
 when values need vertical alignment or comparison.
+
+
+
+Running text keeps the font's proportional figures: no rule sets tabular-nums for the whole page. Tabular figures go where numbers sit in a column or change in place: the number cells of a table, figures, chart axes, counts in a list, the page counter. IDs (SHP-100138, ELC-0015) and names are text: with tabular figures Inter draws their hyphen as wide as a digit.
 
 
 
@@ -858,7 +862,7 @@ Preferred characteristics:
 
 \- strong alignment
 
-\- tabular numbers
+\- number columns right-aligned in tabular figures, header included (a stacked record keeps its numbers at the left, under their labels)
 
 \- restrained hover states
 
@@ -1134,13 +1138,13 @@ Existing motion tokens:
 
 \- `--dur-2`: 200ms (larger state changes, the drawer)
 
-\- `--dur-draw`: 800ms (drawing data only: lanes, bars, gauges; off with reduced motion)
+\- `--dur-draw`: 800ms (drawing data the first time: lanes, chart bars, gauges; off with reduced motion)
 
 \- `--ease-out`
 
 
 
-UI transitions use 120ms or 200ms only; `--dur-3` (420ms) is no longer used for UI. The loading skeleton (a 1.8s loop) is the one exception, and reduced motion stops it.
+UI transitions use 120ms or 200ms only. A meter that moves to a new value (the Analytics warehouse utilization bars) is feedback, not drawing: it uses `--dur-2`. The loading skeleton (a 1.8s loop) is the one exception, and reduced motion stops it.
 
 
 

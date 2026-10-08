@@ -17,13 +17,14 @@ body,
   min-height: 100%;
 }
 
+/* No page-wide tabular figures: running text keeps proportional ones (with tabular figures Inter draws a hyphen as wide
+   as a digit). Number cells, figures and counters set their own. */
 body {
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--text-md);
   color: var(--color-text);
   background: var(--color-bg);
-  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 

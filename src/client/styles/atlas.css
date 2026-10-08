@@ -1619,10 +1619,10 @@
   background: transparent;
 }
 
+/* An ID is text: proportional figures, so its hyphen is not as wide as a digit. */
 .atlas-page .activity__id {
   color: var(--color-text);
   font-weight: 500;
-  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .atlas-page .activity__route {

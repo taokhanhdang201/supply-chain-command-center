@@ -759,6 +759,53 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   }, 60_000);
 
+  // Phase 1 spec §5 (commit 10b): running text keeps proportional figures. With tabular-nums on the body, Inter drew a hyphen
+  // as wide as a digit (0.65em instead of 0.46em: "ELC - 0015", "On - time", tong-hop A9). Number cells, figures and counters
+  // keep tabular figures. A floor table's scroll covers are the paper, so a table that fits shows no pale band (A10).
+  it('running text has proportional figures and narrow hyphens; numbers stay tabular; no pale band at a table edge', async () => {
+    const probe = async (hash: string, hyphenIn: string, tabular: string[]) => {
+      const { ctx, page } = await open(1440, hash, { reducedMotion: 'reduce' });
+      const m = await page.evaluate(([hyphenIn, tabular]: [string, string[]]) => {
+        // The width of the first "-" inside an element, in em of its own font size.
+        const hyphenEm = (el: Element | null): number | null => {
+          if (el === null) return null;
+          const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+          for (let n = walk.nextNode(); n !== null; n = walk.nextNode()) {
+            const i = (n.textContent ?? '').indexOf('-');
+            if (i < 0) continue;
+            const r = document.createRange();
+            r.setStart(n, i);
+            r.setEnd(n, i + 1);
+            return r.getBoundingClientRect().width / parseFloat(getComputedStyle(n.parentElement!).fontSize);
+          }
+          return null;
+        };
+        const scroll = document.querySelector('.page-floor .table-scroll');
+        return {
+          body: getComputedStyle(document.body).fontVariantNumeric,
+          hyphen: hyphenEm(document.querySelector(hyphenIn)),
+          tabular: tabular.map((s) => getComputedStyle(document.querySelector(s)!).fontVariantNumeric),
+          cover: scroll === null ? null : (/rgba?\([^)]*\)/.exec(getComputedStyle(scroll).backgroundImage)?.[0] ?? ''),
+          paper: getComputedStyle(document.body).backgroundColor
+        };
+      }, [hyphenIn, tabular] as [string, string[]]);
+      await ctx.close();
+      return m;
+    };
+    const pages = {
+      inventory: await probe('inventory', 'tbody td.data-table__col--sku', ['tbody td.data-table__col--value', '.pagination__page']),
+      analytics: await probe('analytics', '.figure-stage__figures .stage-figure__label', ['.risk-summary__value', '.meter-list__value', '.stage-figure__value']),
+      dashboard: await probe('', 'tbody .activity__id', ['tbody .activity__cost', '.kind-row__count'])
+    };
+    for (const [name, m] of Object.entries(pages)) {
+      expect(m.body, `${name}: body figures`).toBe('normal');
+      expect(m.hyphen, `${name}: a hyphen was found`).not.toBeNull();
+      expect(m.hyphen!, `${name}: hyphen width (em)`).toBeLessThan(0.55);
+      for (const v of m.tabular) expect(v, name).toContain('tabular-nums');
+    }
+    expect(pages.inventory.cover, 'the scroll cover is the paper').toBe(pages.inventory.paper);
+  }, 60_000);
+
   it('inventory: each attention figure links to a filter showing exactly that many items', async () => {
     const { ctx, page } = await open(1440, 'inventory', { reducedMotion: 'reduce' });
     const figures = await page.locator('#inventory-attention + ul a').evaluateAll((as: Element[]) =>

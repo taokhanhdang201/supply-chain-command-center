@@ -958,10 +958,12 @@
   gap: var(--space-1);
 }
 
+/* Scroll edges of a floor table: a shadow shows at an edge only while there is more table that way. The covers move with
+   the table and are the paper the floor's tables sit on, so a table that fits shows no band at its edges. */
 .page-floor .table-scroll {
   background:
-    linear-gradient(to right, var(--color-surface) 30%, transparent) left center / 28px 100% no-repeat local,
-    linear-gradient(to left, var(--color-surface) 30%, transparent) right center / 28px 100% no-repeat local,
+    linear-gradient(to right, var(--color-bg) 30%, transparent) left center / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--color-bg) 30%, transparent) right center / 28px 100% no-repeat local,
     linear-gradient(to right, var(--color-scroll-shadow), transparent) left center / 10px 100% no-repeat scroll,
     linear-gradient(to left, var(--color-scroll-shadow), transparent) right center / 10px 100% no-repeat scroll;
 }
