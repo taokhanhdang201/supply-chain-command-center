@@ -1,4 +1,5 @@
-import { useId } from 'react';
+import { useId, useRef } from 'react';
+import { Button } from './Button';
 
 export interface SearchInputProps {
   label: string;
@@ -10,6 +11,14 @@ export interface SearchInputProps {
 /** A labelled search input with a clear button, shown once there is text to clear. */
 export function SearchInput({ label, value, onChange, placeholder }: SearchInputProps) {
   const id = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  /** Clearing removes the button itself, so focus goes back to the field instead of falling to <body>. */
+  function clear(): void {
+    onChange('');
+    inputRef.current?.focus();
+  }
+
   return (
     <div className="search-input">
       <label className="search-input__label" htmlFor={id}>
@@ -17,6 +26,7 @@ export function SearchInput({ label, value, onChange, placeholder }: SearchInput
       </label>
       <div className="search-input__control">
         <input
+          ref={inputRef}
           id={id}
           type="search"
           className="search-input__field"
@@ -25,9 +35,9 @@ export function SearchInput({ label, value, onChange, placeholder }: SearchInput
           onChange={(e) => onChange(e.target.value)}
         />
         {value !== '' && (
-          <button type="button" className="search-input__clear" onClick={() => onChange('')}>
+          <Button variant="ghost" size="sm" onClick={clear}>
             Clear search
-          </button>
+          </Button>
         )}
       </div>
     </div>

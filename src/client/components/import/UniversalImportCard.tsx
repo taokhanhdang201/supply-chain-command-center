@@ -18,6 +18,7 @@ import { buildHash } from '../../router';
 import { buildSampleFile, MORE_SAMPLES, type SampleId } from '../../import/sampleFiles';
 import { cannotLine, countOf, errorsText, FATAL_CODES, fixesOf, impactLine, problemsCsv, questionFor, waitingLine, type Answer, type Question } from '../../ingest/importStory';
 import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { ImportIssueTable } from './ImportIssueTable';
 import { FormatPanel } from './FormatPanel';
 import { ImportPreview } from './ImportPreview';
@@ -263,9 +264,9 @@ export function UniversalImportCard({ incoming = null, runner, more }: Universal
     case 'reading':
       sentence = `Reading ${source === null ? 'the file' : clip(source.name, 60)}`;
       actions = (
-        <button type="button" className="ingest-link" onClick={() => flow.cancel()}>
+        <Button variant="link" className="ingest-link" onClick={() => flow.cancel()}>
           Cancel
-        </button>
+        </Button>
       );
       break;
     case 'question':
@@ -333,13 +334,13 @@ export function UniversalImportCard({ incoming = null, runner, more }: Universal
             Open Dashboard
           </a>
           {result?.imported?.version !== undefined ? (
-            <button type="button" className="ingest-link" disabled={flow.undoing} aria-busy={flow.undoing} onClick={() => void flow.undo()}>
+            <Button variant="link" className="ingest-link" busy={flow.undoing} onClick={() => void flow.undo()}>
               {flow.undoing ? 'Undoing…' : 'Undo'}
-            </button>
+            </Button>
           ) : (
-            <button type="button" className="ingest-link" onClick={chooseAnother}>
+            <Button variant="link" className="ingest-link" onClick={chooseAnother}>
               Choose a file
-            </button>
+            </Button>
           )}
         </>
       );
@@ -423,9 +424,9 @@ export function UniversalImportCard({ incoming = null, runner, more }: Universal
               </span>
             </label>
             <p className="ingest-state__actions">
-              <button type="button" className="ingest-link" onClick={() => trySample('carrier-export')}>
+              <Button variant="link" className="ingest-link" onClick={() => trySample('carrier-export')}>
                 No file? Try one.
-              </button>
+              </Button>
             </p>
           </>
         ) : (
@@ -496,9 +497,9 @@ export function UniversalImportCard({ incoming = null, runner, more }: Universal
         <ul className="ingest-more__list">
           {MORE_SAMPLES.map((s) => (
             <li key={s.id}>
-              <button type="button" className="ingest-link" disabled={phase === 'uploading'} onClick={() => trySample(s.id)}>
+              <Button variant="link" className="ingest-link" disabled={phase === 'uploading'} onClick={() => trySample(s.id)}>
                 {s.label}
-              </button>
+              </Button>
             </li>
           ))}
           <li>

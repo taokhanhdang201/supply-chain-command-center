@@ -1,4 +1,5 @@
 import { PAGE_SIZE_OPTIONS } from '../../../shared/constants';
+import { Button } from './Button';
 import { SelectField } from './SelectField';
 
 export interface PaginationProps {
@@ -12,22 +13,23 @@ export interface PaginationProps {
   onPageSizeChange: (pageSize: number) => void;
 }
 
-/** Previous/Next page controls, a page-size select, and a live "Showing X-Y of N" summary. */
+/** A "Pagination" nav: Previous/Next (36px, level with the page-size select), the page-size select, and a live
+ *  "Showing X-Y of N" summary on the same row. */
 export function Pagination({ page, pageCount, pageSize, total, start, end, onPageChange, onPageSizeChange }: PaginationProps) {
   const summary = total === 0 ? 'Showing 0 of 0' : `Showing ${start}–${end} of ${total}`;
 
   return (
-    <div className="pagination">
+    <nav className="pagination" aria-label="Pagination">
       <div className="pagination__nav">
-        <button type="button" className="button button--sm" onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
+        <Button onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
           Previous
-        </button>
+        </Button>
         <span className="pagination__page">
           Page {page} of {pageCount}
         </span>
-        <button type="button" className="button button--sm" onClick={() => onPageChange(page + 1)} disabled={page >= pageCount}>
+        <Button onClick={() => onPageChange(page + 1)} disabled={page >= pageCount}>
           Next
-        </button>
+        </Button>
       </div>
       <SelectField
         label="Rows per page"
@@ -38,6 +40,6 @@ export function Pagination({ page, pageCount, pageSize, total, start, end, onPag
       <p className="pagination__summary" aria-live="polite">
         {summary}
       </p>
-    </div>
+    </nav>
   );
 }

@@ -172,7 +172,7 @@ export function ShipmentsPage() {
       key: 'route',
       header: 'Route',
       sortable: true,
-      // From 1100px to 1439px the carrier is shown under the route (its own column is only visually hidden there, so
+      // From 1280px to 1439px the carrier is shown under the route (its own column is only visually hidden there, so
       // assistive tech still reads it in the Carrier column; this copy is aria-hidden).
       render: (s) => (
         <>

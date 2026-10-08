@@ -26,8 +26,11 @@
   background: color-mix(in srgb, var(--color-text) 4%, var(--color-field));
 }
 
-.button:disabled {
+/* Disabled: one opacity for every control (buttons and selects). */
+.button:disabled,
+.select-field__control:disabled {
   opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .button--primary {
@@ -74,6 +77,49 @@
   background: var(--critical);
   border-color: var(--critical);
   filter: brightness(0.9);
+}
+
+/* Link (Button variant="link"): underlined accent text that acts in place (navigation stays an <a>). It drops the box of
+   .button so it sits in a line of text; a page class beside it (ingest-link, ingest-why, flow-figure__toggle) still sets
+   its own type and colour. */
+.button--link {
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: normal;
+}
+
+.button--link:hover:not(:disabled) {
+  background: none;
+  color: var(--color-accent-hover);
+}
+
+/* Active: the background one step further than hover, toward the ink (darker on paper, lighter on the stage), never a
+   shift. These come after every hover rule, so a pressed button shows its own variant's step. */
+.button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--color-text) 8%, var(--color-field));
+}
+
+.button--primary:active:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent-hover) 85%, var(--color-text));
+  border-color: color-mix(in srgb, var(--color-accent-hover) 85%, var(--color-text));
+}
+
+.button--ghost:active:not(:disabled) {
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
+.button--danger:active:not(:disabled) {
+  background: var(--critical);
+  filter: brightness(0.8);
+}
+
+.button--link:active:not(:disabled) {
+  background: none;
 }
 
 /* Card / sheet */
@@ -562,25 +608,11 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 10px 6px;
+  transition: border-color var(--dur-1) var(--ease-out);
 }
 
-.search-input__clear {
-  height: 32px;
-  padding: 0 var(--space-3);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  transition:
-    border-color var(--dur-1) var(--ease-out),
-    background-color var(--dur-1) var(--ease-out);
-}
-
-.search-input__clear:hover {
+.select-field__control:hover:not(:disabled) {
   border-color: var(--color-text-muted);
-  color: var(--color-text);
 }
 
 /* Loading / Empty / Error states */

@@ -23,6 +23,7 @@ import { buildHash, navigate, useHashRoute } from '../router';
 import { ON_TIME_TARGET, onTimeTone } from '../lib/targets';
 import { PageStage } from '../components/layout/PageStage';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
+import { SectionHeader } from '../components/ui/SectionHeader';
 import { ChartFrame } from '../components/charts/ChartFrame';
 import { BarChart } from '../components/charts/BarChart';
 import { ShareBar, type ShareTone } from '../components/charts/ShareBar';
@@ -140,9 +141,7 @@ export function AnalyticsPage() {
 
       <div className="page-floor">
         <section className="page-section">
-          <div className="section-bar">
-            <h2 className="section-label">Charts</h2>
-          </div>
+          <SectionHeader title="Charts" />
 
           <div className="chart-grid">
             <ChartFrame
@@ -234,9 +233,7 @@ export function AnalyticsPage() {
         </section>
 
         <section className="page-section">
-          <div className="section-bar">
-            <h2 className="section-label">Metrics</h2>
-          </div>
+          <SectionHeader title="Metrics" />
           {/* Cost, delivery time and on-time rate lead the page (stage); the metrics keep what only they show. */}
           <div className="analytics-figure">
             <p className="analytics-figure__value">{metrics.inventoryTurnover === null ? '—' : `${metrics.inventoryTurnover.toFixed(2)}×`}</p>
@@ -310,11 +307,7 @@ export function AnalyticsPage() {
         </section>
 
         <section className="page-section analytics-formulas" aria-labelledby="analytics-formulas">
-          <div className="section-bar">
-            <h2 className="section-label" id="analytics-formulas">
-              How these are calculated
-            </h2>
-          </div>
+          <SectionHeader title="How these are calculated" id="analytics-formulas" />
           <dl className="formula-list">
             {METRIC_DEFINITIONS.map((def) => (
               <div key={def.id} className="formula-list__item">

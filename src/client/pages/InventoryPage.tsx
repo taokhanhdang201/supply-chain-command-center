@@ -78,7 +78,7 @@ function attentionRank(item: InventoryItem): number {
   return item.stockoutRisk === 'high' ? 1 : 0;
 }
 
-/** The "Sort by" choices (needed below 1100px, where the column headers are hidden). Value is `key:direction`. */
+/** The "Sort by" choices (needed below 1280px, where the column headers are hidden). Value is `key:direction`. */
 const SORT_OPTIONS: SelectOption[] = [
   { value: 'value:desc', label: 'Highest value' },
   { value: 'attention:desc', label: 'Needs attention first' },
@@ -175,8 +175,8 @@ export function InventoryPage() {
       key: 'product',
       header: 'Product',
       sortable: true,
-      // From 1100px to 1439px the category is shown under the product (its own column is only visually hidden there,
-      // so assistive tech still reads it in the Category column; this copy is aria-hidden).
+      // From 1280px, at every wider width, the category is shown under the product (its own column is only visually hidden
+      // there, so assistive tech still reads it in the Category column; this copy is aria-hidden).
       render: (i) => (
         <>
           {i.productName}

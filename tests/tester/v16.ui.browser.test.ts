@@ -424,6 +424,35 @@ describe('V1.6 redesign (real Chromium)', () => {
     await ctx.close();
   });
 
+  // Phase 1 spec §6 (Pagination): a nav named Pagination whose Previous and Next are 36px, level with the 36px page-size select
+  // (same bottom edge while they share a row), and which holds no link, so the main navigation keeps its 7.
+  it('pagination: a named nav with 36px Previous and Next level with the page-size select, and no link of its own', async () => {
+    for (const [w, hash] of [[1440, 'inventory'], [1440, 'shipments'], [1440, 'alerts'], [390, 'inventory']] as const) {
+      const { ctx, page } = await open(w, hash, { reducedMotion: 'reduce' });
+      const m = await page.evaluate(() => {
+        const navs = [...document.querySelectorAll('nav[aria-label="Pagination"]')];
+        const nav = navs[0];
+        const box = (el: Element | null | undefined) => { const b = el!.getBoundingClientRect(); return { height: b.height, bottom: b.bottom }; };
+        return {
+          navs: navs.length,
+          buttons: nav ? [...nav.querySelectorAll('button')].map(box) : [],
+          select: nav ? box(nav.querySelector('select')) : null,
+          links: nav ? nav.querySelectorAll('a').length : -1,
+          allNavLinks: document.querySelectorAll('nav a').length
+        };
+      });
+      await ctx.close();
+      const where = `${w} #/${hash}`;
+      expect(m.navs, where).toBe(1);
+      expect(m.buttons, where).toHaveLength(2);
+      for (const b of m.buttons) expect(b.height, `${where}: button height`).toBeCloseTo(36, 0);
+      expect(m.select!.height, `${where}: select height`).toBeCloseTo(36, 0);
+      if (w >= 1100) for (const b of m.buttons) expect(Math.abs(b.bottom - m.select!.bottom), `${where}: bottom edges`).toBeLessThanOrEqual(1);
+      expect(m.links, where).toBe(0);
+      if (w >= 1100) expect(m.allNavLinks, where).toBe(7);
+    }
+  }, 60_000);
+
   it('no page-level horizontal overflow at 1440/1024/768/390, no console errors, no external requests', async () => {
     for (const w of [1440, 1024, 768, 390]) {
       for (const hash of ['', 'inventory', 'shipments', 'routes', 'analytics', 'alerts', 'import']) {

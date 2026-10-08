@@ -102,7 +102,7 @@
   margin-top: var(--space-8);
 }
 
-/* Section bar: label with an ink rule (an h2). */
+/* Section bar (SectionHeader): the section's h2 over a 1px ink rule, its actions at the right end. */
 .section-bar {
   display: flex;
   flex-wrap: wrap;
@@ -114,9 +114,10 @@
   border-bottom: 1px solid var(--color-text);
 }
 
+/* A section's h2 on paper: lg at 500, a step below the page h1 by weight and place (as the Dashboard's scene titles). */
 .section-label {
-  font: 600 var(--text-xs) / 1.2 var(--font-sans);
-  letter-spacing: var(--tracking-label);
+  font: 500 var(--text-lg) / 1.25 var(--font-display);
+  letter-spacing: var(--tracking-title);
   color: var(--color-text);
 }
 
@@ -697,11 +698,6 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
-}
-
-.ingest-link:disabled {
-  color: var(--color-text-subtle);
-  cursor: default;
 }
 
 .ingest-state__details > summary,

@@ -6,6 +6,7 @@ import { clip } from '../../../shared/ingest/messages';
 import type { ColumnState } from '../../../shared/ingest/mapping/assign';
 import type { PreviewColumn } from '../../../shared/ingest/preview/model';
 import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 
 const IGNORE_VALUE = '__ignore__';
@@ -46,9 +47,9 @@ export function Why({ label, items }: WhyButtonProps) {
   const id = useId();
   return (
     <>
-      <button type="button" className="ingest-why" aria-expanded={open} aria-controls={id} aria-label={`Why? ${label}`} onClick={() => setOpen((o) => !o)}>
+      <Button variant="link" className="ingest-why" aria-expanded={open} aria-controls={id} aria-label={`Why? ${label}`} onClick={() => setOpen((o) => !o)}>
         <Icon name={open ? 'chevron-up' : 'chevron-down'} size={12} /> Why?
-      </button>
+      </Button>
       <div id={id} hidden={!open}>
         {open && <EvidenceList items={items} />}
       </div>

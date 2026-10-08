@@ -6,10 +6,10 @@ export interface EmptyStateProps {
   action?: ReactNode;
 }
 
-/** Shown when a page or filtered view has no rows to display. */
+/** Shown when a page or filtered view has no rows to display; a status region, so the change is announced. */
 export function EmptyState({ title, message, action }: EmptyStateProps) {
   return (
-    <div className="empty-state">
+    <div className="empty-state" role="status">
       <p className="empty-state__title">{title}</p>
       {message !== undefined && <p className="empty-state__message">{message}</p>}
       {action !== undefined && <div className="empty-state__action">{action}</div>}

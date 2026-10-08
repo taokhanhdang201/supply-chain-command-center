@@ -7,6 +7,7 @@ import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useElementSize } from '../../hooks/useAtlasHooks';
 import type { ChartTable } from '../charts/ChartFrame';
+import { Button } from '../ui/Button';
 import { MAX_BAR, costHeight, niceMax, reliabilityHeight } from './flowScale';
 
 export interface FlowFigureProps {
@@ -29,9 +30,9 @@ export function FlowFigure({ title, subtitle, note, isEmpty, table, children }: 
           {subtitle !== undefined && <p className="flow-figure__subtitle">{subtitle}</p>}
         </div>
         {!isEmpty && (
-          <button type="button" className="flow-figure__toggle" aria-pressed={showTable} onClick={() => setShowTable((v) => !v)}>
+          <Button variant="link" className="flow-figure__toggle" aria-pressed={showTable} onClick={() => setShowTable((v) => !v)}>
             {showTable ? 'Hide data table' : 'Show data table'}
-          </button>
+          </Button>
         )}
       </div>
       {isEmpty ? (
