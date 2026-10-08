@@ -43,7 +43,8 @@ describe('DesignPage', () => {
     expect(buttons.filter((b) => !/button--(primary|ghost|danger|link)\b/.test(b.className)), 'secondary').toHaveLength(6);
     expect(buttons.filter((b) => b.classList.contains('button--sm'))).toHaveLength(15);
     expect(buttons.filter((b) => b.getAttribute('aria-busy') === 'true')).toHaveLength(10);
-    expect(buttons.filter((b) => b.disabled)).toHaveLength(20);
+    expect(buttons.filter((b) => b.getAttribute('aria-disabled') === 'true')).toHaveLength(20); // Lô 9: aria-disabled, not disabled
+    expect(buttons.filter((b) => b.disabled)).toHaveLength(0);
   });
 
   it('fields: a select, a disabled one and one with its label hidden; a search empty and one with text', () => {
@@ -62,8 +63,8 @@ describe('DesignPage', () => {
     render(<DesignPage />);
     const navs = within(block('Pagination')).getAllByRole('navigation', { name: 'Pagination' });
     expect(navs).toHaveLength(2);
-    expect(within(navs[0] as HTMLElement).getByRole('button', { name: 'Previous' })).toBeDisabled();
-    expect(within(navs[1] as HTMLElement).getByRole('button', { name: 'Previous' })).toBeEnabled();
+    expect(within(navs[0] as HTMLElement).getByRole('button', { name: 'Previous' })).toHaveAttribute('aria-disabled', 'true');
+    expect(within(navs[1] as HTMLElement).getByRole('button', { name: 'Previous' })).not.toHaveAttribute('aria-disabled');
     expect(block('Section header').querySelectorAll('.section-bar')).toHaveLength(3); // the block's own and two samples
     expect(block('Section header').querySelectorAll('.section-bar__actions')).toHaveLength(1);
     const states = within(block('Empty state')).getAllByRole('status');

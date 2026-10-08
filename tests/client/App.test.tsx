@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
+import { act, render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '../../src/client/App';
 import type { ApiClient } from '../../src/client/api/apiClient';
@@ -117,6 +117,71 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /open navigation/i })).toHaveAttribute('aria-expanded', 'false');
     });
+  });
+
+  // Lô 9 (WCAG 2.4.3 / 2.4.11): while the drawer is open the rest of the shell (the top bar, the page) and the skip link are
+  // inert, so Tab cannot leave the drawer for what it covers (real focus: tests/tester/a11yFoundation.browser.test.ts).
+  it('makes the rest of the shell inert while the drawer is open; Escape gives the focus back to the menu button', async () => {
+    const user = userEvent.setup();
+    render(<App api={makeApi()} />);
+    await screen.findByRole('heading', { name: 'Dashboard' });
+    const content = document.querySelector('.app-shell__content') as HTMLElement;
+    const skip = document.querySelector('.skip-link') as HTMLElement;
+    expect(content).not.toHaveAttribute('inert');
+    await user.click(screen.getByRole('button', { name: /open navigation/i }));
+    expect(content).toHaveAttribute('inert');
+    expect(skip).toHaveAttribute('inert');
+    expect(document.getElementById('sidebar')).not.toHaveAttribute('inert');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => expect(content).not.toHaveAttribute('inert'));
+    expect(skip).not.toHaveAttribute('inert');
+    expect(screen.getByRole('button', { name: /open navigation/i })).toHaveFocus();
+  });
+
+  // Lô 9: from 1024px the sidebar is fixed; a drawer left open while the window widens closes, so the shell is not left inert.
+  it('closes a drawer left open when the window reaches 1024px', async () => {
+    let onWide: (() => void) | undefined;
+    const wide = { matches: false, addEventListener: (_: string, l: () => void) => { onWide = l; }, removeEventListener: () => undefined };
+    const reduce = { matches: true, addEventListener: () => undefined, removeEventListener: () => undefined };
+    vi.stubGlobal('matchMedia', (query: string) => (query === '(min-width: 1024px)' ? wide : reduce));
+    try {
+      const user = userEvent.setup();
+      render(<App api={makeApi()} />);
+      await screen.findByRole('heading', { name: 'Dashboard' });
+      await user.click(screen.getByRole('button', { name: /open navigation/i }));
+      expect(document.querySelector('.app-shell__content')).toHaveAttribute('inert');
+      wide.matches = true;
+      act(() => onWide?.());
+      expect(screen.getByRole('button', { name: /open navigation/i })).toHaveAttribute('aria-expanded', 'false');
+      expect(document.querySelector('.app-shell__content')).not.toHaveAttribute('inert');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  // Lô 9 (react-reviewer): the skip link moves the focus itself only on a plain click or Enter; a click with a modifier key
+  // or another button is the browser's (a new tab or window).
+  it('leaves a click on the skip link with a modifier key or another button to the browser', async () => {
+    render(<App api={makeApi()} />);
+    const h1 = await screen.findByRole('heading', { level: 1, name: 'Dashboard' });
+    const link = screen.getByRole('link', { name: 'Skip to main content' });
+    const taken: boolean[] = [];
+    // runs after React's handler: note whether it took the click, then keep jsdom from following "#main"
+    const after = (e: MouseEvent) => {
+      taken.push(e.defaultPrevented);
+      e.preventDefault();
+    };
+    window.addEventListener('click', after);
+    try {
+      h1.blur();
+      for (const init of [{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }, { button: 1 }]) fireEvent.click(link, init);
+      expect(h1).not.toHaveFocus();
+      fireEvent.click(link);
+      expect(taken).toEqual([false, false, false, false, false, true]);
+      expect(h1).toHaveFocus();
+    } finally {
+      window.removeEventListener('click', after);
+    }
   });
 
   it('shows the alert badge with the critical + warning count', async () => {

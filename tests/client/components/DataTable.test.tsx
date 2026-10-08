@@ -88,6 +88,17 @@ describe('DataTable', () => {
     );
     expect(screen.getByText('No results match your filters')).toBeInTheDocument();
   });
+
+  // Lô 9 (WCAG 2.4.7): a stacking table hides its header row below 1100px (to 1279px on the three ledgers) and its sort
+  // buttons leave the Tab order there (CSS), so each sortable header also carries its name as plain text, shown only then.
+  it('a stacking table gives each sortable header its name as plain text too; a plain table does not', () => {
+    const stacked = render(<DataTable caption="Items" columns={columns} rows={rows} rowKey={(r) => r.id} stackOnPhone />);
+    expect([...document.querySelectorAll('th .data-table__sort-label')].map((s) => s.textContent)).toEqual(['Name', 'Qty']);
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Name', 'Qty']);
+    stacked.unmount();
+    render(<DataTable caption="Items" columns={columns} rows={rows} rowKey={(r) => r.id} />);
+    expect(document.querySelector('.data-table__sort-label')).toBeNull();
+  });
 });
 
 // Phase 1 spec §5: a number column is right-aligned with tabular figures. jsdom applies the real components.css but skips its

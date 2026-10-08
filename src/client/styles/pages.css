@@ -239,6 +239,15 @@
     white-space: normal;
     text-align: left;
   }
+
+  /* The header row is out of sight: its sort buttons leave the Tab order, as below 1100px (components.css). */
+  .alerts-ledger .data-table--stack .data-table__sort-button {
+    display: none;
+  }
+
+  .alerts-ledger .data-table--stack .data-table__sort-label {
+    display: inline;
+  }
 }
 
 /* Below 1280px each alert is a stacked record: severity and type, title, message, entity. The rule moves to the
@@ -1266,6 +1275,15 @@ a.stage-figure:focus-visible .stage-figure__label::after {
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-label);
     color: var(--color-text-muted);
+  }
+
+  /* The header row is out of sight: its sort buttons leave the Tab order, as below 1100px (components.css). */
+  :is(.shipments-ledger, .inventory-ledger) .data-table--stack .data-table__sort-button {
+    display: none;
+  }
+
+  :is(.shipments-ledger, .inventory-ledger) .data-table--stack .data-table__sort-label {
+    display: inline;
   }
 }
 

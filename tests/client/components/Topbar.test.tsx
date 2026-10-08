@@ -65,6 +65,25 @@ describe('Topbar', () => {
     expect(container.querySelector('.topbar__note')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Sample data' })).toBeNull();
   });
+
+  // Lô 9 (WCAG 1.3.1 / 4.1.2): focus on the chip announces its note (a hidden element still gives its words).
+  it('describes the Sample data chip by its note', () => {
+    renderTopbar(makeSnapshot([], [], { today: TODAY }).dataSources);
+    expect(screen.getByRole('button', { name: 'Sample data' })).toHaveAttribute('aria-describedby', 'topbar-sample-note');
+    expect(document.getElementById('topbar-sample-note')?.textContent).toMatch(/^Generated sample/);
+  });
+
+  // Lô 9 (WCAG 2.4.3): while the data reloads, Refresh is busy, not disabled: it keeps the focus and ignores a click.
+  it('keeps Refresh focusable while refreshing: busy and unavailable, and a click does nothing', () => {
+    const onRefresh = vi.fn();
+    render(<Topbar today={TODAY} dataSources={makeSnapshot([], [], { today: TODAY }).dataSources} refreshing onRefresh={onRefresh} drawerOpen={false} onMenuClick={vi.fn()} menuButtonRef={{ current: null }} />);
+    const refresh = screen.getByRole('button', { name: 'Refresh' });
+    expect(refresh).toHaveAttribute('aria-busy', 'true');
+    expect(refresh).toHaveAttribute('aria-disabled', 'true');
+    expect(refresh).not.toBeDisabled();
+    fireEvent.click(refresh);
+    expect(onRefresh).not.toHaveBeenCalled();
+  });
 });
 
 // A mouse over the chip or its note opens the note and leaving both closes it (owner decision D6), where the browser hangs

@@ -56,12 +56,16 @@ describe('Button', () => {
     );
     const off = screen.getByRole('button', { name: 'Why? Carrier' });
     expect(off).toHaveAttribute('type', 'submit');
-    expect(off).toBeDisabled();
+    // Lô 9 (WCAG 2.4.3): unavailable is aria-disabled, not the disabled attribute, so a focused button keeps its focus.
+    expect(off).toHaveAttribute('aria-disabled', 'true');
+    expect(off).not.toBeDisabled();
     await user.click(off);
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it('busy sets aria-busy="true" and disables the button, so a click does nothing', async () => {
+  // Lô 9 (WCAG 2.4.3 / 4.1.2): busy is unavailable too, said with aria-disabled: the button keeps its focus (the disabled
+  // attribute dropped it to <body>) and ignores a click or a key.
+  it('busy sets aria-busy and aria-disabled, keeps the button focusable, and ignores a click or Enter', async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
     render(
@@ -71,9 +75,37 @@ describe('Button', () => {
     );
     const button = screen.getByRole('button', { name: 'Undoing…' });
     expect(button).toHaveAttribute('aria-busy', 'true');
-    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).not.toBeDisabled();
     await user.click(button);
+    expect(button).toHaveFocus();
+    await user.keyboard('{Enter}');
     expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it('an unavailable submit button does not submit its form', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }}
+      >
+        <Button type="submit" disabled>
+          Save
+        </Button>
+      </form>
+    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  // react-reviewer: aria-busy was written after the native props, so it overwrote the caller's.
+  it("keeps a caller's aria-busy", () => {
+    render(<Button aria-busy>Saving</Button>);
+    expect(screen.getByRole('button', { name: 'Saving' })).toHaveAttribute('aria-busy', 'true');
   });
 });
 
@@ -107,8 +139,9 @@ describe('Pagination', () => {
   it('is a navigation landmark named Pagination holding Previous, Next, the page-size select and the summary', () => {
     render(<Pagination {...props} onPageChange={vi.fn()} onPageSizeChange={vi.fn()} />);
     const nav = screen.getByRole('navigation', { name: 'Pagination' });
-    expect(within(nav).getByRole('button', { name: 'Previous' })).toBeDisabled();
-    expect(within(nav).getByRole('button', { name: 'Next' })).toBeEnabled();
+    // Lô 9: Previous on the first page is unavailable but keeps its place in the Tab order (aria-disabled).
+    expect(within(nav).getByRole('button', { name: 'Previous' })).toHaveAttribute('aria-disabled', 'true');
+    expect(within(nav).getByRole('button', { name: 'Next' })).not.toHaveAttribute('aria-disabled');
     expect(within(nav).getByLabelText('Rows per page')).toBeInTheDocument();
     expect(within(nav).getByText('Showing 1–25 of 480')).toBeInTheDocument();
   });
@@ -130,6 +163,16 @@ describe('Pagination', () => {
     await user.click(screen.getByRole('button', { name: 'Next' }));
     expect(onPageChange).toHaveBeenCalledTimes(1);
     expect(onPageChange).toHaveBeenCalledWith(2);
+  });
+
+  it('ignores Previous on the first page and Next on the last', async () => {
+    const user = userEvent.setup();
+    const onPageChange = vi.fn();
+    const { rerender } = render(<Pagination {...props} onPageChange={onPageChange} onPageSizeChange={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'Previous' }));
+    rerender(<Pagination {...props} page={20} start={476} end={480} onPageChange={onPageChange} onPageSizeChange={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(onPageChange).not.toHaveBeenCalled();
   });
 });
 
@@ -313,6 +356,26 @@ describe('control states in components.css', () => {
 
   it('darkens the select border on hover unless it is disabled', () => {
     expect(bodyOf('.select-field__control:hover:not(:disabled)')).toMatch(/border-color:\s*var\(--color-text-muted\)/);
+  });
+
+  // Lô 9: Button's unavailable and busy states (aria-disabled) fade like a disabled control, and the mouse passes through.
+  it('fades an aria-disabled button like a disabled one and lets the mouse through it', () => {
+    const body = bodyOf(".button[aria-disabled='true']");
+    expect(body).toMatch(/opacity:\s*0\.45/);
+    expect(body).toMatch(/pointer-events:\s*none/);
+  });
+
+  // Lô 9 review S1: opacity fades the whole button, its focus ring too (2.03:1 on the paper at 0.45). Tab still reaches an
+  // unavailable button (Previous on page 1, Next on the last), so while it has the focus the fade lifts: 0.7 keeps the ring
+  // above 3:1 and the button paler than a usable one.
+  it('lifts the fade of a focused aria-disabled button, so its focus ring keeps 3:1', () => {
+    const body = bodyOf(".button[aria-disabled='true']:focus-visible");
+    expect(Number(/opacity:\s*([\d.]+)/.exec(body)?.[1])).toBeGreaterThanOrEqual(0.7);
+  });
+
+  // Lô 9: without the Popover API the sample note would sit in the top bar as a plain paragraph (Chromium cannot show it).
+  it('hides the sample note where the browser has no popovers', () => {
+    expect(css).toMatch(/@supports not selector\(:popover-open\)\s*\{\s*\.topbar__note\s*\{\s*display:\s*none;?\s*\}/);
   });
 });
 

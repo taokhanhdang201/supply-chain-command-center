@@ -4,6 +4,7 @@
 
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { MouseEvent, ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import { useData } from '../../state/DataContext';
 import { ROUTES, useHashRoute, type RouteId } from '../../router';
 import { Sidebar } from './Sidebar';
@@ -62,28 +63,40 @@ export function AppLayout() {
     }
   }, [route.id]);
 
+  // The open drawer (below 1024px) is all that Tab reaches: the skip link and the rest of the shell, which it covers, are
+  // inert (below). Escape, the backdrop or a link closes it.
   useEffect(() => {
     if (!drawerOpen) return undefined;
     const firstLink = document.querySelector<HTMLElement>('#sidebar a');
     firstLink?.focus();
 
     function onKeyDown(e: KeyboardEvent): void {
-      if (e.key === 'Escape') {
-        setDrawerOpen(false);
-        menuButtonRef.current?.focus();
-      }
+      if (e.key === 'Escape') closeDrawer();
+    }
+    // From 1024px the sidebar is fixed and nothing sits behind a drawer (layout.css): a drawer still open when the window
+    // widens closes, so the shell is not left inert.
+    const wide = typeof window.matchMedia === 'function' ? window.matchMedia('(min-width: 1024px)') : null;
+    function onWide(): void {
+      if (wide?.matches === true) setDrawerOpen(false);
     }
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    wide?.addEventListener('change', onWide);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      wide?.removeEventListener('change', onWide);
+    };
   }, [drawerOpen]);
 
+  /** Closes the drawer and gives the focus back to the menu button. The button is in the inert shell until the drawer is
+   *  closed, and an inert element cannot take the focus, so the close is committed first. */
+  function closeDrawer(): void {
+    flushSync(() => setDrawerOpen(false));
+    menuButtonRef.current?.focus();
+  }
+
   function handleMenuClick(): void {
-    if (drawerOpen) {
-      setDrawerOpen(false);
-      menuButtonRef.current?.focus();
-    } else {
-      setDrawerOpen(true);
-    }
+    if (drawerOpen) closeDrawer();
+    else setDrawerOpen(true);
   }
 
   function handleNavigate(): void {
@@ -91,13 +104,14 @@ export function AppLayout() {
   }
 
   function handleBackdropClick(): void {
-    setDrawerOpen(false);
-    menuButtonRef.current?.focus();
+    closeDrawer();
   }
 
   /** Skip link: focus the page's h1 (or <main> while no page is mounted) without touching the hash, which the router
-   *  would read as a route ("Page not found"). */
+   *  would read as a route ("Page not found"). A click with a modifier key or another mouse button is the browser's own (a
+   *  new tab or window), so it is left alone. */
   function handleSkipLinkClick(e: MouseEvent<HTMLAnchorElement>): void {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     const main = mainRef.current;
     (main?.querySelector<HTMLElement>('h1') ?? main)?.focus();
@@ -150,12 +164,12 @@ export function AppLayout() {
 
   return (
     <div className="app-shell">
-      <a href="#main" className="skip-link" onClick={handleSkipLinkClick}>
+      <a href="#main" className="skip-link" onClick={handleSkipLinkClick} inert={drawerOpen}>
         Skip to main content
       </a>
       <Sidebar activeRouteId={route.id} alertCount={alertCount} open={drawerOpen} onNavigate={handleNavigate} />
       {drawerOpen && <div className="drawer-backdrop" onClick={handleBackdropClick} />}
-      <div className="app-shell__content">
+      <div className="app-shell__content" inert={drawerOpen}>
         <Topbar
           today={today}
           dataSources={dataSources}

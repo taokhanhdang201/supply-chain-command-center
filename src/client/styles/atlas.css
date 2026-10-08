@@ -109,6 +109,7 @@
 
 /* Links that stand alone: ink, a hairline underline that darkens on hover. */
 .atlas-page .dash-link {
+  position: relative;
   display: inline-block;
   font: 400 var(--fs-small) / 20px var(--font-sans);
   color: var(--color-text);
@@ -121,6 +122,13 @@
 
 .atlas-page .dash-link:hover {
   text-decoration-color: currentColor;
+}
+
+/* WCAG 2.5.8: a hit area at least 24px tall, centred on the 20px line, with nothing moved (phones get 44px, below). */
+.atlas-page .dash-link::after {
+  content: '';
+  position: absolute;
+  inset: calc(50% - 12px) 0;
 }
 
 /* Shared components used on this page, restyled here and only here. */
@@ -1575,12 +1583,20 @@
 }
 
 .atlas-page .attention__how > summary {
+  position: relative;
   width: fit-content;
   color: var(--color-text);
   text-decoration: underline;
   text-decoration-color: var(--dash-line);
   text-underline-offset: 4px;
   cursor: pointer;
+}
+
+/* WCAG 2.5.8: as the links, a hit area at least 24px tall around its 20px line. */
+.atlas-page .attention__how > summary::after {
+  content: '';
+  position: absolute;
+  inset: calc(50% - 12px) 0;
 }
 
 .atlas-page .attention__how > p {

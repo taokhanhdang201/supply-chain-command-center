@@ -8,6 +8,7 @@ import type { PointerEvent, RefObject } from 'react';
 import type { DataSourceInfo, DayString } from '../../../shared/types';
 import { formatDay } from '../../../shared/format';
 import { Icon } from '../ui/Icon';
+import { Button } from '../ui/Button';
 import { displaySourceLabel } from '../../import/sampleFiles';
 
 export interface TopbarProps {
@@ -72,8 +73,9 @@ export function Topbar({ today, dataSources, refreshing, onRefresh, drawerOpen, 
           {bothSample ? (
             <div className="topbar__sample" onPointerEnter={hoverNote(true)} onPointerLeave={hoverNote(false)}>
               {/* A native popover: a click, Enter or Space opens the note ("show", so a click after a hover does not close
-                  it); Esc or a click elsewhere closes it. No date: the "Data as of" line has it. */}
-              <button type="button" className="topbar__chip topbar__chip--sample" popoverTarget={SAMPLE_NOTE_ID} popoverTargetAction="show">
+                  it); Esc or a click elsewhere closes it. No date: the "Data as of" line has it. The note also describes the
+                  chip, so a screen reader reads it on focus. */}
+              <button type="button" className="topbar__chip topbar__chip--sample" popoverTarget={SAMPLE_NOTE_ID} popoverTargetAction="show" aria-describedby={SAMPLE_NOTE_ID}>
                 Sample data
               </button>
               <p ref={noteRef} id={SAMPLE_NOTE_ID} popover="auto" className="topbar__note">
@@ -90,10 +92,11 @@ export function Topbar({ today, dataSources, refreshing, onRefresh, drawerOpen, 
       )}
 
       <div className="topbar__actions">
-        <button type="button" className="button" onClick={onRefresh} disabled={refreshing}>
+        {/* Busy, not disabled, while the data reloads: the button keeps the focus (WCAG 2.4.3). */}
+        <Button busy={refreshing} onClick={onRefresh}>
           <Icon name="refresh" />
           Refresh
-        </button>
+        </Button>
         <span className="visually-hidden" aria-live="polite">
           {refreshing ? 'Refreshing…' : ''}
         </span>

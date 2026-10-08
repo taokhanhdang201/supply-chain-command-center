@@ -33,6 +33,19 @@
   cursor: not-allowed;
 }
 
+/* Button's unavailable and busy states (aria-disabled, so the button keeps its focus; Button.tsx ignores its clicks): the
+   same fade, and the mouse passes through it, so no hover or pressed step shows. */
+.button[aria-disabled='true'] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Tab still reaches an unavailable button, and the fade would dim its focus ring below 3:1: lighten it one step while it has
+   the focus (it stays paler than a usable button). */
+.button[aria-disabled='true']:focus-visible {
+  opacity: 0.7;
+}
+
 .button--primary {
   background: var(--color-accent);
   border-color: var(--color-accent);
@@ -44,7 +57,9 @@
   border-color: var(--color-accent-hover);
 }
 
-.surface-stage .button--primary {
+/* On the band the accent and the critical red are light, so their buttons' text is the darkest ink (7.2:1, 6.4:1). */
+.surface-stage .button--primary,
+.surface-stage .button--danger {
   color: var(--ink-1000);
 }
 
@@ -83,6 +98,7 @@
    .button so it sits in a line of text; a page class beside it (ingest-link, ingest-why, flow-figure__toggle) still sets
    its own type and colour. */
 .button--link {
+  position: relative;
   height: auto;
   padding: 0;
   border: 0;
@@ -91,6 +107,13 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   white-space: normal;
+}
+
+/* WCAG 2.5.8: the hit area is at least 24px tall, centred on the text (its line is 17-21px), and nothing moves. */
+.button--link::after {
+  content: '';
+  position: absolute;
+  inset: calc(50% - 12px) 0;
 }
 
 .button--link:hover:not(:disabled) {
@@ -116,6 +139,11 @@
 .button--danger:active:not(:disabled) {
   background: var(--critical);
   filter: brightness(0.8);
+}
+
+/* On the band a pressed danger button lightens (its text is dark there): 7.3:1, where darkening it fell to 4.4:1. */
+.surface-stage .button--danger:active:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 .button--link:active:not(:disabled) {
@@ -473,6 +501,12 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   color: inherit;
 }
 
+/* A sortable header's name as plain text, shown only where a stacking table hides its header row (below 1100px here, to
+   1279px on the three ledgers in pages.css). */
+.data-table__sort-label {
+  display: none;
+}
+
 .data-table th[aria-sort='ascending'],
 .data-table th[aria-sort='descending'] {
   color: var(--color-text);
@@ -513,6 +547,16 @@ a.kpi-card:focus-visible .kpi-card__label::after {
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
+  }
+
+  /* The header row is out of sight, so its sort buttons leave the Tab order (WCAG 2.4.7: a focus nobody can see); the
+     page's Sort by sorts the records. Each header keeps its name as plain text. */
+  .data-table--stack .data-table__sort-button {
+    display: none;
+  }
+
+  .data-table--stack .data-table__sort-label {
+    display: inline;
   }
 
   .data-table--stack tbody tr {
@@ -907,6 +951,14 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   }
 }
 
+/* A browser without the Popover API would show the note as a plain paragraph in the bar: there it stays hidden (the chip's
+   aria-describedby still gives a screen reader its words). */
+@supports not selector(:popover-open) {
+  .topbar__note {
+    display: none;
+  }
+}
+
 .topbar__actions {
   display: flex;
   align-items: center;
@@ -1123,14 +1175,13 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   border-top: 1px solid var(--color-border-subtle);
 }
 
-/* "Show all lanes" is a phone affordance; above 767px the list scrolls inside its column and shows every lane. */
+/* The "Show all" button is a phone affordance; above 767px the list scrolls inside its column and shows every lane. */
 .route-map__show-all {
   display: none;
 }
 
-/* Phones: no scroll box inside the page. The list flows with the page, showing the first ten lanes until "Show all
-   lanes"; the map keeps the warehouse labels and the city dots, and the city names stay in the list (and in each
-   marker's title). */
+/* Phones: no scroll box inside the page. The list flows with the page, showing the first ten lanes until "Show all"; the
+   map keeps the warehouse labels and the city dots, and the city names stay in the list (and in each marker's title). */
 @media (max-width: 767px) {
   .route-map__list {
     max-height: none;

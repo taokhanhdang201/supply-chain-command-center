@@ -80,6 +80,9 @@ export function DataTable<T>({ caption, columns, rows, rowKey, sort, onSortChang
                     {column.header}
                     <Icon name={ariaSort === 'ascending' ? 'chevron-up' : ariaSort === 'descending' ? 'chevron-down' : 'sort'} size={14} />
                   </button>
+                  {/* Where a stacking table hides its header row, the button leaves the Tab order (components.css, pages.css) and
+                      this plain copy names the column. */}
+                  {stackOnPhone && <span className="data-table__sort-label">{column.header}</span>}
                 </th>
               );
             })}
