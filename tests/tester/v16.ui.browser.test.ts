@@ -322,6 +322,22 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   }, 60_000);
 
+  // The page h1 is the title role: 24px, weight 600. Its line box is 32px, except from 1100px where it is held at the
+  // 24px first-screen budget (--sit-title-line) so the map and the four figures do not move. On phones it is visually hidden.
+  it('atlas dashboard: the h1 is 24px / 600 at every width, on a 24px line from 1100px and a 32px line below', async () => {
+    for (const w of [1440, 1100, 1099, 1024, 768, 390]) {
+      const { ctx, page } = await open(w, '', { reducedMotion: 'reduce' });
+      const h = await page.evaluate(() => {
+        const s = getComputedStyle(document.querySelector('h1')!);
+        return { size: s.fontSize, weight: s.fontWeight, line: s.lineHeight };
+      });
+      await ctx.close();
+      expect(h.size, `${w}: size`).toBe('24px');
+      expect(h.weight, `${w}: weight`).toBe('600');
+      if (w >= 768) expect(h.line, `${w}: line height`).toBe(w >= 1100 ? '24px' : '32px');
+    }
+  }, 60_000);
+
   it('inventory, shipments, alerts, analytics and import keep their values', async () => {
     const checks: Array<[string, string[]]> = [
       ['inventory', ['360 items · $32,643,371.48', 'ELC-0015', '$1,403,217.18', 'Showing 1–25 of 360']],
@@ -731,6 +747,34 @@ describe('V1.6 redesign (real Chromium)', () => {
     await ctx.close();
     expect(m.strokes).toContain(m.figure);
     expect(m.listTone).toContain(m.figure);
+  });
+
+  // The map has no red of its own: it reads the stage's --critical (#f2645a), not the old map red (#ef5b4e, rgb 239, 91, 78).
+  it('routes at 1440px: a 20% or later lane, its list bar and its key line are drawn in the stage red', async () => {
+    const { ctx, page } = await open(1440, 'routes', { reducedMotion: 'reduce' });
+    const m = await page.evaluate(() => {
+      const map = document.querySelector('.route-map')!;
+      const stage = map.closest('.surface-stage');
+      const critical = (el: Element | null) => (el ? getComputedStyle(el).getPropertyValue('--critical').trim() : null);
+      const strokes = [...document.querySelectorAll('.route-map__path')].map((p) => getComputedStyle(p).stroke);
+      return {
+        inStage: stage !== null,
+        mapRed: critical(map),
+        stageRed: critical(stage),
+        strokes,
+        listTone: getComputedStyle(document.querySelector('.route-map__list-button--critical')!).boxShadow,
+        key: getComputedStyle(document.querySelector('.route-map__key-line--critical')!).backgroundImage
+      };
+    });
+    await ctx.close();
+    const red = 'rgb(242, 100, 90)';
+    expect(m.inStage).toBe(true);
+    expect(m.stageRed).toBe('#f2645a');
+    expect(m.mapRed, 'the map inherits the stage red').toBe(m.stageRed);
+    expect(m.strokes).toContain(red);
+    expect(m.strokes).not.toContain('rgb(239, 91, 78)');
+    expect(m.listTone).toContain(red);
+    expect(m.key).toContain(red);
   });
 
   // Alerts: each severity and type figure links to a filter showing exactly that many alerts.

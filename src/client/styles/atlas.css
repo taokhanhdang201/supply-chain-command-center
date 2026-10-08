@@ -28,10 +28,10 @@
   --fs-small: var(--text-sm);
 
   --ease: var(--ease-out);
-  --t-hover: 120ms;
-  --t-fade: 400ms;
-  --t-draw: 800ms;
-  --t-travel: 1400ms;
+  /* The shared durations (tokens.css): hover 120ms, text fading in 200ms, drawing data 800ms. */
+  --t-hover: var(--dur-1);
+  --t-fade: var(--dur-2);
+  --t-draw: var(--dur-draw);
 
   min-width: 0;
   font-family: var(--font-sans);
@@ -194,9 +194,11 @@
   flex: 1;
 }
 
+/* The page h1 at the title role (24px, 600, display face). From 1100px its line box stays the first-screen budget's
+   --sit-title-line (24px, below), so the map and the four figures do not move. */
 .atlas-page .situation__title {
-  font: 500 var(--fs-small) / 24px var(--font-sans);
-  letter-spacing: 0.005em;
+  font: 600 var(--fs-h2) / 32px var(--font-display);
+  letter-spacing: -0.015em;
   color: var(--stage-text-2);
   margin-bottom: 24px;
 }
@@ -692,7 +694,7 @@
 
 .atlas-page .atlas__land {
   fill: none;
-  stroke: rgba(237, 233, 224, 0.18);
+  stroke: var(--atlas-land-line);
   stroke-linejoin: round;
 }
 
@@ -701,11 +703,11 @@
 }
 
 .atlas-page .atlas__lane--neutral {
-  stroke: rgba(237, 233, 224, 0.32);
+  stroke: var(--atlas-lane);
 }
 
 .atlas-page .atlas__lane--warning {
-  stroke: rgba(237, 233, 224, 0.55);
+  stroke: var(--atlas-lane-warning);
 }
 
 .atlas-page .atlas__lane--critical {
@@ -721,7 +723,7 @@
 }
 
 .atlas-page .atlas__city {
-  fill: rgba(237, 233, 224, 0.4);
+  fill: var(--atlas-city);
 }
 
 .atlas-page .atlas__label {
@@ -797,10 +799,10 @@
     animation: atlas-draw var(--t-draw) var(--ease) forwards;
   }
 
-  /* Late lanes are dashed, so they cannot use the dash-based draw: they fade in, still last. */
+  /* Late lanes are dashed, so they cannot use the dash-based draw: they fade in over the drawing time, still last. */
   .atlas-page .atlas--animate .atlas__lane--critical {
     stroke-dashoffset: 0;
-    animation: atlas-fade var(--t-fade) var(--ease) 400ms backwards;
+    animation: atlas-fade var(--t-draw) var(--ease) 400ms backwards;
   }
 
   .atlas-page .atlas--animate .atlas__dot {
@@ -920,7 +922,7 @@
 .atlas-page .flow-figure__toggle {
   flex: none;
   min-height: 24px;
-  padding: 2px 0;
+  padding: 0;
   border: 0;
   background: none;
   font: 400 var(--fs-small) / 20px var(--font-sans);
@@ -1119,7 +1121,7 @@
   }
 
   .atlas-page [data-reveal='in'] .flow-stack {
-    transition: transform 700ms var(--ease);
+    transition: transform var(--t-draw) var(--ease);
   }
 
   .atlas-page [data-reveal='in'] .flow-cost__line {
@@ -1210,7 +1212,7 @@
   position: absolute;
   inset: auto 0 0 0;
   height: var(--fill);
-  background: rgba(237, 233, 224, 0.22);
+  background: var(--rack-fill);
   border-top: 2px solid var(--stage-text);
 }
 
@@ -1219,7 +1221,7 @@
 }
 
 .atlas-page .rack--over .rack__fill {
-  background: rgba(242, 100, 90, 0.28);
+  background: var(--rack-fill-over);
   border-top-color: var(--signal);
 }
 
@@ -1277,7 +1279,7 @@
 
   .atlas-page [data-reveal='in'] .rack__fill {
     clip-path: inset(0);
-    transition: clip-path 700ms var(--ease);
+    transition: clip-path var(--t-draw) var(--ease);
   }
 }
 
@@ -1500,7 +1502,7 @@
 .atlas-page .queue-row__arrow {
   width: 20px;
   height: 20px;
-  margin-top: 3px;
+  margin-top: var(--space-1);
   fill: none;
   stroke: var(--color-accent);
   stroke-width: 1.75;
@@ -1519,7 +1521,7 @@
 .atlas-page .alert-glyph {
   width: 8px;
   height: 8px;
-  margin-top: 9px;
+  margin-top: var(--space-2);
   overflow: visible;
 }
 

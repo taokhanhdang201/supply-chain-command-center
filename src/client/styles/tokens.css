@@ -14,6 +14,13 @@
   --map-land: #131b27;
   --map-land-line: rgba(169, 179, 193, 0.35);
   --map-node: #8994a6;
+  /* The Dashboard's lane map and warehouse racks (atlas.css): the stage ink and the stage red at set strengths. */
+  --atlas-land-line: rgba(237, 233, 224, 0.18);
+  --atlas-lane: rgba(237, 233, 224, 0.32);
+  --atlas-lane-warning: rgba(237, 233, 224, 0.55);
+  --atlas-city: rgba(237, 233, 224, 0.4);
+  --rack-fill: rgba(237, 233, 224, 0.22);
+  --rack-fill-over: rgba(242, 100, 90, 0.28);
   --stage-line: rgba(214, 224, 238, 0.1);
   --stage-line-strong: rgba(214, 224, 238, 0.22);
   --stage-grid: rgba(237, 233, 224, 0.035);

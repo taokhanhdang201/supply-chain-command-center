@@ -942,10 +942,10 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 /* Route map (Routes page). The map field is always dark (a lit instrument); the list and legend follow the surface
    they sit on, so they read correctly on the floor now and on the stage later. */
-/* Lane tones match the stage figures: gray on track, the stage's --warning amber from 10% delayed, dashed red from 20%. */
+/* Lane tones match the stage figures: gray on track, the stage's --warning amber from 10% delayed, dashed in the stage's
+   --critical red from 20% (the map has no red of its own). */
 .route-map {
   --route: #5b6b80;
-  --critical: #ef5b4e;
   --route-halo: rgba(110, 151, 255, 0.38);
 }
 

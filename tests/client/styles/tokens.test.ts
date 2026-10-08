@@ -1,6 +1,7 @@
 // Shared design tokens (Phase 1 spec section 1): the six type sizes, the gutter / grid-gap / content-width steps, the spacing
-// scale and the drawing duration are declared once, in tokens.css, and every older name is an alias. The design ratchet does not
-// follow var(), so these values (and the aliases the Dashboard and the older size names hold) are pinned here.
+// scale and the drawing duration are declared once, in tokens.css. The Dashboard's own names (--dash-*, --fs-*, --t-*) are
+// aliases of them, the older --font-size-* names are gone, and the map has no red of its own. The design ratchet does not follow
+// var(), so these values and aliases are pinned here.
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -67,6 +68,41 @@ describe('tokens.css', () => {
     for (const step of ['xs', 'sm', 'md', 'lg', 'xl']) expect(values(all, `--font-size-${step}`), step).toEqual([]);
     expect(all).not.toContain('var(--font-size-');
     expect(values(all, '--stage-figure-size')).toEqual(['var(--text-xl)']);
+  });
+
+  it('the Dashboard map and rack inks are declared once, in tokens.css, and atlas.css reads each of them', () => {
+    const inks: Record<string, string> = {
+      '--atlas-land-line': 'rgba(237, 233, 224, 0.18)',
+      '--atlas-lane': 'rgba(237, 233, 224, 0.32)',
+      '--atlas-lane-warning': 'rgba(237, 233, 224, 0.55)',
+      '--atlas-city': 'rgba(237, 233, 224, 0.4)',
+      '--rack-fill': 'rgba(237, 233, 224, 0.22)',
+      '--rack-fill-over': 'rgba(242, 100, 90, 0.28)'
+    };
+    for (const [name, value] of Object.entries(inks)) {
+      expect(values(all, name), name).toEqual([value]);
+      expect(values(tokens, name), name).toEqual([value]);
+      expect(atlas, name).toContain(`var(${name})`);
+    }
+  });
+
+  it('the Dashboard durations are aliases of the shared ones, and the unread travel duration is gone', () => {
+    expect(values(atlas, '--t-hover')).toEqual(['var(--dur-1)']);
+    expect(values(atlas, '--t-fade')).toEqual(['var(--dur-2)']);
+    expect(values(atlas, '--t-draw')).toEqual(['var(--dur-draw)']);
+    expect(values(all, '--t-travel')).toEqual([]);
+  });
+
+  it('there is one red per surface: the route map has none of its own and the old map red is gone', () => {
+    // Declared twice and only in tokens.css: the paper red, and the stage red the Routes map reads (Phase 1 spec section 2).
+    expect(values(all, '--critical')).toEqual(values(tokens, '--critical'));
+    expect(values(tokens, '--critical')).toHaveLength(2);
+    expect(values(tokens, '--critical').at(-1)).toBe('#f2645a');
+    expect(all.toLowerCase()).not.toContain('#ef5b4e');
+    // `.route-map` keeps its lane grey and its halo, and nothing else.
+    const routeMap = /(?:^|\n)\.route-map\s*\{([^}]*)\}/.exec(all);
+    expect(routeMap, 'the .route-map rule').not.toBeNull();
+    expect([...(routeMap![1] as string).matchAll(/(--[a-z-]+)\s*:/g)].map((m) => m[1])).toEqual(['--route', '--route-halo']);
   });
 });
 
