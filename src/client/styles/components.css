@@ -858,6 +858,55 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   color: var(--stage-text-2);
 }
 
+/* While both sources are the generated sample, the one chip is a button that opens the sample note. The wrapper (Topbar.tsx)
+   only catches the mouse: it has no box, so the chip stays a flex item of .topbar__sources like the plain chips. */
+.topbar__sample {
+  display: contents;
+}
+
+.topbar__chip--sample {
+  background: transparent;
+}
+
+.topbar__chip--sample:hover {
+  color: var(--stage-text);
+}
+
+/* The sample note, a native popover: a click, Enter or Space opens it; Esc or a click elsewhere closes it. Where the browser
+   can anchor it, it hangs flush under the chip, its right edge under the chip's (on a phone the chip starts its own row, so
+   their left edges line up instead), and a mouse over the chip opens it too and closes it when the mouse leaves the chip and
+   the note. Elsewhere the browser centres it on the screen, out of the pointer's reach, so a hover does nothing there. */
+.topbar__note {
+  max-width: min(20rem, calc(100vw - 2 * var(--gutter)));
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--stage-line-strong);
+  border-radius: var(--radius-md);
+  background: var(--stage-raised);
+  color: var(--stage-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+@supports (position-area: bottom) {
+  .topbar__chip--sample {
+    anchor-name: --sample-chip;
+  }
+
+  /* No margin: a gap between the chip and the note would end the hover. */
+  .topbar__note {
+    position-anchor: --sample-chip;
+    position-area: bottom span-left;
+    inset: auto;
+    margin: 0;
+  }
+
+  @media (max-width: 767px) {
+    .topbar__note {
+      position-area: bottom span-right;
+    }
+  }
+}
+
 .topbar__actions {
   display: flex;
   align-items: center;

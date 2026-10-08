@@ -359,7 +359,11 @@ describe('V1.6 redesign (real Chromium)', () => {
       const t = await text(page);
       for (const v of vals) expect(t, `${hash}: ${v}`).toContain(v);
       for (const v of gone[hash] ?? []) expect(t, `${hash}: no ${v}`).not.toContain(v);
-      if (hash === 'import') expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Inventory: Sample data (seed 42)', 'Shipments: Sample data (seed 42)']);
+      // Owner decision D6: both sources are the generated sample, so one chip, and its note names the seed.
+      if (hash === 'import') {
+        expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Sample data']);
+        expect(await page.locator('.topbar__note').textContent()).toContain('(seed 42)');
+      }
       await ctx.close();
     }
     const { ctx, page } = await open(1440, 'alerts');
@@ -370,6 +374,121 @@ describe('V1.6 redesign (real Chromium)', () => {
     expect(t).toMatch(/10\s*Info/);
     await ctx.close();
   });
+
+  // Owner decision D6 (Phase 1 spec §7): while both sources are the generated sample, the top bar has one chip, "Sample
+  // data", a button that opens a native popover. Enter opens the note, Esc closes it and focus stays on the chip. The note
+  // hangs under the chip (where the browser anchors it: right edges level, left edges on a phone), inside the screen, at
+  // AA, without the date. One chip row instead of two: the phone top bar was 118.4-119px, 86px measured with one.
+  it('top bar: one "Sample data" chip opens its note from the keyboard, under the chip, inside the screen, at AA', async () => {
+    for (const w of [390, 1440]) {
+      const { ctx, page } = await open(w, 'import', { reducedMotion: 'reduce' });
+      expect(await page.locator('.topbar__chip').allTextContents(), `${w}: chips`).toEqual(['Sample data']);
+      const height: number = await page.evaluate(() => (document.querySelector('.topbar') as HTMLElement).getBoundingClientRect().height);
+      expect(height, `${w}: top bar height`).toBeLessThanOrEqual(w < 768 ? 90 : 56);
+      await page.locator('.topbar__chip').focus();
+      await page.keyboard.press('Enter');
+      const m = await page.evaluate(() => {
+        const rgb = (c: string) => c.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+        const lum = ([r = 0, g = 0, b = 0]: number[]) => { const f = (x: number) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+        const solidBg = (el: Element) => { for (let n: Element | null = el; n; n = n.parentElement) { const c = getComputedStyle(n).backgroundColor; if (/^rgb\(/.test(c)) return c; } return 'rgb(255,255,255)'; };
+        const ratio = (el: Element) => { const a = lum(rgb(getComputedStyle(el).color)), b = lum(rgb(solidBg(el))); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); };
+        const chip = document.querySelector('.topbar__chip') as HTMLElement;
+        const note = document.querySelector('.topbar__note') as HTMLElement;
+        const c = chip.getBoundingClientRect();
+        const n = note.getBoundingClientRect();
+        return {
+          open: note.matches(':popover-open'),
+          anchored: CSS.supports('position-area: bottom'),
+          chipLeft: c.left, chipRight: c.right, chipBottom: c.bottom,
+          noteLeft: n.left, noteRight: n.right, noteTop: n.top,
+          width: innerWidth,
+          sideways: document.documentElement.scrollWidth - innerWidth,
+          text: note.textContent ?? '',
+          chipRatio: ratio(chip),
+          noteRatio: ratio(note)
+        };
+      });
+      expect(m.open, `${w}: Enter opens the note`).toBe(true);
+      expect(m.noteLeft, `${w}: note left edge`).toBeGreaterThanOrEqual(0);
+      expect(m.noteRight, `${w}: note right edge`).toBeLessThanOrEqual(m.width);
+      expect(m.noteTop, `${w}: note under the chip`).toBeGreaterThanOrEqual(m.chipBottom);
+      if (m.anchored) {
+        const gap = w < 768 ? m.noteLeft - m.chipLeft : m.noteRight - m.chipRight;
+        expect(Math.abs(gap), `${w}: note edge level with the chip's`).toBeLessThanOrEqual(1);
+      }
+      expect(m.sideways, `${w}: no sideways scroll`).toBeLessThanOrEqual(0);
+      expect(m.text).toBe('Generated sample (seed 42). The live demo rebuilds it each day until a file is imported.');
+      expect(m.chipRatio, `${w}: chip text`).toBeGreaterThanOrEqual(4.5);
+      expect(m.noteRatio, `${w}: note text`).toBeGreaterThanOrEqual(4.5);
+      await page.keyboard.press('Escape');
+      const after = await page.evaluate(() => [document.querySelector('.topbar__note')!.matches(':popover-open'), document.activeElement?.classList.contains('topbar__chip') ?? false]);
+      expect(after, `${w}: Esc closes the note, focus stays on the chip`).toEqual([false, true]);
+      await ctx.close();
+    }
+  }, 60_000);
+
+  // Owner decision D6: a mouse over the chip opens the note too. It stays open while the mouse is on the chip or on the
+  // note (the note hangs against the chip), a click on the chip after the hover does not close it, and the mouse leaving
+  // both closes it. Only a mouse: a tap opens the note through its click, and the touch pointer leaving does not close it.
+  it('top bar: a mouse over the "Sample data" chip opens its note, which stays while the mouse is on it and closes when the mouse leaves', async () => {
+    const { ctx, page } = await open(1440, 'import', { reducedMotion: 'reduce' });
+    const isOpen = () => page.evaluate(() => document.querySelector('.topbar__note')!.matches(':popover-open'));
+    expect(await isOpen(), 'closed at first').toBe(false);
+    await page.hover('.topbar__chip');
+    expect(await isOpen(), 'the mouse on the chip opens the note').toBe(true);
+    await page.hover('.topbar__note');
+    expect(await isOpen(), 'the mouse moving onto the note keeps it open').toBe(true);
+    await page.hover('.topbar__chip');
+    await page.click('.topbar__chip');
+    expect(await isOpen(), 'a click on the chip after the hover does not close it').toBe(true);
+    await page.hover('h1');
+    expect(await isOpen(), 'the mouse leaving both closes it').toBe(false);
+    await ctx.close();
+  }, 60_000);
+
+  // Where the browser cannot hang the note under the chip (no position-area), it opens centred on the screen, out of reach of
+  // the pointer: a hover that opened it would close it again before the mouse got there (WCAG 1.4.13). So the hover does
+  // nothing there; a click opens the note, and the mouse leaving does not close it. The page is told, from its first
+  // script, that position-area is unsupported (only its JavaScript asks; the stylesheet's @supports is the browser's own).
+  it('top bar: where the note cannot be anchored, a hover opens nothing, a click opens it, and the mouse leaving leaves it open', async () => {
+    const { ctx, page } = await open(1440, 'import', { reducedMotion: 'reduce' });
+    await ctx.addInitScript(() => {
+      const css = CSS as unknown as { supports: (...args: string[]) => boolean };
+      const supports = css.supports.bind(CSS);
+      css.supports = (...args: string[]) => (/position-area/.test(args.join(' ')) ? false : supports(...args));
+    });
+    await page.reload();
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => CSS.supports('position-area: bottom')), 'the page reports no anchoring').toBe(false);
+    const isOpen = () => page.evaluate(() => document.querySelector('.topbar__note')!.matches(':popover-open'));
+    await page.hover('.topbar__chip');
+    await page.waitForTimeout(200);
+    expect(await isOpen(), 'a hover on the chip opens nothing').toBe(false);
+    await page.click('.topbar__chip');
+    expect(await isOpen(), 'a click on the chip opens the note').toBe(true);
+    await page.hover('h1');
+    await page.waitForTimeout(200);
+    expect(await isOpen(), 'the mouse leaving does not close a note a click opened').toBe(true);
+    await ctx.close();
+  }, 60_000);
+
+  it('top bar: a tap on the "Sample data" chip opens its note through its click alone: the hover code leaves a touch pointer alone', async () => {
+    const { ctx, page } = await open(390, 'import', { hasTouch: true, reducedMotion: 'reduce' });
+    // The click alone opens the note, so the end state cannot tell a touch that was ignored from one that closed the note and
+    // had it reopened by the click; count the hidePopover calls the page makes (the browser's own Esc and outside-click closing
+    // do not go through it).
+    await page.evaluate(() => {
+      const w = window as unknown as { __hides: number };
+      w.__hides = 0;
+      const hide = HTMLElement.prototype.hidePopover;
+      HTMLElement.prototype.hidePopover = function (this: HTMLElement) { w.__hides += 1; return hide.call(this); };
+    });
+    await page.tap('.topbar__chip');
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => document.querySelector('.topbar__note')!.matches(':popover-open')), 'the tap opens the note and it stays').toBe(true);
+    expect(await page.evaluate(() => (window as unknown as { __hides: number }).__hides), 'the touch pointer leaving hides nothing').toBe(0);
+    await ctx.close();
+  }, 60_000);
 
   it('URL-synced filters keep working with the new controls', async () => {
     const { ctx, page } = await open(1440, 'inventory');
