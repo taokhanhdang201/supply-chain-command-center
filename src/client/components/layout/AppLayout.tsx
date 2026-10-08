@@ -1,7 +1,8 @@
 // The app shell (plan §8.1/§8.2): sidebar + topbar + routed page, wired to the current hash route and the
-// shared data-loading state. Owns the off-canvas drawer's open/close/focus behaviour.
+// shared data-loading state. Owns the off-canvas drawer's open/close/focus behaviour. A development build also answers
+// #/_design with the design reference (Phase 1 spec §10).
 
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { MouseEvent, ReactNode } from 'react';
 import { useData } from '../../state/DataContext';
 import { ROUTES, useHashRoute, type RouteId } from '../../router';
@@ -29,6 +30,11 @@ const PAGE_COMPONENTS: Record<RouteId, () => ReactNode> = {
   alerts: AlertsPage,
   import: ImportPage
 };
+
+/** The design reference (#/_design), for development builds only. A production build replaces import.meta.env.DEV with
+ *  false, so this is null there: the page and its stylesheet are dropped from the bundle and the hash reads as "Page not
+ *  found". It is not one of ROUTES. */
+const DesignPage = import.meta.env.DEV ? lazy(() => import('../../pages/DesignPage').then((m) => ({ default: m.DesignPage }))) : null;
 
 function titleFor(routeId: RouteId | 'not_found'): string {
   if (routeId === 'not_found') return 'Not found';
@@ -112,6 +118,16 @@ export function AppLayout() {
     body = <ErrorState title="Could not load data" message={state.error.message} onRetry={refresh} />;
   } else {
     const PageComponent = route.id === 'not_found' ? NotFoundPage : PAGE_COMPONENTS[route.id];
+    // #/_design is no route (the router reads it as not found); only a development build answers it. The hash is read
+    // here because the router keeps only the route id; useHashRoute re-renders on every hash change.
+    const page =
+      DesignPage !== null && route.id === 'not_found' && window.location.hash.startsWith('#/_design') ? (
+        <Suspense fallback={<LoadingState />}>
+          <DesignPage />
+        </Suspense>
+      ) : (
+        <PageComponent />
+      );
     body = (
       <>
         {state.refreshError !== null && (
@@ -127,9 +143,7 @@ export function AppLayout() {
             {state.refreshError.message}
           </Banner>
         )}
-        <ErrorBoundary key={route.id}>
-          <PageComponent />
-        </ErrorBoundary>
+        <ErrorBoundary key={route.id}>{page}</ErrorBoundary>
       </>
     );
   }

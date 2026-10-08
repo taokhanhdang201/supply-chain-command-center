@@ -90,6 +90,17 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
   });
 
+  // Phase 1 spec §10: a development build (Vitest runs with import.meta.env.DEV) answers #/_design with the design reference,
+  // loaded on demand; it is no route, so a production build reads the hash as "Page not found"
+  // (tests/tester/designPage.browser.test.ts).
+  it('opens the design reference at #/_design in a development build', async () => {
+    expect(import.meta.env.DEV).toBe(true);
+    window.location.hash = '#/_design';
+    render(<App api={makeApi()} />);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Design system' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Page not found' })).toBeNull();
+  });
+
   it('toggles the mobile menu with aria-expanded, and Escape closes it', async () => {
     const api = makeApi();
     const user = userEvent.setup();

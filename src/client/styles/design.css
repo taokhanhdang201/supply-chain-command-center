@@ -1,0 +1,70 @@
+/* The design reference (#/_design, Phase 1 spec §10): development builds only. DesignPage.tsx imports this sheet, so it is
+   loaded with the page and never reaches the production bundle. Tokens only: no size, colour or space of its own, and no
+   custom property (tokens.css declares them all). */
+
+.design-sheet {
+  display: grid;
+  gap: var(--space-12);
+}
+
+.design-sheet__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.design-sheet__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.design-sheet__list > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.design-sheet__note {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.design-sheet__swatch {
+  width: var(--space-12);
+  height: var(--space-12);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.design-sheet__bar {
+  height: var(--space-4);
+  background: var(--color-text-muted);
+}
+
+.design-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  margin-top: var(--space-4);
+}
+
+.design-sheet__cell {
+  padding: var(--space-3) 0;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+/* A dark block for the parts that live on the stage (figures, chips): .surface-stage turns the tokens dark. */
+.design-sheet__stage {
+  margin-top: var(--space-4);
+  padding: var(--space-6);
+  background: var(--stage-bg);
+}

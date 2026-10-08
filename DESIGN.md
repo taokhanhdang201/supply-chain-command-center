@@ -738,6 +738,32 @@ Large numbers are reserved for important hierarchy.
 
 
 
+## Money
+
+
+
+Every money string of the client comes from one module, `src/client/lib/displayMoney.ts`. The snapshot's cents never change; only their rounding on screen does.
+
+
+
+\- Summary (a figure and its detail line, the line over a table, money at risk in Top alerts, the labels and tooltips of the Dashboard cost chart): compact with one decimal from $10,000 (`$32.6M`, `$165.4K`, the `$8.0M` rack), whole dollars below (`avg $1,285 per shipment`). $9,999.50 is below the threshold and reads `$10,000`.
+
+\- Amount in a table (a value, a total, every chart data table, the Analytics chart tooltips): whole dollars (`$1,403,217`).
+
+\- Price in a table (one unit, one shipment, or an average of those): to the cent (`$617.07`, `$545.08`, `$1,996.73`).
+
+\- Chart axes keep their short format (`formatCentsAxis` in `src/shared/format.ts`). A value that rounds to zero reads `$0`, never `-$0`.
+
+
+
+Two places differ on purpose. The Dashboard cost chart labels a month as a summary (`$105.0K`) while its data table gives that month as an amount (`$105,031`). The average cost per shipment is a summary on the figures (`avg $1,285`), while a lane's average cost is a price in the lane list and the route detail (`avg $1,996.73`).
+
+
+
+Rounded cells need not add up to the rounded total: each Value cell rounds to the dollar on its own, while the line over the table rounds the exact sum.
+
+
+
 ---
 
 
