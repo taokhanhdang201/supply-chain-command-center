@@ -136,6 +136,34 @@ Core tokens:
 
 
 
+## The page band
+
+
+
+Each page has one dark band at the top (`PageStage`):
+
+
+
+\- the h1 (`--type-title`), the only visible title of the page
+
+\- at most one context line
+
+\- at most one row of up to four figures, each 3 of 12 columns from 768px and 6 of 12 below; a fifth number goes into the context line
+
+
+
+Height: at most 256px from 768px and 360px below it. The slim band (Data Import, Page not found) is at most 64px.
+
+
+
+Never in the band: maps, charts, tables, filters or selects. No radial glow, decorative vertical lines or eyebrow dash. The top bar does not repeat the page title.
+
+
+
+The Dashboard's Situation scene is the one exception: its map is the content, so it may be taller. Pages are brought to this rule one by one.
+
+
+
 ## Warm Light Floor
 
 
@@ -246,7 +274,7 @@ Use semantic colors only for semantic meaning.
 
 
 
-`--good`
+`--good`: good or done (delivered, healthy, on target).
 
 
 
@@ -254,7 +282,7 @@ Use semantic colors only for semantic meaning.
 
 
 
-`--warning`
+`--warning`: needs attention soon (low stock, a lane 10–19% delayed).
 
 
 
@@ -262,7 +290,7 @@ Use semantic colors only for semantic meaning.
 
 
 
-`--critical`
+`--critical`: late, out of stock or blocking. The only red.
 
 
 
@@ -270,7 +298,7 @@ Use semantic colors only for semantic meaning.
 
 
 
-`--info`
+`--info`: interaction and information (the accent).
 
 
 
@@ -278,7 +306,7 @@ Use semantic colors only for semantic meaning.
 
 
 
-`--neutral`
+`--neutral`: normal, in progress or unknown. An unknown risk is neutral, never a warning.
 
 
 
@@ -291,6 +319,10 @@ A red element should communicate risk/criticality.
 
 
 A green element should communicate a positive/healthy state.
+
+
+
+There is one red; do not add another. The server decides how severe something is; the UI maps that to these tones and never derives a tone of its own.
 
 
 
@@ -492,6 +524,10 @@ Primary tokens:
 
 \- `--space-20: 80px`
 
+\- `--space-24: 96px`
+
+\- `--space-32: 128px`
+
 
 
 Prefer these tokens.
@@ -585,6 +621,62 @@ Use for:
 
 
 Do not randomly introduce additional fonts.
+
+
+
+## Type scale
+
+
+
+Six sizes, in rem so a larger default font still scales them. Do not add a seventh.
+
+
+
+\- `--text-xs`: 0.75rem (12px), line height 1rem
+
+\- `--text-sm`: 0.875rem (14px), line height 1.25rem
+
+\- `--text-md`: 1rem (16px), line height 1.5rem
+
+\- `--text-lg`: 1.5rem (24px), line height 2rem
+
+\- `--text-xl`: 2.25rem (36px), line height 2.5rem
+
+\- `--text-display`: clamp(3.5rem, 2.4vw + 3.2rem, 5.5rem), line height 0.9
+
+
+
+Weights are 400, 500 and 600 only.
+
+
+
+## Type roles
+
+
+
+A component sets its text with a role (`font: var(--type-label)`), not with a size of its own. The shorthand also resets font-stretch to 100% and font-variant-numeric, so a role on numbers is followed by `font-variant-numeric: tabular-nums`.
+
+
+
+\- `--type-label`: 500, xs, sans
+
+\- `--type-control`: 500, sm, sans
+
+\- `--type-body`: 400, md, sans
+
+\- `--type-title`: 600, lg, display
+
+\- `--type-figure`: 600, xl, display
+
+\- `--type-display`: 600, display size, display
+
+
+
+The page h1 is `--type-title` (24px, 600). A section h2 on paper is lg at 500: it differs from the h1 by weight and place. Figures use `--type-figure` (36px).
+
+
+
+No heading is smaller than the summary or detail line under it. Figures are the intended exception.
 
 
 
@@ -760,7 +852,7 @@ Preferred characteristics:
 
 \- clear column hierarchy
 
-\- uppercase/muted headers
+\- sentence-case, muted headers (never uppercase)
 
 \- hairline row separators
 
@@ -1038,13 +1130,17 @@ Existing motion tokens:
 
 
 
-\- `--dur-1`
+\- `--dur-1`: 120ms (hover, small state changes)
 
-\- `--dur-2`
+\- `--dur-2`: 200ms (larger state changes, the drawer)
 
-\- `--dur-3`
+\- `--dur-draw`: 800ms (drawing data only: lanes, bars, gauges; off with reduced motion)
 
 \- `--ease-out`
+
+
+
+UI transitions use 120ms or 200ms only; `--dur-3` (420ms) is no longer used for UI. The loading skeleton (a 1.8s loop) is the one exception, and reduced motion stops it.
 
 
 

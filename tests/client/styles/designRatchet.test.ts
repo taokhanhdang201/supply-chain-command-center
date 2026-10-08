@@ -140,7 +140,7 @@ function durations(model: Model): Array<{ decl: Decl; ms: number[] }> {
 const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Model) => Counted }> = [
   {
     name: 'font sizes off the six-step scale',
-    limit: 95,
+    limit: 18,
     target: 0,
     count: (m) => {
       const sized = fontSizes(m);
@@ -149,7 +149,7 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'distinct font sizes',
-    limit: 21,
+    limit: 18,
     target: 6,
     count: (m) => {
       const sized = fontSizes(m);
@@ -168,7 +168,7 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'margin/padding/gap off the 4/8 scale',
-    limit: 34,
+    limit: 32,
     target: 2,
     count: (m) => {
       // var() is not followed, so a spacing held in a custom property is NOT checked here (atlas.css --dash-margin: 56px,
@@ -186,7 +186,7 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: '@media widths off the breakpoint list',
-    limit: 20,
+    limit: 17,
     target: 0,
     count: (m) => ({ scanned: m.widths.length, offenders: m.widths.filter((w) => !BREAKPOINTS.has(w.px)).map((w) => `${w.where} -> ${w.px}px`) })
   },

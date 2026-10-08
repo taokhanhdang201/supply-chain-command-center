@@ -353,9 +353,10 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   line-height: 1.4;
 }
 
+/* 8px cells: with 14px table text the ledgers still fit their columns at 1280px (Phase 1 commit 3). */
 .data-table th,
 .data-table td {
-  padding: 10px var(--space-3);
+  padding: var(--space-2);
   text-align: left;
   border-bottom: 1px solid var(--color-border-subtle);
   white-space: nowrap;
@@ -363,7 +364,6 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 }
 
 .data-table th {
-  padding-bottom: 10px;
   background: var(--color-surface);
   border-bottom-color: var(--color-line-strong);
   vertical-align: bottom;
@@ -394,8 +394,9 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   white-space: normal;
 }
 
+/* 28ch at the 14px table size is the width 30ch had at 13px. */
 .data-table td.data-table__cell--wrap {
-  min-width: 30ch;
+  min-width: 28ch;
 }
 
 .data-table__header--right,

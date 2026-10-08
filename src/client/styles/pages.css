@@ -414,7 +414,6 @@
 
 /* The Range control sits above the figures it scopes; the figures share the shared figure-stage type. */
 .analytics-stage {
-  --stage-figure-size: clamp(2rem, 1vw + 1.5rem, 2.75rem);
   display: grid;
   gap: var(--space-6);
   justify-items: start;
@@ -991,7 +990,6 @@
 /* Stage: two rows of figures (by status, needs attention). Each figure links to the filter it counts. The figure size
    matches the Dashboard's figures. */
 .figure-stage {
-  --stage-figure-size: clamp(2rem, 1vw + 1.5rem, 2.75rem);
   display: grid;
   gap: var(--space-8);
 }
@@ -1101,14 +1099,14 @@ a.stage-figure:focus-visible .stage-figure__label::after {
   white-space: nowrap;
 }
 
-/* The carrier copy under the route exists only for 1100-1439px, below. */
+/* The carrier copy under the route exists only for 1280-1439px, below. */
 .shipments-route__carrier {
   display: none;
 }
 
-/* 1100-1439px: nine columns do not fit, so the carrier moves under the route. Its own column stays in the table and
+/* 1280-1439px: nine columns do not fit, so the carrier moves under the route. Its own column stays in the table and
    the accessibility tree (visually hidden, never display: none). */
-@media (min-width: 1100px) and (max-width: 1439px) {
+@media (min-width: 1280px) and (max-width: 1439px) {
   /* Tighter cells and a narrower route column so nine columns fit without scrolling sideways. */
   .shipments-ledger .data-table :is(th, td) {
     padding-inline: var(--space-2);
@@ -1145,9 +1143,9 @@ a.stage-figure:focus-visible .stage-figure__label::after {
   }
 }
 
-/* Phones and tablets (below 1100px): each shipment is a stacked record: id and status, route, carrier, the three
+/* Below 1280px: each shipment is a stacked record: id and status, route, carrier, the three
    dates (labelled), cost and flags. Same data, no sideways scroll. */
-@media (max-width: 1099px) {
+@media (max-width: 1279px) {
   /* Stacked records never scroll sideways, so the floor's scroll-edge shadows would only smudge the right edge. */
   .shipments-ledger .table-scroll {
     background: none;
@@ -1215,15 +1213,15 @@ a.stage-figure:focus-visible .stage-figure__label::after {
 
 /* ---------- Inventory: the same ledger ---------- */
 
-/* The category copy under the product exists only for 1200-1599px, below. */
+/* The category copy under the product exists only for 1280-1599px, below. */
 .inventory-product__category {
   display: none;
 }
 
-/* 1200-1599px: eleven columns do not fit, so the category moves under the product and the cells tighten. The Category
-   column stays in the table and the accessibility tree (visually hidden, never display: none). Measured: even merged,
-   the table still scrolled sideways up to ~1170px, so Inventory stacks up to 1199px (below). */
-@media (min-width: 1200px) and (max-width: 1599px) {
+/* 1280-1599px: eleven columns do not fit, so the category moves under the product and the cells tighten. The Category
+   column stays in the table and the accessibility tree (visually hidden, never display: none). Measured with 14px table
+   text: merged, the table still scrolled sideways up to ~1250px, so Inventory stacks up to 1279px (below), as Alerts does. */
+@media (min-width: 1280px) and (max-width: 1599px) {
   .inventory-ledger .data-table :is(th, td) {
     padding-inline: var(--space-2);
   }
@@ -1252,15 +1250,16 @@ a.stage-figure:focus-visible .stage-figure__label::after {
   }
 }
 
-/* 1100-1199px: the shared stacked-record rules (components.css) end at 1099px; Inventory repeats them here. */
-@media (min-width: 1100px) and (max-width: 1199px) {
-  .inventory-ledger .data-table--stack,
-  .inventory-ledger .data-table--stack tbody {
+/* 1100-1279px: the shared stacked-record rules (components.css) end at 1099px; Shipments and Inventory repeat them
+   here. */
+@media (min-width: 1100px) and (max-width: 1279px) {
+  :is(.shipments-ledger, .inventory-ledger) .data-table--stack,
+  :is(.shipments-ledger, .inventory-ledger) .data-table--stack tbody {
     display: block;
     width: 100%;
   }
 
-  .inventory-ledger .data-table--stack thead {
+  :is(.shipments-ledger, .inventory-ledger) .data-table--stack thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1270,29 +1269,32 @@ a.stage-figure:focus-visible .stage-figure__label::after {
     white-space: nowrap;
   }
 
-  .inventory-ledger .data-table--stack tbody tr {
+  :is(.shipments-ledger, .inventory-ledger) .data-table--stack tbody tr {
     display: grid;
     padding-block: var(--space-3);
     border-bottom: 1px solid var(--color-border-subtle);
   }
 
-  .inventory-ledger .data-table--stack tbody td {
+  :is(.shipments-ledger, .inventory-ledger) .data-table--stack tbody td {
     display: block;
     padding: 0;
     border: 0;
     white-space: normal;
+    text-align: left;
   }
 
-  .inventory-ledger .data-table--stack .data-table__phone-label {
+  :is(.shipments-ledger, .inventory-ledger) .data-table--stack .data-table__phone-label {
+    display: inline;
+    margin-right: var(--space-1);
     font-size: var(--font-size-xs);
     letter-spacing: var(--tracking-label);
     color: var(--color-text-muted);
   }
 }
 
-/* Below 1200px: each item is a stacked record: SKU and stock, product, category and warehouse, then the six numbers
+/* Below 1280px: each item is a stacked record: SKU and stock, product, category and warehouse, then the six numbers
    (labelled) in two rows of three. */
-@media (max-width: 1199px) {
+@media (max-width: 1279px) {
   /* Stacked records never scroll sideways, so the floor's scroll-edge shadows would only smudge the right edge. */
   .inventory-ledger .table-scroll {
     background: none;

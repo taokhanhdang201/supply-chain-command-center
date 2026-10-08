@@ -12,20 +12,20 @@
 /* ---------- Tokens ---------- */
 
 .atlas-page {
-  --dash-margin: 20px;
-  --dash-gap: 16px;
-  --dash-max: 1280px;
+  /* Aliases of the shared tokens (tokens.css): the page margin, the grid gap and the content width step with the rest of
+     the app, and the five sizes below are five of the six steps of the type scale. */
+  --dash-margin: var(--gutter);
+  --dash-gap: var(--grid-gap);
+  --dash-max: var(--content-max);
   --chapter-pad: 64px;
   --title-gap: 32px;
   --block-gap: 40px;
-  --space-24: 96px;
-  --space-32: 128px;
 
-  --fs-display: clamp(3.5rem, 2.4vw + 3.2rem, 6rem);
-  --fs-figure: clamp(2rem, 1vw + 1.5rem, 2.75rem);
-  --fs-h2: clamp(1.5rem, 0.8vw + 1.25rem, 2rem);
-  --fs-lead: 1.0625rem;
-  --fs-small: 0.875rem;
+  --fs-display: var(--text-display);
+  --fs-figure: var(--text-xl);
+  --fs-h2: var(--text-lg);
+  --fs-lead: var(--text-md);
+  --fs-small: var(--text-sm);
 
   --ease: var(--ease-out);
   --t-hover: 120ms;
@@ -41,7 +41,6 @@
 
 @media (min-width: 768px) {
   .atlas-page {
-    --dash-margin: 40px;
     --chapter-pad: 96px;
     --title-gap: 40px;
     --block-gap: 48px;
@@ -50,8 +49,6 @@
 
 @media (min-width: 1100px) {
   .atlas-page {
-    --dash-margin: 56px;
-    --dash-gap: 24px;
     --chapter-pad: 128px;
     --title-gap: 48px;
     --block-gap: 64px;
