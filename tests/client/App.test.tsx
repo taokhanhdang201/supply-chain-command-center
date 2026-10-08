@@ -70,6 +70,19 @@ describe('App', () => {
     expect(dashboardLink).not.toHaveAttribute('aria-current');
   });
 
+  it('names the document after the page and moves focus to its h1 on a route change', async () => {
+    const api = makeApi();
+    const user = userEvent.setup();
+    render(<App api={api} />);
+    await screen.findByRole('heading', { name: 'Dashboard' });
+    expect(document.title).toBe('Dashboard · Supply Chain Command Center');
+
+    await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: /inventory/i }));
+    const h1 = await screen.findByRole('heading', { level: 1, name: 'Inventory' });
+    expect(document.title).toBe('Inventory · Supply Chain Command Center');
+    await waitFor(() => expect(h1).toHaveFocus());
+  });
+
   it('shows the Not found page for an unknown hash', async () => {
     window.location.hash = '#/nope';
     const api = makeApi();

@@ -24,6 +24,7 @@ import { ON_TIME_TARGET, onTimeTone } from '../lib/targets';
 import { PageStage } from '../components/layout/PageStage';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { SectionHeader } from '../components/ui/SectionHeader';
+import { Figure } from '../components/ui/Figure';
 import { ChartFrame } from '../components/charts/ChartFrame';
 import { BarChart } from '../components/charts/BarChart';
 import { ShareBar, type ShareTone } from '../components/charts/ShareBar';
@@ -108,32 +109,22 @@ export function AnalyticsPage() {
               {`Range: ${rangeLabel}`}
             </h2>
             <ul className="figure-stage__figures">
-              <li className={`stage-figure${belowTarget ? ` stage-figure--${tone}` : ''}`}>
-                <span className="stage-figure__value">{formatPercent(rate)}</span>
+              <Figure
+                value={formatPercent(rate)}
+                label="On-time rate"
+                tone={tone === 'good' ? 'neutral' : tone}
+                detail={`${kpis.onTimeCount} of ${kpis.onTimeCount + kpis.lateCount} delivered on time${belowTarget ? ` · below the ${formatPercent(ON_TIME_TARGET, 0)} target` : ''}`}
+              >
                 {/* The gauge is decoration (aria-hidden); being under target is also said in words. */}
                 {rate !== null && <span className={`stage-gauge stage-gauge--${tone}`} style={gaugeStyle} aria-hidden="true" />}
-                <span className="stage-figure__label">On-time rate</span>
-                <span className="stage-figure__detail">
-                  {`${kpis.onTimeCount} of ${kpis.onTimeCount + kpis.lateCount} delivered on time${belowTarget ? ` · below the ${formatPercent(ON_TIME_TARGET, 0)} target` : ''}`}
-                </span>
-              </li>
-              <li className="stage-figure">
-                <span className="stage-figure__value">{formatCentsCompact(kpis.totalShippingCostCents)}</span>
-                <span className="stage-figure__label">Shipping cost</span>
-                <span className="stage-figure__detail">
-                  {kpis.averageShippingCostCents === null ? 'No shipments' : `avg ${formatCents(kpis.averageShippingCostCents)} per shipment`}
-                </span>
-              </li>
-              <li className="stage-figure">
-                <span className="stage-figure__value">{formatDays(kpis.averageDeliveryDays)}</span>
-                <span className="stage-figure__label">Avg delivery</span>
-                <span className="stage-figure__detail">ship date to delivery</span>
-              </li>
-              <li className="stage-figure">
-                <span className="stage-figure__value">{kpis.totalShipments.toLocaleString('en-US')}</span>
-                <span className="stage-figure__label">Shipments in range</span>
-                <span className="stage-figure__detail">{`${kpis.deliveredShipments.toLocaleString('en-US')} delivered`}</span>
-              </li>
+              </Figure>
+              <Figure
+                value={formatCentsCompact(kpis.totalShippingCostCents)}
+                label="Shipping cost"
+                detail={kpis.averageShippingCostCents === null ? 'No shipments' : `avg ${formatCents(kpis.averageShippingCostCents)} per shipment`}
+              />
+              <Figure value={formatDays(kpis.averageDeliveryDays)} label="Avg delivery" detail="ship date to delivery" />
+              <Figure value={kpis.totalShipments.toLocaleString('en-US')} label="Shipments in range" detail={`${kpis.deliveredShipments.toLocaleString('en-US')} delivered`} />
             </ul>
           </section>
         </div>

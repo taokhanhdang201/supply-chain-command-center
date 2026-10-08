@@ -17,6 +17,7 @@ import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { Badge, type BadgeTone } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IdText } from '../components/ui/IdText';
+import { Figure } from '../components/ui/Figure';
 import { ATTENTION_KINDS, ATTENTION_KIND_LABELS, kindOf } from '../lib/attention';
 
 const SEVERITY_FILTER_OPTIONS: SelectOption[] = [
@@ -167,15 +168,13 @@ export function AlertsPage() {
               </h2>
               <ul className="figure-stage__figures">
                 {bySeverity.map((s) => (
-                  <li key={s.value}>
-                    <a
-                      className={`stage-figure${s.count > 0 && s.value !== 'info' ? ` stage-figure--${s.value}` : ''}`}
-                      href={buildHash('alerts', { severity: s.value })}
-                    >
-                      <span className="stage-figure__value">{s.count.toLocaleString('en-US')}</span>{' '}
-                      <span className="stage-figure__label">{s.label}</span>
-                    </a>
-                  </li>
+                  <Figure
+                    key={s.value}
+                    value={s.count.toLocaleString('en-US')}
+                    label={s.label}
+                    tone={s.count > 0 && s.value !== 'info' ? s.value : 'neutral'}
+                    href={buildHash('alerts', { severity: s.value })}
+                  />
                 ))}
               </ul>
             </section>
@@ -185,12 +184,7 @@ export function AlertsPage() {
               </h2>
               <ul className="figure-stage__figures figure-stage__figures--five">
                 {byType.map((t) => (
-                  <li key={t.value}>
-                    <a className="stage-figure" href={buildHash('alerts', { type: t.value })}>
-                      <span className="stage-figure__value">{t.count.toLocaleString('en-US')}</span>{' '}
-                      <span className="stage-figure__label">{t.label}</span>
-                    </a>
-                  </li>
+                  <Figure key={t.value} value={t.count.toLocaleString('en-US')} label={t.label} href={buildHash('alerts', { type: t.value })} />
                 ))}
               </ul>
             </section>

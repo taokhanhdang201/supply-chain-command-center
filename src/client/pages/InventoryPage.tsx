@@ -17,6 +17,7 @@ import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { Badge, type BadgeTone } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IdText } from '../components/ui/IdText';
+import { Figure } from '../components/ui/Figure';
 
 const STOCK_FILTER_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'All' },
@@ -228,14 +229,8 @@ export function InventoryPage() {
                 In the network
               </h2>
               <ul className="figure-stage__figures">
-                <li className="stage-figure">
-                  <span className="stage-figure__value">{formatCentsCompact(totalValueCents)}</span>{' '}
-                  <span className="stage-figure__label">Inventory value</span>
-                </li>
-                <li className="stage-figure">
-                  <span className="stage-figure__value">{all.length.toLocaleString('en-US')}</span>{' '}
-                  <span className="stage-figure__label">Items</span>
-                </li>
+                <Figure value={formatCentsCompact(totalValueCents)} label="Inventory value" />
+                <Figure value={all.length.toLocaleString('en-US')} label="Items" />
               </ul>
             </section>
             <section className="figure-stage__group" aria-labelledby="inventory-attention">
@@ -244,12 +239,13 @@ export function InventoryPage() {
               </h2>
               <ul className="figure-stage__figures">
                 {attention.map((a) => (
-                  <li key={`${a.param}-${a.value}`}>
-                    <a className={`stage-figure${a.count > 0 ? ` stage-figure--${a.tone}` : ''}`} href={buildHash('inventory', { [a.param]: a.value })}>
-                      <span className="stage-figure__value">{a.count.toLocaleString('en-US')}</span>{' '}
-                      <span className="stage-figure__label">{a.label}</span>
-                    </a>
-                  </li>
+                  <Figure
+                    key={`${a.param}-${a.value}`}
+                    value={a.count.toLocaleString('en-US')}
+                    label={a.label}
+                    tone={a.count > 0 ? a.tone : 'neutral'}
+                    href={buildHash('inventory', { [a.param]: a.value })}
+                  />
                 ))}
               </ul>
             </section>

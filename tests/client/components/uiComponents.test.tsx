@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-// Phase 1 spec §6 component contracts: Button, SelectField, Pagination, SectionHeader, EmptyState, SearchInput and the control
-// states in components.css (hover, active, disabled).
+// Phase 1 spec §6 component contracts: Button, SelectField, Pagination, SectionHeader, EmptyState, SearchInput, Figure, the
+// control states in components.css (hover, active, disabled) and the Figure link states in pages.css.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { useState } from 'react';
@@ -9,6 +9,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button } from '../../../src/client/components/ui/Button';
 import { EmptyState } from '../../../src/client/components/ui/EmptyState';
+import { Figure } from '../../../src/client/components/ui/Figure';
 import { Pagination } from '../../../src/client/components/ui/Pagination';
 import { SearchInput } from '../../../src/client/components/ui/SearchInput';
 import { SectionHeader } from '../../../src/client/components/ui/SectionHeader';
@@ -188,6 +189,69 @@ describe('SearchInput', () => {
   });
 });
 
+describe('Figure', () => {
+  const classesOf = (el: Element) => [...el.children].map((c) => c.className);
+
+  it('is a plain list item with no link, no detail and the exact class stage-figure', () => {
+    render(
+      <ul>
+        <Figure value="5" label="Items" />
+      </ul>
+    );
+    const item = screen.getByRole('listitem');
+    expect(item.className).toBe('stage-figure');
+    expect(screen.queryByRole('link')).toBeNull();
+    expect(classesOf(item)).toEqual(['stage-figure__value', 'stage-figure__label']);
+    expect(item.textContent).toBe('5 Items');
+  });
+
+  it('with href is one link named value, label, detail; the class sits on the link, not on the li', () => {
+    render(
+      <ul>
+        <Figure value="73" label="Delayed" detail="12 overdue · 61 late" tone="critical" href="#/shipments?flag=delayed" />
+      </ul>
+    );
+    const links = screen.getAllByRole('link');
+    expect(links).toHaveLength(1);
+    const link = screen.getByRole('link', { name: '73 Delayed 12 overdue · 61 late' });
+    expect(link).toBe(links[0]);
+    expect(link).toHaveAttribute('href', '#/shipments?flag=delayed');
+    expect(link.className).toBe('stage-figure stage-figure--critical');
+    expect(screen.getByRole('listitem')).not.toHaveAttribute('class');
+    expect(classesOf(link)).toEqual(['stage-figure__value', 'stage-figure__label', 'stage-figure__detail']);
+  });
+
+  it.each([
+    { tone: 'critical', expected: 'stage-figure stage-figure--critical' },
+    { tone: 'warning', expected: 'stage-figure stage-figure--warning' },
+    { tone: 'neutral', expected: 'stage-figure' },
+    { tone: undefined, expected: 'stage-figure' }
+  ] as const)('tone $tone gives the class "$expected" exactly', ({ tone, expected }) => {
+    render(
+      <ul>
+        <Figure value="1" label="Items" tone={tone} />
+      </ul>
+    );
+    expect(screen.getByRole('listitem').className).toBe(expected);
+  });
+
+  it('puts children between the value and the label (the Analytics gauge), before the detail', () => {
+    render(
+      <ul>
+        <Figure value="90.0%" label="On-time rate" detail="9 of 10 delivered on time">
+          <span className="stage-gauge" aria-hidden="true" />
+        </Figure>
+      </ul>
+    );
+    expect(classesOf(screen.getByRole('listitem'))).toEqual([
+      'stage-figure__value',
+      'stage-gauge',
+      'stage-figure__label',
+      'stage-figure__detail'
+    ]);
+  });
+});
+
 // The states of buttons and selects live in components.css; jsdom cannot hover or press, so the rules are read as text.
 describe('control states in components.css', () => {
   const css = readFileSync(resolve('src/client/styles/components.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
@@ -242,5 +306,28 @@ describe('control states in components.css', () => {
 
   it('darkens the select border on hover unless it is disabled', () => {
     expect(bodyOf('.select-field__control:hover:not(:disabled)')).toMatch(/border-color:\s*var\(--color-text-muted\)/);
+  });
+});
+
+// The link states of a figure live in pages.css; jsdom cannot hover, so the rules are read as text.
+describe('Figure link states in pages.css', () => {
+  const css = readFileSync(resolve('src/client/styles/pages.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  /** Every `selector { body }` pair, with the selector's whitespace collapsed. */
+  const rules: Array<{ selector: string; body: string }> = [];
+  for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selector = (m[1] as string).trim().replace(/\s+/g, ' ');
+    if (!selector.startsWith('@')) rules.push({ selector, body: m[2] as string });
+  }
+  const bodyOf = (selector: string): string => rules.find((r) => r.selector === selector)?.body ?? '';
+
+  it('gives the hover arrow empty alternative text, so it stays out of the link name', () => {
+    expect(bodyOf('a.stage-figure .stage-figure__label::after')).toMatch(/content:\s*' →'\s*\/\s*''\s*;/);
+  });
+
+  it('underlines the label and shows the arrow on hover and focus, and keeps the ring 4px away', () => {
+    const hover = 'a.stage-figure:hover .stage-figure__label, a.stage-figure:focus-visible .stage-figure__label';
+    expect(bodyOf(hover)).toMatch(/text-decoration-color:\s*currentColor/);
+    expect(bodyOf(hover.replaceAll('__label', '__label::after'))).toMatch(/opacity:\s*1/);
+    expect(bodyOf('.stage-figure:focus-visible')).toMatch(/outline-offset:\s*4px/);
   });
 });

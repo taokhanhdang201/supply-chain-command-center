@@ -16,6 +16,7 @@ import { PageStage } from '../components/layout/PageStage';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { DataTable, type Column } from '../components/ui/DataTable';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Figure } from '../components/ui/Figure';
 import { RouteMap } from '../components/routes/RouteMap';
 
 const STATUS_GROUP_OPTIONS: SelectOption[] = [
@@ -155,12 +156,7 @@ export function RoutesPage() {
                 The network
               </h2>
               <ul className="figure-stage__figures">
-                <li>
-                  <a className="stage-figure" href={buildHash('routes')}>
-                    <span className="stage-figure__value">{network.length.toLocaleString('en-US')}</span>{' '}
-                    <span className="stage-figure__label">Total lanes</span>
-                  </a>
-                </li>
+                <Figure value={network.length.toLocaleString('en-US')} label="Total lanes" href={buildHash('routes')} />
               </ul>
             </section>
             <section className="figure-stage__group" aria-labelledby="routes-attention">
@@ -169,12 +165,13 @@ export function RoutesPage() {
               </h2>
               <ul className="figure-stage__figures">
                 {attention.map((a) => (
-                  <li key={a.lane}>
-                    <a className={`stage-figure${a.count > 0 ? ` stage-figure--${a.tone}` : ''}`} href={buildHash('routes', { lane: a.lane })}>
-                      <span className="stage-figure__value">{a.count.toLocaleString('en-US')}</span>{' '}
-                      <span className="stage-figure__label">{a.label}</span>
-                    </a>
-                  </li>
+                  <Figure
+                    key={a.lane}
+                    value={a.count.toLocaleString('en-US')}
+                    label={a.label}
+                    tone={a.count > 0 ? a.tone : 'neutral'}
+                    href={buildHash('routes', { lane: a.lane })}
+                  />
                 ))}
               </ul>
             </section>

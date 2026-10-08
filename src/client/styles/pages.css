@@ -1010,15 +1010,16 @@
   transition: text-decoration-color var(--dur-1) var(--ease-out);
 }
 
-/* Each figure is a link: the label underlines and gains the same arrow as the KPI cards on hover and keyboard focus,
-   and focus keeps the global ring a little away from the figure. */
+/* A figure with a link (Figure href): the label underlines and gains an arrow on hover and keyboard focus, and focus
+   keeps the global ring 4px away. The arrow is decoration: its empty alternative text keeps it out of the link's name,
+   which reads value, label, detail. */
 a.stage-figure:hover .stage-figure__label,
 a.stage-figure:focus-visible .stage-figure__label {
   text-decoration-color: currentColor;
 }
 
 a.stage-figure .stage-figure__label::after {
-  content: ' →';
+  content: ' →' / '';
   opacity: 0;
   transition: opacity var(--dur-1) var(--ease-out);
 }

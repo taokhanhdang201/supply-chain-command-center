@@ -514,6 +514,22 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   });
 
+  // Phase 1 spec §6 (Figure): a figure link is read value, label, detail. The hover arrow is decoration with empty
+  // alternative text, so it is not part of the name. Read from Chrome's own accessibility tree, not from the DOM text.
+  it('figure links are named value, label, detail in Chrome, without the hover arrow', async () => {
+    const { ctx, page } = await open(1440, 'shipments', { reducedMotion: 'reduce' });
+    const cdp = await ctx.newCDPSession(page);
+    const { nodes } = await cdp.send('Accessibility.getFullAXTree');
+    await ctx.close();
+    const names: string[] = nodes
+      .filter((n: any) => n.role?.value === 'link')
+      .map((n: any) => String(n.name?.value ?? '').replace(/\s+/g, ' ').trim())
+      .filter((name: string) => /^\d/.test(name));
+    expect(names).toHaveLength(8); // four statuses, four flags
+    for (const name of names) expect(name).not.toContain('→');
+    expect(names).toContainEqual(expect.stringMatching(/^\d+ ?Delayed ?\d+ overdue · \d+ delivered late$/));
+  });
+
   // The first-screen viewports: desktop sizes and real laptop viewports (browser chrome and taskbar already removed).
   const FIRST_SCREENS: Array<[number, number]> = [
     [1100, 800], [1200, 800], [1280, 800], [1366, 768], [1440, 900], [1920, 1080],

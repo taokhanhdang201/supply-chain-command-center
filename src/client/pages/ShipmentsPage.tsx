@@ -17,6 +17,7 @@ import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { Badge, type BadgeTone } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IdText } from '../components/ui/IdText';
+import { Figure } from '../components/ui/Figure';
 
 const STATUS_FILTER_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'All' },
@@ -225,12 +226,7 @@ export function ShipmentsPage() {
               </h2>
               <ul className="figure-stage__figures">
                 {statusCounts.map((s) => (
-                  <li key={s.value}>
-                    <a className="stage-figure" href={buildHash('shipments', { status: s.value })}>
-                      <span className="stage-figure__value">{s.count.toLocaleString('en-US')}</span>{' '}
-                      <span className="stage-figure__label">{s.label}</span>
-                    </a>
-                  </li>
+                  <Figure key={s.value} value={s.count.toLocaleString('en-US')} label={s.label} href={buildHash('shipments', { status: s.value })} />
                 ))}
               </ul>
             </section>
@@ -240,18 +236,21 @@ export function ShipmentsPage() {
               </h2>
               <ul className="figure-stage__figures">
                 {attentionCounts.map((a) => (
-                  <li key={a.flag}>
-                    <a className={`stage-figure${a.count > 0 ? ` stage-figure--${a.tone}` : ''}`} href={buildHash('shipments', { flag: a.flag })}>
-                      <span className="stage-figure__value">{a.count.toLocaleString('en-US')}</span>{' '}
-                      <span className="stage-figure__label">{a.label}</span>
-                      {a.flag === 'delayed' && (
-                        <span className="stage-figure__detail">
-                          {` ${overdueCount} overdue · ${lateCount}`}
+                  <Figure
+                    key={a.flag}
+                    value={a.count.toLocaleString('en-US')}
+                    label={a.label}
+                    tone={a.count > 0 ? a.tone : 'neutral'}
+                    href={buildHash('shipments', { flag: a.flag })}
+                    detail={
+                      a.flag === 'delayed' ? (
+                        <>
+                          {`${overdueCount} overdue · ${lateCount}`}
                           <span className="stage-figure__long"> delivered</span> late
-                        </span>
-                      )}
-                    </a>
-                  </li>
+                        </>
+                      ) : undefined
+                    }
+                  />
                 ))}
               </ul>
             </section>
