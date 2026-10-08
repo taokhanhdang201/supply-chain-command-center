@@ -411,7 +411,7 @@ export function useIngestFlow(options: UseIngestFlowOptions = {}): IngestFlow {
 }
 
 /**
- * Moves focus to a panel's heading when the panel opens (ke-hoach 6.3), unless the user is already working inside another
+ * Moves focus to a panel's heading when the panel opens, unless the user is already working inside another
  * panel of the card (then the next panel simply appears after it in reading order and focus is not taken away).
  */
 export function usePanelFocus(headingRef: { current: HTMLElement | null }): void {

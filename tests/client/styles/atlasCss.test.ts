@@ -111,7 +111,7 @@ describe('atlas.css', () => {
     expect(css).toMatch(/\.flow-bar--ontime\s*\{[^}]*fill:\s*var\(--bar-slate\)/);
   });
 
-  // Commit 7: the top bar no longer repeats the page title, so phones show the h1 too (it was clipped to 1x1 below 768px).
+  // The top bar no longer repeats the page title, so phones show the h1 too (it was clipped to 1x1 below 768px).
   it('shows the h1 at every width: no rule clips it, and it is never display:none', () => {
     expect(css).not.toMatch(/situation__title\s*\{[^}]*clip:/);
     expect(css).not.toMatch(/situation__title[^}]*display:\s*none/);

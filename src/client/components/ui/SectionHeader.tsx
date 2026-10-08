@@ -1,4 +1,4 @@
-// A section's heading on paper (Phase 1 spec §6): the h2 at lg / 500 over a 1px ink rule, with optional actions at the
+// A section's heading on paper: the h2 at lg / 500 over a 1px ink rule, with optional actions at the
 // right end. It wears the existing section-bar classes.
 import type { ReactNode } from 'react';
 

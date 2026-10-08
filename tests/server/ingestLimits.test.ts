@@ -1,4 +1,4 @@
-// Milestone M4: the approved server ingestion limits (decision 14a, criteria 28-33 and 37). `SCC_MAX_IMPORT_ROWS` is
+// Milestone M4: the approved server ingestion limits (criteria 28-33 and 37). `SCC_MAX_IMPORT_ROWS` is
 // read by the new `src/server/ingestLimits.ts`; `config.ts` and `AppConfig` are not touched; every default is today's value.
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

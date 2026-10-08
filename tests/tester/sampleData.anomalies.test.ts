@@ -186,10 +186,10 @@ describe('tester: sample-data anomaly manifest (plan §7.6)', () => {
   it('R-6 regression: cost-anomaly z-score no longer flags any non-injected shipment on seed 42', () => {
     // History: this test originally *documented* BUG-1 — that natural per-shipment carrier-rate variance (not
     // a formula bug) pushed some non-injected shipments past the z >= 3.5 threshold (4 extra flags on WH-EWR
-    // routes, Summit Express 2.35/mi vs Cascade Carriers 1.70/mi). The reviewer's R-6 fix (danh-gia.md) assigns
+    // routes, Summit Express 2.35/mi vs Cascade Carriers 1.70/mi). The R-6 fix assigns
     // carrier per lane instead of per shipment in generateSampleData.ts, so every shipment on a route now shares
-    // one carrier's rate and that source of false positives is gone. Updated here (per the reviewer's explicit
-    // instruction in danh-gia.md R-6) to assert the fixed behavior instead of the now-resolved bug, since a test
+    // one carrier's rate and that source of false positives is gone. Updated here (as R-6 asked) to assert the
+    // fixed behavior instead of the now-resolved bug, since a test
     // that asserts a bug's continued existence necessarily starts failing the moment that bug is fixed.
     const { shipments, anomalies } = sample();
     const enriched = enrichShipments(shipments, TODAY, LOCATIONS);
@@ -206,7 +206,7 @@ describe('tester: sample-data anomaly manifest (plan §7.6)', () => {
   });
 
   it('BUG-1 marker: sample data is not "clean apart from intentional anomalies" for cost_anomaly alerts', () => {
-    // Feature 9 of yeu-cau.md requires "some intentional anomalies" that let the alert/analytics systems
+    // The sample data's brief asks for "some intentional anomalies" that let the alert/analytics systems
     // "demonstrate their functionality" - implying anomalies are intentional and countable. On seed 42 this
     // is violated: exactly 8 shipments are *intended* to be cost anomalies (manifest), but the alert list
     // shows 12 cost_anomaly alerts because of natural carrier-rate variance on low-peer-group-variance

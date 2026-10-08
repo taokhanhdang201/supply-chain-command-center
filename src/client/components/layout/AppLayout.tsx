@@ -1,6 +1,6 @@
 // The app shell (plan §8.1/§8.2): sidebar + topbar + routed page, wired to the current hash route and the
 // shared data-loading state. Owns the off-canvas drawer's open/close/focus behaviour. A development build also answers
-// #/_design with the design reference (Phase 1 spec §10).
+// #/_design with the design reference (pages/DesignPage.tsx).
 
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { MouseEvent, ReactNode } from 'react';

@@ -1,5 +1,5 @@
-// Phase 1 spec §4 (owner decision D5): summary figures compact ($32.6M, $165.4K), table amounts to the dollar, prices to
-// the cent. The edge cases; proof that every money string the tests changed in commit 11 is the same cents as before,
+// DESIGN.md "Money": summary figures compact ($32.6M, $165.4K), table amounts to the dollar, prices to
+// the cent. The edge cases; proof that every money string the tests changed to this format is the same cents as before,
 // within the rounding of its new format; and the rule that every money string of the client comes from this module
 // (chart axes keep formatCentsAxis).
 import { readdirSync, readFileSync } from 'node:fs';

@@ -36,7 +36,7 @@ export const ATTENTION_KIND_LABELS: Record<AttentionKind, string> = {
   records: 'Incomplete or wrong record'
 };
 
-/** A few words beside a kind whose name alone reads two ways (Phase 1 spec §8). "Overdue" sits under the Dashboard's
+/** A few words beside a kind whose name alone reads two ways. "Overdue" sits under the Dashboard's
  *  "Delayed shipments" figure, which also counts deliveries that arrived late; this kind is only the shipments past their
  *  ETA and not delivered (pending or in transit: deliveryState "overdue"). Delivered-late alerts are info and have no kind. */
 export const KIND_NOTES: Readonly<Partial<Record<AttentionKind, string>>> = { overdue: 'past ETA, not delivered' };
@@ -210,7 +210,7 @@ function billingCandidates(snapshot: Snapshot): Candidate[] {
     const critical = group.some((s) => s.shippingCostCents >= COST_CRITICAL_MULTIPLIER * (s.cost.baselineCents as number));
     const only = group.length === 1 ? (group[0] as Shipment) : null;
     // One shipment: the excess is the difference of two prices the Alerts page shows to the cent (its cost and the
-    // typical cost), so under $10,000 it keeps its cents (owner decision D5: a price keeps its cents). Several shipments:
+    // typical cost), so under $10,000 it keeps its cents (DESIGN.md "Money": a price keeps its cents). Several shipments:
     // their sum, a summary.
     const excess = only !== null && Math.abs(cents) < COMPACT_FROM_CENTS ? displayMoneyTable(cents, 'price') : displayMoneySummary(cents);
     return {

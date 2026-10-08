@@ -42,7 +42,7 @@ describe('value mapping panel', () => {
     expect(within(screen.getByRole('table', { name: 'Status value mapping' })).getByText('Chosen by you')).toBeInTheDocument();
   });
 
-  // Phase 1 spec §5: the row count is a number column, right-aligned like the DataTable's.
+  // DESIGN.md §12: the row count is a number column, right-aligned like the DataTable's.
   it('right-aligns the Rows count of a value table, header included', async () => {
     const r = await renderCard();
     const text = ship([

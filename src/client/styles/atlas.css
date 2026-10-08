@@ -269,7 +269,7 @@
   color: var(--stage-text-2);
 }
 
-/* "8 not measurable" (Phase 1 spec §8): the delivered shipments the rate cannot rate, beside its label in the detail's size
+/* "8 not measurable": the delivered shipments the rate cannot rate, beside its label in the detail's size
    and ink. Beside the label, not in the detail line: inside the map (from 1280px) the figure keeps the box it has, since a
    longer detail line widened or deepened it onto Texas or WH-LAX at 1280px. From 768 to 1099px the label has four
    columns, so the note takes its own line and drops the dot. */
@@ -1450,7 +1450,7 @@
   stroke-width: 1.75;
 }
 
-/* A few muted words beside a kind whose name alone reads two ways (Overdue: past ETA, not delivered; Phase 1 spec §8), in
+/* A few muted words beside a kind whose name alone reads two ways (Overdue: past ETA, not delivered), in
    the detail size; the row stays one 40px line. Muted ink stays AA on the 7% hover tint. */
 .atlas-page .kind-row__sep,
 .atlas-page .kind-row__note {

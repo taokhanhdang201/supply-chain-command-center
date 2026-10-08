@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // DESIGN.md "The page band": the top bar does not repeat the page title (the h1 is the page's only visible title).
-// Owner decision D6 (Phase 1 spec §7): while both sources are the generated sample, one "Sample data" chip opens a note
+// While both sources are the generated sample, one "Sample data" chip opens a note
 // (a native popover; jsdom has no popover API, so its keyboard, Esc and placement are driven in v16.ui.browser.test.ts).
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
@@ -66,14 +66,14 @@ describe('Topbar', () => {
     expect(screen.queryByRole('button', { name: 'Sample data' })).toBeNull();
   });
 
-  // Lô 9 (WCAG 1.3.1 / 4.1.2): focus on the chip announces its note (a hidden element still gives its words).
+  // WCAG 1.3.1 / 4.1.2: focus on the chip announces its note (a hidden element still gives its words).
   it('describes the Sample data chip by its note', () => {
     renderTopbar(makeSnapshot([], [], { today: TODAY }).dataSources);
     expect(screen.getByRole('button', { name: 'Sample data' })).toHaveAttribute('aria-describedby', 'topbar-sample-note');
     expect(document.getElementById('topbar-sample-note')?.textContent).toMatch(/^Generated sample/);
   });
 
-  // Lô 9 (WCAG 2.4.3): while the data reloads, Refresh is busy, not disabled: it keeps the focus and ignores a click.
+  // WCAG 2.4.3: while the data reloads, Refresh is busy, not disabled: it keeps the focus and ignores a click.
   it('keeps Refresh focusable while refreshing: busy and unavailable, and a click does nothing', () => {
     const onRefresh = vi.fn();
     render(<Topbar today={TODAY} dataSources={makeSnapshot([], [], { today: TODAY }).dataSources} refreshing onRefresh={onRefresh} drawerOpen={false} onMenuClick={vi.fn()} menuButtonRef={{ current: null }} />);
@@ -86,7 +86,7 @@ describe('Topbar', () => {
   });
 });
 
-// A mouse over the chip or its note opens the note and leaving both closes it (owner decision D6), where the browser hangs
+// A mouse over the chip or its note opens the note and leaving both closes it, where the browser hangs
 // the note under the chip (CSS position-area); elsewhere the note is centred on the screen, out of reach of the pointer
 // (WCAG 1.4.13), so only a click, Enter or Space opens it. jsdom has no popover API (showPopover, hidePopover) and its
 // ':popover-open' is always false, so both are stood in for here, and CSS.supports is pinned; a touch or a pen must not

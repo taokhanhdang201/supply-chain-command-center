@@ -53,12 +53,12 @@ describe('V1.6 redesign (real Chromium)', () => {
   };
   const text = async (page: any) => (await page.locator('main').innerText()).replace(/\s+/g, ' ');
 
-  it('dashboard keeps every V1.5 value (money shown as Phase 1 spec §4)', async () => {
+  it('dashboard keeps every V1.5 value (money shown as DESIGN.md "Money" says)', async () => {
     const { ctx, page, errors } = await open(1440, '');
     const t = (await text(page)).toLowerCase();
     for (const v of ['$32.6m', '$8.0m', '258,475 units in 360 records', '480', '34 active · 13 cancelled', '85.6%', '364 of 425 delivered on time', '73', '12 overdue · 61 delivered late', '20', '6 out of stock', '$600.1k', 'avg $1,285 per shipment', '3.1 days', '57', '67 total · 10 info', 'pending 14', 'in transit 20', 'delivered 433', 'cancelled 13', 'shp-100065', '$908.19'])
       expect(t, v).toContain(v);
-    // Phase 1 spec §4 (D5): the same cents as summaries ($32.6M, the $8.0M rack, avg $1,285) and a shipment cost to the cent
+    // DESIGN.md "Money": the same cents as summaries ($32.6M, the $8.0M rack, avg $1,285) and a shipment cost to the cent
     // ($908.19); tests/client/lib/displayMoney.test.ts proves the cents. The old strings are gone.
     for (const v of ['$32.64m', 'avg $1,285.04']) expect(t, `no ${v}`).not.toContain(v);
     expect(await page.getByLabel('Range').inputValue()).toBe('180d');
@@ -277,7 +277,7 @@ describe('V1.6 redesign (real Chromium)', () => {
         const q = (s: string) => [...document.querySelectorAll(s)];
         const visibleText = q('.atlas-page *').filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && (n.textContent ?? '').trim()) && e.getBoundingClientRect().width > 0 && !e.closest('.visually-hidden') && e.tagName !== 'title' && !e.closest('.select-field'));
         const hero = document.querySelector('.hero__value') as HTMLElement;
-        // Since commit 7 the h1 is shown at every width (the top bar no longer repeats the title). h1Hidden stays as a
+        // The h1 is shown at every width (the top bar no longer repeats the title). h1Hidden stays as a
         // guard: a clipped 1x1 h1 fails below and never joins the shared left edge.
         const h1 = document.querySelector('h1')!;
         const h1Hidden = h1.getBoundingClientRect().width <= 1 && getComputedStyle(h1).position === 'absolute';
@@ -325,7 +325,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   }, 60_000);
 
-  // The page h1 is the title role: 24px, weight 600. From 1100px its line box is the page band h1's 30px (Lô 9: one baseline
+  // The page h1 is the title role: 24px, weight 600. From 1100px its line box is the page band h1's 30px (one baseline
   // for every page's h1); the gap under it gives the 6px back, so the first-screen budget, the map and the four figures do
   // not move. Below 1100px it sits on a 32px line.
   it('atlas dashboard: the h1 is 24px / 600 at every width, on a 30px line from 1100px and a 32px line below', async () => {
@@ -352,7 +352,7 @@ describe('V1.6 redesign (real Chromium)', () => {
       // names each source, checked below)
       ['import', ['Drop your file', 'CSV, TSV, TXT or GZ file. Up to 2 MB.', 'No file? Try one.']]
     ];
-    // Phase 1 spec §4 (D5): summaries compact, table amounts to the dollar, unit prices and shipment costs to the cent. The
+    // DESIGN.md "Money": summaries compact, table amounts to the dollar, unit prices and shipment costs to the cent. The
     // old strings must be gone too: "$1,403,217" is the start of "$1,403,217.18".
     const gone: Record<string, string[]> = { inventory: ['$32,643,371.48', '$1,403,217.18'], analytics: ['avg $1,285.04 per shipment'] };
     for (const [hash, vals] of checks) {
@@ -360,7 +360,7 @@ describe('V1.6 redesign (real Chromium)', () => {
       const t = await text(page);
       for (const v of vals) expect(t, `${hash}: ${v}`).toContain(v);
       for (const v of gone[hash] ?? []) expect(t, `${hash}: no ${v}`).not.toContain(v);
-      // Owner decision D6: both sources are the generated sample, so one chip, and its note names the seed.
+      // Both sources are the generated sample, so one chip, and its note names the seed.
       if (hash === 'import') {
         expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Sample data']);
         expect(await page.locator('.topbar__note').textContent()).toContain('(seed 42)');
@@ -376,7 +376,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     await ctx.close();
   });
 
-  // Owner decision D6 (Phase 1 spec §7): while both sources are the generated sample, the top bar has one chip, "Sample
+  // While both sources are the generated sample, the top bar has one chip, "Sample
   // data", a button that opens a native popover. Enter opens the note, Esc closes it and focus stays on the chip. The note
   // hangs under the chip (where the browser anchors it: right edges level, left edges on a phone), inside the screen, at
   // AA, without the date. One chip row instead of two: the phone top bar was 118.4-119px, 86px measured with one.
@@ -428,7 +428,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   }, 60_000);
 
-  // Owner decision D6: a mouse over the chip opens the note too. It stays open while the mouse is on the chip or on the
+  // A mouse over the chip opens the note too. It stays open while the mouse is on the chip or on the
   // note (the note hangs against the chip), a click on the chip after the hover does not close it, and the mouse leaving
   // both closes it. Only a mouse: a tap opens the note through its click, and the touch pointer leaving does not close it.
   it('top bar: a mouse over the "Sample data" chip opens its note, which stays while the mouse is on it and closes when the mouse leaves', async () => {
@@ -504,11 +504,11 @@ describe('V1.6 redesign (real Chromium)', () => {
     await ctx.close();
   });
 
-  // Phase 1 spec §8 (owner: a short line beside each number that differs on purpose from another place; no number changes).
+  // A short line beside each number that differs on purpose from another place; no number changes.
   // Seed 42: 8 delivered shipments cannot be rated (433 delivered, 425 rated); 57 of the 67 alerts need attention; the kinds
   // count only those; Overdue is past ETA and not delivered; 25 of the 32 lanes are on the map. On the Dashboard the note sits
   // beside the rate's label: a longer detail line widened or deepened the figure onto the map's marks at 1280px.
-  it('explanation lines (Phase 1 spec §8): beside their numbers on seed 42, at AA, the Dashboard figure unchanged', async () => {
+  it('explanation lines: beside their numbers on seed 42, at AA, the Dashboard figure unchanged', async () => {
     const read = (page: any, sels: string[]) =>
       page.evaluate((s: string[]) => {
         const rgb = (c: string) => c.match(/[\d.]+/g)!.slice(0, 3).map(Number);
@@ -608,7 +608,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     await ctx.close();
   });
 
-  // Phase 1 spec §6 (Pagination): a nav named Pagination whose Previous and Next are 36px, level with the 36px page-size select
+  // Pagination: a nav named Pagination whose Previous and Next are 36px, level with the 36px page-size select
   // (same bottom edge while they share a row), and which holds no link, so the main navigation keeps its 7.
   it('pagination: a named nav with 36px Previous and Next level with the page-size select, and no link of its own', async () => {
     for (const [w, hash] of [[1440, 'inventory'], [1440, 'shipments'], [1440, 'alerts'], [390, 'inventory']] as const) {
@@ -698,7 +698,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   });
 
-  // Phase 1 spec §6 (Figure): a figure link is read value, label, detail. The hover arrow is decoration with empty
+  // Figure: a figure link is read value, label, detail. The hover arrow is decoration with empty
   // alternative text, so it is not part of the name. Read from Chrome's own accessibility tree, not from the DOM text.
   it('figure links are named value, label, detail in Chrome, without the hover arrow', async () => {
     const { ctx, page } = await open(1440, 'shipments', { reducedMotion: 'reduce' });
@@ -884,7 +884,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   });
 
-  // Phase 1 spec §5: a number column is right-aligned with tabular figures, its header level with the numbers. A cell's box
+  // DESIGN.md §12: a number column is right-aligned with tabular figures, its header level with the numbers. A cell's box
   // has the column's edges whatever its alignment, so the text edges are read with a Range. Stacked records keep their
   // numbers at the left, under their labels (below 1100px every stacking table; 1100-1279px Shipments and Inventory).
   it('number columns: right-aligned, tabular and level with their header at 1440; stacked records keep them at the left', async () => {
@@ -943,9 +943,9 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   }, 60_000);
 
-  // Phase 1 spec §5 (commit 10b): running text keeps proportional figures. With tabular-nums on the body, Inter drew a hyphen
-  // as wide as a digit (0.65em instead of 0.46em: "ELC - 0015", "On - time", tong-hop A9). Number cells, figures and counters
-  // keep tabular figures. A floor table's scroll covers are the paper, so a table that fits shows no pale band (A10).
+  // DESIGN.md §9: running text keeps proportional figures. With tabular-nums on the body, Inter drew a hyphen
+  // as wide as a digit (0.65em instead of 0.46em: "ELC - 0015", "On - time"). Number cells, figures and counters
+  // keep tabular figures. A floor table's scroll covers are the paper, so a table that fits shows no pale band.
   it('running text has proportional figures and narrow hyphens; numbers stay tabular; no pale band at a table edge', async () => {
     const probe = async (hash: string, hyphenIn: string, tabular: string[]) => {
       const { ctx, page } = await open(1440, hash, { reducedMotion: 'reduce' });
@@ -1122,7 +1122,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     for (const [count, href] of figures) {
       await page.goto(`${base}/${href}`);
       await page.waitForSelector('.table-summary');
-      // Phase 1 spec §8: a view holding both kinds of row adds " · N need attention · M info" after the count (the count
+      // A view holding both kinds of row adds " · N need attention · M info" after the count (the count
       // itself is still the figure's number, as Inventory's "N items ·" above).
       expect(await page.locator('.table-summary').textContent(), href).toMatch(new RegExp(`^${count} alerts?( · |$)`));
     }
@@ -1240,10 +1240,10 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   });
 
-  // DESIGN.md "The page band" (Phase 1 spec §3): the dark band is at most 256px tall from 768px and at most 360px below; the
+  // DESIGN.md "The page band": the dark band is at most 256px tall from 768px and at most 360px below; the
   // slim band (Data Import, Page not found) at most 64px. Pages that still hold figures, a map or controls in the band are
   // brought to the rule in Phase 2, so their cases are `it.fails`: each turns red the day its page complies, and then moves
-  // to `it`. Measured at commit 7 (1440 / 1024 / 768 / 390): Inventory 358 / 358 / 377 / 419, Shipments 377 / 394 / 394 /
+  // to `it`. Measured when the rule came in (1440 / 1024 / 768 / 390): Inventory 358 / 358 / 377 / 419, Shipments 377 / 394 / 394 /
   // 516, Routes 1148 / 1215 / 1215 / 1804, Analytics 359 / 376 / 376 / 452, Alerts 360 / 438 / 457 / 576; both slim bands 63.
   const BAND_WIDTHS = [1440, 1024, 768, 390];
   const BAND_PAGES: Array<{ name: string; hash: string; slim: boolean; phase2: boolean }> = [

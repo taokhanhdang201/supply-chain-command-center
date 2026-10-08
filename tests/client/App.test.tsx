@@ -90,7 +90,7 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
   });
 
-  // Phase 1 spec §10: a development build (Vitest runs with import.meta.env.DEV) answers #/_design with the design reference,
+  // A development build (Vitest runs with import.meta.env.DEV) answers #/_design with the design reference,
   // loaded on demand; it is no route, so a production build reads the hash as "Page not found"
   // (tests/tester/designPage.browser.test.ts).
   it('opens the design reference at #/_design in a development build', async () => {
@@ -119,7 +119,7 @@ describe('App', () => {
     });
   });
 
-  // Lô 9 (WCAG 2.4.3 / 2.4.11): while the drawer is open the rest of the shell (the top bar, the page) and the skip link are
+  // WCAG 2.4.3 / 2.4.11: while the drawer is open the rest of the shell (the top bar, the page) and the skip link are
   // inert, so Tab cannot leave the drawer for what it covers (real focus: tests/tester/a11yFoundation.browser.test.ts).
   it('makes the rest of the shell inert while the drawer is open; Escape gives the focus back to the menu button', async () => {
     const user = userEvent.setup();
@@ -138,7 +138,7 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /open navigation/i })).toHaveFocus();
   });
 
-  // Lô 9: from 1024px the sidebar is fixed; a drawer left open while the window widens closes, so the shell is not left inert.
+  // From 1024px the sidebar is fixed; a drawer left open while the window widens closes, so the shell is not left inert.
   it('closes a drawer left open when the window reaches 1024px', async () => {
     let onWide: (() => void) | undefined;
     const wide = { matches: false, addEventListener: (_: string, l: () => void) => { onWide = l; }, removeEventListener: () => undefined };
@@ -159,7 +159,7 @@ describe('App', () => {
     }
   });
 
-  // Lô 9 (react-reviewer): the skip link moves the focus itself only on a plain click or Enter; a click with a modifier key
+  // The skip link moves the focus itself only on a plain click or Enter; a click with a modifier key
   // or another button is the browser's (a new tab or window).
   it('leaves a click on the skip link with a modifier key or another button to the browser', async () => {
     render(<App api={makeApi()} />);

@@ -1,4 +1,4 @@
-// Lô 9, commit 16 (end of Phase 1, fix round 1): one system across the pages, in a real browser. Inventory names keep one line
+// One system across the pages, in a real browser. Inventory names keep one line
 // at 1440; one h1 (ink, type, baseline) on every page with a page band and on the Dashboard, whose first screen does not move;
 // rendered text uses 400, 500 and 600 only; one heading type on paper; Top alerts rows inside a phone's margin; Analytics
 // labels and details in line.
@@ -18,7 +18,7 @@ const PW_DIR = process.env.SCC_PW_DIR ? path.resolve(process.env.SCC_PW_DIR) : p
 const CHROME = process.env.SCC_CHROME || undefined;
 const TODAY = '2026-09-28';
 
-describe('Lô 9 consistency across pages (real Chromium)', () => {
+describe('consistency across pages (real Chromium)', () => {
   let server: ReturnType<typeof createAppServer>;
   let base = '';
   let browser: any;
@@ -110,7 +110,7 @@ describe('Lô 9 consistency across pages (real Chromium)', () => {
     }
   }, 60_000);
 
-  // Spec §1: weights 400, 500 and 600 only (the design ratchet counts the stylesheets; this counts what is drawn).
+  // Weights are 400, 500 and 600 only (DESIGN.md "Type scale"; the design ratchet counts the stylesheets, this counts what is drawn).
   it('rendered text uses only the weights 400, 500 and 600 on every page at 1440', async () => {
     for (const hash of ['', 'inventory', 'shipments', 'routes', 'analytics', 'alerts', 'import', 'nope']) {
       const { ctx, page } = await open(1440, hash);
@@ -128,7 +128,7 @@ describe('Lô 9 consistency across pages (real Chromium)', () => {
     }
   }, 60_000);
 
-  // One heading type on paper (critic: four kinds): a section h2, the line over a table and an empty state's title are lg at
+  // One heading type on paper (there were four kinds): a section h2, the line over a table and an empty state's title are lg at
   // 500 in the display face, no wider stretch. The Top alerts title is the owner's one larger heading (36/600). The Import
   // cards' titles wait for Phase 2.
   it('one heading type on paper: section titles, the line over a table and an empty state title are 24px / 500 display', async () => {

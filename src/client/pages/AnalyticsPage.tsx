@@ -99,7 +99,7 @@ export function AnalyticsPage() {
   const tone = onTimeTone(rate);
   const belowTarget = tone === 'warning' || tone === 'critical';
   const gaugeStyle = { ['--rate' as string]: `${((rate ?? 0) * 100).toFixed(2)}%` } as CSSProperties;
-  // "8 not measurable": the range's delivered shipments the rate leaves out (Phase 1 spec §8; the Dashboard says it too).
+  // "8 not measurable": the range's delivered shipments the rate leaves out (the Dashboard says it too).
   const notMeasurable = notMeasurableNote(rangedShipments);
 
   return (

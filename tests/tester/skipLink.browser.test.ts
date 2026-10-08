@@ -1,4 +1,4 @@
-// Skip link (Phase 1 commit 2): activating it must focus the page's h1 and leave the route alone. It used to write `#main`
+// Skip link: activating it must focus the page's h1 and leave the route alone. It used to write `#main`
 // to the hash, which the router read as a route, so the page turned into "Page not found". jsdom has no real focus or
 // hash navigation, so this drives real Chromium through Playwright against the built app (dist/client).
 // OPT-IN: the `*.browser.test.ts` suffix is excluded from the default `npm test` (vitest.config.ts). Run it with
@@ -64,7 +64,7 @@ describe('Skip link (real Chromium)', () => {
     return { ctx, page, errors };
   };
 
-  // The Dashboard h1 is shown at 390 too since commit 7 (it used to be clipped there); the phone case stays.
+  // The Dashboard h1 is shown at 390 too (it used to be clipped there); the phone case stays.
   it.each([
     { name: 'Shipments', hash: 'shipments', width: 1440 },
     { name: 'Dashboard', hash: '', width: 1440 },

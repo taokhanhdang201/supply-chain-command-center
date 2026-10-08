@@ -1,7 +1,7 @@
 // Round-2 R-16 (assigned to the tester): tests that check what a user actually SEES, not just ARIA plumbing.
 // Complements tests/client/components/charts.test.tsx (which only exercises the single R-2 reproduction value)
-// with a fuzz across random datasets, adds the missing AnalyticsPage smoke test (thay-doi.md flags this as not
-// done: "did not add a dedicated AnalyticsPage.test.tsx"), and verifies long import-error / alert-message text
+// with a fuzz across random datasets, adds the missing AnalyticsPage smoke test (there was no dedicated
+// AnalyticsPage.test.tsx), and verifies long import-error / alert-message text
 // is fully present in the DOM (R-8) rather than truncated.
 
 // @vitest-environment jsdom
@@ -176,7 +176,7 @@ describe('R-16 (round 2): every chart renders at least one readable axis tick la
   });
 });
 
-describe('R-16 (round 2): AnalyticsPage smoke test (previously missing entirely per thay-doi.md)', () => {
+describe('R-16 (round 2): AnalyticsPage smoke test (previously missing entirely)', () => {
   it('renders all six charts, the metrics section (with meters), and the formula reference, for real sample-shaped data', async () => {
     const inventory = [
       makeInventoryRecord({ warehouse: 'WH-DFW', category: 'Electronics', quantity: 100, avgDailyUsage: 5 }),

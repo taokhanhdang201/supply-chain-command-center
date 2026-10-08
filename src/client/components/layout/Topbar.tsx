@@ -1,7 +1,7 @@
 // Page header (plan §8.1): mobile menu toggle, "Data as of ..." + data source chips, and a Refresh button with a polite
 // live region announcing "Refreshing…". It does not repeat the page title: the page's h1 is its only visible title.
-// While both sources are the generated sample, one "Sample data" chip opens a note with the seed and the daily rebuild
-// (owner decision D6); once a file is imported, each source keeps its own chip.
+// While both sources are the generated sample, one "Sample data" chip opens a note with the seed and the daily rebuild;
+// once a file is imported, each source keeps its own chip.
 
 import { useRef } from 'react';
 import type { PointerEvent, RefObject } from 'react';
@@ -36,7 +36,7 @@ export function Topbar({ today, dataSources, refreshing, onRefresh, drawerOpen, 
   const bothSample = dataSources !== null && dataSources.inventory.kind === 'sample' && dataSources.shipments.kind === 'sample';
   const seed = dataSources === null ? null : sampleSeed(dataSources.inventory.label);
 
-  // A mouse over the chip or its note opens the note and leaving both closes it (owner decision D6), where the browser
+  // A mouse over the chip or its note opens the note and leaving both closes it, where the browser
   // hangs the note under the chip (position-area). Elsewhere the note is centred on the screen, out of reach of the
   // pointer: leaving the chip would close it before it could be hovered (WCAG 1.4.13), so only a click, Enter or Space
   // opens it there. pointerenter and pointerleave follow the DOM tree, so moving from the chip onto the note, a child of

@@ -221,7 +221,7 @@ describe('the queue', () => {
     ]);
   });
 
-  // Lô 9 (owner decision D5, a price keeps its cents): one shipment's excess is the difference of two prices the Alerts page
+  // DESIGN.md "Money" (a price keeps its cents): one shipment's excess is the difference of two prices the Alerts page
   // shows to the cent, so under $10,000 it keeps its cents; from $10,000, and summed over several shipments, it is a summary.
   it("names one shipment's excess to the cent under $10,000; a sum, or $10,000 and more, reads as a summary", () => {
     const b = base();

@@ -161,7 +161,7 @@ describe('tester: CSV adversarial - inventory import', () => {
   // value is stored as negative zero (Object.is(-0, 0) === false) instead of being normalized to +0. This is
   // cosmetically harmless in most paths (JSON.stringify(-0) === "0", arithmetic sums normalize it away) but is
   // a genuine sign-preservation bug in the integer field parser worth a one-line fix (e.g. `value + 0` or
-  // `Object.is(value, -0) ? 0 : value`). Left failing per BUG-2 in ket-qua-test.md.
+  // `Object.is(value, -0) ? 0 : value`). Left failing on purpose (BUG-2).
   it('BUG-2: "-0" quantity should normalize to +0, not stored as negative zero', () => {
     const result = importInventoryCsv(invCsv(['ELC-0001,Widget,Electronics,WH-DFW,-0,5,9.99,,']));
     expect(result.ok).toBe(true);

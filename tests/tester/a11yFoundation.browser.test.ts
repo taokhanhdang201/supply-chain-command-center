@@ -1,4 +1,4 @@
-// Lô 9, commit 15 (end of Phase 1, fix round 1): the foundation's accessibility in a real browser, where jsdom cannot tell.
+// The foundation's accessibility in a real browser, where jsdom cannot tell.
 // A focused control is never left under the sticky top bar (WCAG 2.4.11); the open drawer keeps Tab inside it (2.4.3);
 // the sort buttons of a hidden header row leave the Tab order (2.4.7); field borders and a danger button on the band meet
 // their contrast (1.4.11, 1.4.3); an unavailable button keeps the focus (2.4.3); the skip link's ring shows on the dark
@@ -55,7 +55,7 @@ function installContrast(): void {
   (window as unknown as { __contrast: unknown }).__contrast = { parse, over, behind, ratio };
 }
 
-describe('Lô 9 accessibility of the foundation (real Chromium)', () => {
+describe('accessibility of the foundation (real Chromium)', () => {
   let server: ReturnType<typeof createAppServer>;
   let base = '';
   let browser: any;

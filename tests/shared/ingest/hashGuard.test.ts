@@ -5,7 +5,7 @@
 //
 // CHANGING OR ADDING A HASH NEEDS THE USER'S EXPLICIT APPROVAL. Record it here, in this comment, with the date and the
 // reason, then regenerate the JSON. Approvals so far: none (api.ts and index.ts are deliberately not protected: they carry
-// the approved M4 edits of decision 14a).
+// the approved M4 edits).
 
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';

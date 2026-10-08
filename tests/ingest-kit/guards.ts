@@ -7,7 +7,7 @@ import { join, posix, resolve } from 'node:path';
 
 export const ROOT = resolve(process.cwd());
 
-/** Files and folders that Phase 0 + 1a must not change (SA-4; ke-hoach (B) "Do NOT touch"). api.ts and index.ts are NOT here:
+/** Files and folders that Phase 0 + 1a must not change (SA-4). api.ts and index.ts are NOT here:
  *  they carry the approved M4 edits. A folder means every file below it. */
 export const PROTECTED_PATHS: readonly string[] = [
   'src/shared/types.ts',

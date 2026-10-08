@@ -147,7 +147,7 @@
   --tracking-figure: -0.02em;
   --tracking-display: -0.03em;
 
-  /* Alias (Phase 1 spec section 0b): the stage figures' size is the xl step of the scale. */
+  /* Alias: the stage figures' size is the xl step of the scale. */
   --stage-figure-size: var(--text-xl);
 
   /* Motion */

@@ -181,7 +181,7 @@ export function DashboardPage() {
   const rate = kpis.onTimeRate;
   const tone = onTimeTone(rate);
   // "8 not measurable" beside the rate's label, not in the detail line: inside the map (from 1280px) a longer detail line
-  // widened or deepened the figure onto Texas or WH-LAX (Phase 1 spec §8; the figure keeps the box the map leaves it).
+  // widened or deepened the figure onto Texas or WH-LAX (the figure keeps the box the map leaves it).
   const notMeasurable = notMeasurableNote(snapshot.shipments);
 
   return (
@@ -325,7 +325,7 @@ export function DashboardPage() {
               </svg>
             </a>
             {/* The kinds and their total count only the alerts that need attention; the Alerts page's total has the info
-                ones too (Phase 1 spec §8). */}
+                ones too. */}
             {infoAlertCount > 0 && <p className="attention__note">Info alerts are not counted.</p>}
           </div>
         </div>

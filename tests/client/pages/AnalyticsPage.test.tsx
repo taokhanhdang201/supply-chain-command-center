@@ -56,7 +56,7 @@ describe('AnalyticsPage: range figures on the stage', () => {
     expect(figure('On-time rate').querySelector('.stage-gauge')).toHaveClass('stage-gauge--critical');
   });
 
-  // Lô 9 (WCAG 1.3.1): one outline: the range h2 on the band, three section h2s on the floor, and under them each chart and
+  // WCAG 1.3.1: one outline: the range h2 on the band, three section h2s on the floor, and under them each chart and
   // each panel an h3 (the six chart cards were h2s beside "Charts").
   it('outlines the page: section h2s, and every chart and panel an h3 under them', async () => {
     await renderWithData(<AnalyticsPage />, { snapshot: makeSnapshot([makeInventoryRecord()], shipments(9, 1), { today: TODAY }) });

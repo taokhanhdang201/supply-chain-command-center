@@ -1,4 +1,4 @@
-// Column profiling and the per-field recognizers (ke-hoach 4.3), the composition boundaries of 4.4, and the mapping
+// Column profiling and the per-field recognizers, their composition boundaries, and the mapping
 // performance budget (criterion 52: mapping of 50 columns < 100 ms).
 
 import { describe, expect, it } from 'vitest';

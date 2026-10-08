@@ -1,4 +1,4 @@
-// Shared design tokens (Phase 1 spec section 1): the six type sizes, the gutter / grid-gap / content-width steps, the spacing
+// Shared design tokens (DESIGN.md §7, §8): the six type sizes, the gutter / grid-gap / content-width steps, the spacing
 // scale and the drawing duration are declared once, in tokens.css. The Dashboard's own names (--dash-*, --fs-*, --t-*) are
 // aliases of them, the older --font-size-* names are gone, and the map has no red of its own. The design ratchet does not follow
 // var(), so these values and aliases are pinned here.
@@ -94,7 +94,7 @@ describe('tokens.css', () => {
   });
 
   it('there is one red per surface: the route map has none of its own and the old map red is gone', () => {
-    // Declared twice and only in tokens.css: the paper red, and the stage red the Routes map reads (Phase 1 spec section 2).
+    // Declared twice and only in tokens.css: the paper red, and the stage red the Routes map reads (DESIGN.md "Semantic Colors").
     expect(values(all, '--critical')).toEqual(values(tokens, '--critical'));
     expect(values(tokens, '--critical')).toHaveLength(2);
     expect(values(tokens, '--critical').at(-1)).toBe('#f2645a');

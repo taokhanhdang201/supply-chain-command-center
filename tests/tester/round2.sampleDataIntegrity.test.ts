@@ -11,7 +11,7 @@ import { enrichShipments } from '../../src/shared/domain/shipments';
 import { enrichInventory, getStockStatus } from '../../src/shared/domain/inventory';
 import { LOCATIONS, WAREHOUSES } from '../../src/shared/reference/locations';
 
-const TODAY = '2026-09-28'; // matches the "today" the reviewer used to reproduce BUG-1 in danh-gia.md
+const TODAY = '2026-09-28'; // matches the "today" of the original BUG-1 reproduction
 
 describe('R-6 regression (round 2, independent path): exact manifest cost anomalies, no others', () => {
   it('flags exactly the 8 manifest cost anomalies via enrichShipments directly (not via buildAlerts)', () => {
@@ -68,8 +68,8 @@ describe('R-6 regression (round 2, independent path): exact manifest cost anomal
     // README.md documents `SCC_SEED` as a supported env var (default 42) for generating alternate sample
     // datasets. R-6's fix (carrier assigned per lane) removes the *carrier-mixing* false positives the reviewer
     // found on seed 42, but does not address the deeper root cause the reviewer described in R-12 (the cost-
-    // anomaly detector's route-only peer grouping) -- which the coder explicitly deferred in thay-doi.md
-    // ("R-12 (not done -- explicitly deferred)"). As a result, at least one other legitimately-configurable seed
+    // anomaly detector's route-only peer grouping) -- which was explicitly deferred
+    // (R-12, not done). As a result, at least one other legitimately-configurable seed
     // still reproduces the same class of bug as BUG-1: with SCC_SEED=100, shipment SHP-100202 (WH-LAX -> SEA,
     // BlueLine Logistics, $2,326.00 against a $2,077.03 route median) is flagged as a cost anomaly (z=3.69) even
     // though it is not one of that seed's manifest-injected anomalies -- purely from natural random cost

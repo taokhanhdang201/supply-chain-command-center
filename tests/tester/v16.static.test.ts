@@ -51,10 +51,10 @@ describe('V1.6 presentation-only guards', () => {
   });
 
   it('src/shared and src/server are unchanged versus SCC-V1.5-Stable (skipped only when the tag is absent)', () => {
-    // V2 ingestion M4: the user approved (yeu-cau.md section B2, ke-hoach decision 14a) exactly these two server edits
+    // V2 ingestion M4: the user approved exactly these two server edits
     // (SCC_MAX_IMPORT_ROWS limit wiring). Any other modified, deleted or renamed path under src/shared or src/server still
     // fails this guard.
-    // V2 ingestion, second user approval (yeu-cau.md section B2, after the Reviewer's CAN SUA): once the work is committed,
+    // V2 ingestion, second user approval (after a review asked for changes): once the work is committed,
     // the NEW ingestion files show up in this diff as added paths. ADDED files are accepted only under the two locations of
     // ALLOWED_V2_ADDED; any other added file still fails. Renames are reported as a deletion plus an addition
     // (`--no-renames`), so a rename can never slip through as an "addition".

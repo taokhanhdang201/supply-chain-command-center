@@ -75,7 +75,7 @@ describe('BarChart', () => {
     expect(screen.getByText('20')).toBeInTheDocument();
   });
 
-  // Lô 9 (WCAG 1.3.1): a chart sits under its section's h2 ("Charts" on Analytics), so its card's title is an h3; a Card on its
+  // WCAG 1.3.1: a chart sits under its section's h2 ("Charts" on Analytics), so its card's title is an h3; a Card on its
   // own keeps an h2.
   it('titles a chart one level under its section (h3); a Card is an h2 unless told otherwise', () => {
     render(

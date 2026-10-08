@@ -113,7 +113,7 @@ describe.runIf(hasBase)('TESTER integrity versus the base commit 167cc52', () =>
   });
 
   it('files the ingestion work added (base to tag) are only under the approved new paths, and local tooling is never tracked', () => {
-    // The approved new paths of the work (ke-hoach part (B)) plus this work item's own deliverables.
+    // The approved new paths of the work plus this work item's own deliverables.
     const approvedNew = [
       /^src\/shared\/ingest\//, /^src\/client\/ingest\//, /^src\/server\/ingestLimits\.ts$/,
       /^src\/client\/components\/import\/(FormatPanel|StructurePanel|TablePicker|ValueMappingPanel|UniversalImportCard|EvidenceList|ImportPreview|PasteBox)\.tsx$/,

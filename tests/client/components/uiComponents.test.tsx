@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// Phase 1 spec §6 component contracts: Button, SelectField, Pagination, SectionHeader, EmptyState, SearchInput, Figure, the
+// The component contracts: Button, SelectField, Pagination, SectionHeader, EmptyState, SearchInput, Figure, the
 // control states in components.css (hover, active, disabled, the bare disabled button in base.css) and the Figure link states in pages.css.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -56,14 +56,14 @@ describe('Button', () => {
     );
     const off = screen.getByRole('button', { name: 'Why? Carrier' });
     expect(off).toHaveAttribute('type', 'submit');
-    // Lô 9 (WCAG 2.4.3): unavailable is aria-disabled, not the disabled attribute, so a focused button keeps its focus.
+    // WCAG 2.4.3: unavailable is aria-disabled, not the disabled attribute, so a focused button keeps its focus.
     expect(off).toHaveAttribute('aria-disabled', 'true');
     expect(off).not.toBeDisabled();
     await user.click(off);
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  // Lô 9 (WCAG 2.4.3 / 4.1.2): busy is unavailable too, said with aria-disabled: the button keeps its focus (the disabled
+  // WCAG 2.4.3 / 4.1.2: busy is unavailable too, said with aria-disabled: the button keeps its focus (the disabled
   // attribute dropped it to <body>) and ignores a click or a key.
   it('busy sets aria-busy and aria-disabled, keeps the button focusable, and ignores a click or Enter', async () => {
     const user = userEvent.setup();
@@ -102,7 +102,7 @@ describe('Button', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  // react-reviewer: aria-busy was written after the native props, so it overwrote the caller's.
+  // aria-busy once came after the native props, so it overwrote the caller's.
   it("keeps a caller's aria-busy", () => {
     render(<Button aria-busy>Saving</Button>);
     expect(screen.getByRole('button', { name: 'Saving' })).toHaveAttribute('aria-busy', 'true');
@@ -139,7 +139,7 @@ describe('Pagination', () => {
   it('is a navigation landmark named Pagination holding Previous, Next, the page-size select and the summary', () => {
     render(<Pagination {...props} onPageChange={vi.fn()} onPageSizeChange={vi.fn()} />);
     const nav = screen.getByRole('navigation', { name: 'Pagination' });
-    // Lô 9: Previous on the first page is unavailable but keeps its place in the Tab order (aria-disabled).
+    // Previous on the first page is unavailable but keeps its place in the Tab order (aria-disabled).
     expect(within(nav).getByRole('button', { name: 'Previous' })).toHaveAttribute('aria-disabled', 'true');
     expect(within(nav).getByRole('button', { name: 'Next' })).not.toHaveAttribute('aria-disabled');
     expect(within(nav).getByLabelText('Rows per page')).toBeInTheDocument();
@@ -358,14 +358,14 @@ describe('control states in components.css', () => {
     expect(bodyOf('.select-field__control:hover:not(:disabled)')).toMatch(/border-color:\s*var\(--color-text-muted\)/);
   });
 
-  // Lô 9: Button's unavailable and busy states (aria-disabled) fade like a disabled control, and the mouse passes through.
+  // Button's unavailable and busy states (aria-disabled) fade like a disabled control, and the mouse passes through.
   it('fades an aria-disabled button like a disabled one and lets the mouse through it', () => {
     const body = bodyOf(".button[aria-disabled='true']");
     expect(body).toMatch(/opacity:\s*0\.45/);
     expect(body).toMatch(/pointer-events:\s*none/);
   });
 
-  // Lô 9 review S1: opacity fades the whole button, its focus ring too (2.03:1 on the paper at 0.45). Tab still reaches an
+  // Opacity fades the whole button, its focus ring too (2.03:1 on the paper at 0.45). Tab still reaches an
   // unavailable button (Previous on page 1, Next on the last), so while it has the focus the fade lifts: 0.7 keeps the ring
   // above 3:1 and the button paler than a usable one.
   it('lifts the fade of a focused aria-disabled button, so its focus ring keeps 3:1', () => {
@@ -373,7 +373,7 @@ describe('control states in components.css', () => {
     expect(Number(/opacity:\s*([\d.]+)/.exec(body)?.[1])).toBeGreaterThanOrEqual(0.7);
   });
 
-  // Lô 9: without the Popover API the sample note would sit in the top bar as a plain paragraph (Chromium cannot show it).
+  // Without the Popover API the sample note would sit in the top bar as a plain paragraph (Chromium cannot show it).
   it('hides the sample note where the browser has no popovers', () => {
     expect(css).toMatch(/@supports not selector\(:popover-open\)\s*\{\s*\.topbar__note\s*\{\s*display:\s*none;?\s*\}/);
   });

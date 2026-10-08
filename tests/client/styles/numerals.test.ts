@@ -1,5 +1,5 @@
-// Phase 1 spec §5 (commit 10b): tabular figures only where numbers line up or change in place; running text keeps
-// proportional ones (tong-hop A9). The floor tables' scroll covers are the paper (A10). jsdom cannot lay out a page, so the
+// DESIGN.md §9: tabular figures only where numbers line up or change in place; running text keeps
+// proportional ones. The floor tables' scroll covers are the paper. jsdom cannot lay out a page, so the
 // rules are read as text; v16.ui.browser.test.ts measures them in Chrome.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -44,13 +44,13 @@ describe('numerals', () => {
     expect(bodyOf(file, selector)).toMatch(/font-variant-numeric:\s*tabular-nums/);
   });
 
-  it('reads an ID as text: the Dashboard activity ID has proportional figures (A9)', () => {
+  it('reads an ID as text: the Dashboard activity ID has proportional figures', () => {
     const body = bodyOf('atlas.css', '.atlas-page .activity__id');
     expect(body).toMatch(/font-weight:\s*500/);
     expect(body).not.toMatch(/font-variant-numeric/);
   });
 
-  it('covers the scroll edges of a floor table with the paper it sits on (A10)', () => {
+  it('covers the scroll edges of a floor table with the paper it sits on', () => {
     const body = bodyOf('pages.css', '.page-floor .table-scroll');
     expect(body.match(/var\(--color-bg\) 30%/g)).toHaveLength(2);
     expect(body.match(/var\(--color-scroll-shadow\)/g)).toHaveLength(2);

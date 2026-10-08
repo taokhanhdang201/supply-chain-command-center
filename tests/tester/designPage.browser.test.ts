@@ -1,4 +1,4 @@
-// The design reference (#/_design, Phase 1 spec §10) exists in development builds only. Against the production build
+// The design reference (#/_design) exists in development builds only. Against the production build
 // (dist/client): the hash reads as "Page not found", and no built file carries the page's code or its stylesheet.
 // OPT-IN: the `*.browser.test.ts` suffix is excluded from the default `npm test` (vitest.config.ts). Run it with
 //   npm run build && SCC_PW_DIR=<dir with playwright> npm run test:browser

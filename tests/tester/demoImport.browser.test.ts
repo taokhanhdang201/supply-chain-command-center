@@ -188,7 +188,7 @@ describe('demo import (real Chromium, real server)', () => {
     expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Inventory: Sample data (seed 7)', 'Shipments: carrier-export.csv']); // nothing changed yet
     await page.getByRole('button', { name: 'Replace data' }).click();
     await page.getByText('Sample data restored.').waitFor();
-    // Both sources are the generated sample again: one chip, its note naming seed 42 (owner decision D6).
+    // Both sources are the generated sample again: one chip, its note naming seed 42.
     await page.waitForFunction(() => document.querySelectorAll('.topbar__chip').length === 1);
     expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Sample data']);
     expect(await page.locator('.topbar__note').textContent()).toContain('(seed 42)');

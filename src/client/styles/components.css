@@ -425,7 +425,7 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   line-height: 1.4;
 }
 
-/* 8px cells: with 14px table text the ledgers still fit their columns at 1280px (Phase 1 commit 3). */
+/* 8px cells: with 14px table text the ledgers still fit their columns at 1280px. */
 .data-table th,
 .data-table td {
   padding: var(--space-2);

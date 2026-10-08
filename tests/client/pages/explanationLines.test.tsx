@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-// Phase 1 spec §8 (owner: "5 cặp số lệch: thêm một dòng giải thích ngắn cạnh số, không đổi số"): a number that differs on
-// purpose from another place says why, beside it, counted from the server's own flags; no number changes. Seed 42 at
-// 2026-10-07 gives the pairs .bangiao/phase0/tong-hop.md lists; small fixtures give the edges: nothing to explain shows nothing.
+// A number that differs on purpose from another place says why, beside it, counted from the server's own flags; no number
+// changes. Seed 42 at 2026-10-07 gives the pairs below; small fixtures give the edges: nothing to explain shows nothing.
 import { beforeEach, describe, expect, it } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { AlertsPage } from '../../../src/client/pages/AlertsPage';

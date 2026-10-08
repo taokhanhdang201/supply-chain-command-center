@@ -2,7 +2,7 @@
 // the HELD-OUT corpus (written before the dictionaries and never used to tune them). A failing threshold fails the build.
 //   wrong MATCHED = 0 on both; known-ambiguous headers ever MATCHED = 0; junk/distractor columns MATCHED = 0;
 //   recall (MATCHED + CHECK) >= 95% tuning and >= 80% held-out; CHECK suggestions whose top suggestion is wrong <= 10%.
-// Honest note recorded in thay-doi.md: the held-out corpus and the dictionaries were written by the same author, in that
+// Honest note: the held-out corpus and the dictionaries were written by the same author, in that
 // order; the Tester is asked to write an independent corpus.
 
 import { describe, expect, it } from 'vitest';

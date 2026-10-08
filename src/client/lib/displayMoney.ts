@@ -1,4 +1,4 @@
-// Money on screen, one way everywhere (Phase 1 spec §4; owner decision D5): summary figures read compact ($32.6M,
+// Money on screen, one way everywhere (DESIGN.md "Money"): summary figures read compact ($32.6M,
 // $165.4K); in a table an amount rounds to the dollar and a price (one unit, one shipment) keeps its cents. Only the
 // presentation changes: every value is the integer cents the snapshot holds. Chart axes keep their own short format
 // (formatCentsAxis in shared/format.ts).

@@ -1,4 +1,4 @@
-// Design tokens that only a real browser can resolve (Phase 1 commit 4). The select chevron is a data-URI held in the custom
+// Design tokens that only a real browser can resolve. The select chevron is a data-URI held in the custom
 // property --select-chevron: a data-URI cannot read another property, so tokens.css writes one ink for paper (:root) and one for
 // the dark bands (.surface-stage), and the dark-band rule that used to override the image is gone. jsdom does not cascade custom
 // properties from a stylesheet, so this drives real Chromium through Playwright against the built app (dist/client).

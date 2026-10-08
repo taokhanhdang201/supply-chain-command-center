@@ -142,7 +142,7 @@ export class InlineRunner implements IngestRunner {
   }
 }
 
-// ---- legacy-first routing (ke-hoach 3.6, Addendum AD-1 gate) ---------------------------------------------------------------
+// ---- legacy-first routing (Addendum AD-1 gate) ---------------------------------------------------------------
 
 export interface Route {
   route: 'legacy' | 'pipeline';

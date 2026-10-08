@@ -1,4 +1,4 @@
-// The one button (Phase 1 spec §6): always a real <button>, type="button" unless told otherwise, wearing the existing
+// The one button (DESIGN.md §14): always a real <button>, type="button" unless told otherwise, wearing the existing
 // .button classes. Navigation stays an <a> (.text-link, .dash-link, or a.button for a link that looks like a button).
 import type { ButtonHTMLAttributes } from 'react';
 

@@ -103,7 +103,7 @@ describe('performance budgets (criterion 52)', () => {
     mkdirSync(tmpdir(), { recursive: true });
     writeFileSync(join(tmpdir(), 'scc-ingest-perf.json'), JSON.stringify(result, null, 1));
 
-    // CI-safe thresholds (the spec budgets are recorded above and in thay-doi.md)
+    // CI-safe thresholds (the spec budgets are recorded above)
     expect(result.detectFormatMs).toBeLessThan(300);
     expect(result.encodingAndSeparatorOn2MiBMs).toBeLessThan(1500);
     expect(result.adapterProbeMs).toBeLessThan(1500);

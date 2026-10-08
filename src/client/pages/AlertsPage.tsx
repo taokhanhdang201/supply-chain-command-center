@@ -144,7 +144,7 @@ export function AlertsPage() {
 
   const hasAnyFilter = severity !== 'all' || type !== 'all' || kind !== 'all' || query !== '';
 
-  // Phase 1 spec §8: beside the count, the rows in view that need attention (critical and warning: the number in the
+  // Beside the count, the rows in view that need attention (critical and warning: the number in the
   // sidebar badge and on the Dashboard) and the info rows, only when the view holds both, so "67 alerts" beside the
   // sidebar's 57 explains itself. Counted from the server's severities.
   const needAttention = filtered.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;

@@ -126,7 +126,7 @@ describe('structure, status and warehouse maps on the fixtures (criteria 11, 15)
   });
 });
 
-describe('dataset detection (ke-hoach 4.5 / first proposal thresholds)', () => {
+describe('dataset detection (the first proposal thresholds)', () => {
   it('picks the clear dataset and asks when a table carries both kinds', async () => {
     const guess = async (name: string) => {
       const f = [...FIXTURES, ...AMBIGUITY_FIXTURES].find((x) => x.name === name)!;

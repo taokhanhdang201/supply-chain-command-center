@@ -1,7 +1,7 @@
 // Round-2 independent verification of R-13 (warehouse utilization must be null, not 0, when capacityUnits is 0)
 // and R-14 (Dashboard "Alerts needing attention" KPI must be internally consistent with the Alerts page's full
 // count). Calls computeWarehouseUtilization directly with a synthetic zero-capacity warehouse (not reachable
-// through the current reference location list, exactly as thay-doi.md notes) rather than re-testing through the
+// through the current reference location list) rather than re-testing through the
 // UI meter component, and independently recomputes the KPI/alert-count relationship from raw snapshot data.
 
 import { describe, it, expect } from 'vitest';

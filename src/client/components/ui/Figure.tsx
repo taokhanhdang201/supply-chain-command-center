@@ -1,4 +1,4 @@
-// A figure on the dark page band (Phase 1 spec §6): the value first, then its label and an optional detail. It is one list
+// A figure on the dark page band: the value first, then its label and an optional detail. It is one list
 // item of a ul.figure-stage__figures; with href the whole figure is one link to the filter it counts. It wears the
 // existing stage-figure classes.
 import type { ReactNode } from 'react';

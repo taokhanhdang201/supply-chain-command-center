@@ -17,7 +17,7 @@ export function onTimeTone(rate: number | null): TargetTone {
 }
 
 /**
- * "8 not measurable" (Phase 1 spec §8): the delivered shipments the on-time rate leaves out because the server could not
+ * "8 not measurable": the delivered shipments the on-time rate leaves out because the server could not
  * rate them (deliveryState "unknown": a delivery date is missing, or the delivery is dated before the ship date). Beside
  * "364 of 425 delivered on time" it says why 425 is not every delivered shipment (433). It counts the server's flags;
  * null when every delivered shipment was rated, so complete data shows nothing extra.

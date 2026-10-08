@@ -139,7 +139,7 @@ export function RoutesPage() {
   const unmappedRoutes = allRoutes.filter((r) => !r.mapped);
   const limit = top === 'all' ? mappedRoutes.length : Number(top);
   const shownRoutes = mappedRoutes.slice(0, limit);
-  // Listed but not drawn (Phase 1 spec §8): past the "Show top" limit, or without coordinates (the Unmapped table). With
+  // Listed but not drawn: past the "Show top" limit, or without coordinates (the Unmapped table). With
   // the map's count this adds up to the lane count: 25 + 7 = 32 on seed 42.
   const notOnMap = allRoutes.length - shownRoutes.length;
 

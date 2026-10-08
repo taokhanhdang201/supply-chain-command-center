@@ -209,7 +209,7 @@ describe('DesignPage', () => {
     expect(buttons.filter((b) => !/button--(primary|ghost|danger|link)\b/.test(b.className)), 'secondary').toHaveLength(6);
     expect(buttons.filter((b) => b.classList.contains('button--sm'))).toHaveLength(15);
     expect(buttons.filter((b) => b.getAttribute('aria-busy') === 'true')).toHaveLength(10);
-    expect(buttons.filter((b) => b.getAttribute('aria-disabled') === 'true')).toHaveLength(20); // Lô 9: aria-disabled, not disabled
+    expect(buttons.filter((b) => b.getAttribute('aria-disabled') === 'true')).toHaveLength(20); // aria-disabled, not disabled
     expect(buttons.filter((b) => b.disabled)).toHaveLength(0);
   });
 

@@ -34,7 +34,7 @@ describe('InventoryPage', () => {
     expect(rows[1]).toHaveTextContent('ELC-0001');
   });
 
-  // Phase 1 spec §4 (D5): in the table a unit price keeps its cents and a value rounds to the dollar; the band figure and
+  // DESIGN.md "Money": in the table a unit price keeps its cents and a value rounds to the dollar; the band figure and
   // the line over the table are summaries.
   it('keeps the cents of Unit cost, rounds Value to the dollar, and shows the totals as summaries', async () => {
     const snapshot = makeSnapshot([makeInventoryRecord({ sku: 'PRC-1', quantity: 3, unitCostCents: 61_707 })], [], { today: TODAY });
@@ -148,7 +148,7 @@ describe('InventoryPage: a triaged ledger', () => {
     expect(within(group).queryByText(/total/i)).toBeNull();
   });
 
-  // Phase 1 spec §2 and DESIGN.md "Neutral": an unknown risk is neutral, never a warning (amber until commit 9b).
+  // DESIGN.md "Neutral": an unknown risk is neutral, never a warning (it was amber once).
   it('keeps red for Out of stock only and amber for Low stock and High stockout risk; Unknown risk is plain ink', async () => {
     await renderWithData(<InventoryPage />, { snapshot: triage() });
     expect(screen.getByRole('link', { name: /^1 Out of stock/ })).toHaveClass('stage-figure--critical');
