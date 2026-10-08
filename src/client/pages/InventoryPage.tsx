@@ -4,11 +4,12 @@
 
 import { useEffect, useMemo } from 'react';
 import type { InventoryItem, StockStatus, StockoutRisk } from '../../shared/types';
-import { formatCents, formatCentsCompact, formatDays } from '../../shared/format';
+import { formatDays } from '../../shared/format';
 import { useSnapshot } from '../state/DataContext';
 import { buildHash, navigate, useHashRoute } from '../router';
 import { useTableState } from '../hooks/useTableState';
 import { matchesSearch, paginate, sortRows } from '../lib/table';
+import { displayMoneySummary, displayMoneyTable } from '../lib/displayMoney';
 import { PageStage } from '../components/layout/PageStage';
 import { DataTable, type Column } from '../components/ui/DataTable';
 import { Pagination } from '../components/ui/Pagination';
@@ -202,8 +203,8 @@ export function InventoryPage() {
     },
     { key: 'quantity', header: 'Qty', sortable: true, align: 'right', phoneLabel: 'Qty', render: (i) => i.quantity.toLocaleString('en-US') },
     { key: 'reorderPoint', header: 'Reorder pt', sortable: true, align: 'right', phoneLabel: 'Reorder pt', render: (i) => i.reorderPoint.toLocaleString('en-US') },
-    { key: 'unitCost', header: 'Unit cost', sortable: true, align: 'right', phoneLabel: 'Unit cost', render: (i) => formatCents(i.unitCostCents) },
-    { key: 'value', header: 'Value', sortable: true, align: 'right', emphasis: true, phoneLabel: 'Value', render: (i) => formatCents(i.inventoryValueCents) },
+    { key: 'unitCost', header: 'Unit cost', sortable: true, align: 'right', phoneLabel: 'Unit cost', render: (i) => displayMoneyTable(i.unitCostCents, 'price') },
+    { key: 'value', header: 'Value', sortable: true, align: 'right', emphasis: true, phoneLabel: 'Value', render: (i) => displayMoneyTable(i.inventoryValueCents, 'amount') },
     {
       key: 'stock',
       header: 'Stock',
@@ -231,7 +232,7 @@ export function InventoryPage() {
                 In the network
               </h2>
               <ul className="figure-stage__figures">
-                <Figure value={formatCentsCompact(totalValueCents)} label="Inventory value" />
+                <Figure value={displayMoneySummary(totalValueCents)} label="Inventory value" />
                 <Figure value={all.length.toLocaleString('en-US')} label="Items" />
               </ul>
             </section>
@@ -296,7 +297,7 @@ export function InventoryPage() {
             ) : (
               <>
                 <p className="table-summary">
-                  {filtered.length} item{filtered.length === 1 ? '' : 's'} · {formatCents(filteredValueCents)}
+                  {filtered.length} item{filtered.length === 1 ? '' : 's'} · {displayMoneySummary(filteredValueCents)}
                 </p>
                 <DataTable
                   caption="Inventory"

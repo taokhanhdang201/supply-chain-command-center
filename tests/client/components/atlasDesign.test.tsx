@@ -153,7 +153,7 @@ describe('WarehouseRacks are five copies of one bay', () => {
     const rack = container.querySelector('.rack') as HTMLElement;
     const parts = [...rack.children].map((n) => n.className);
     expect(parts).toEqual(['rack__frame', 'rack__code', 'rack__pct', 'rack__value']);
-    expect([...rack.querySelectorAll('.rack__code, .rack__pct, .rack__value')].map((n) => n.textContent)).toEqual(['WH-DFW', '76.9%', '$2.50M']);
+    expect([...rack.querySelectorAll('.rack__code, .rack__pct, .rack__value')].map((n) => n.textContent)).toEqual(['WH-DFW', '76.9%', '$2.5M']);
     // Name and units live in the accessible name and the tooltip, not in the drawing.
     expect(rack).toHaveAttribute('title', 'Warehouse WH-DFW: 55,383 of 72,000 units');
     expect(rack.textContent).not.toMatch(/Warehouse|units/);

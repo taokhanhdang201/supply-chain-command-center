@@ -6,10 +6,11 @@ import { useMemo, useState } from 'react';
 import type { DateRange, RouteSummary } from '../../shared/domain/analytics';
 import { filterShipmentsByRange, summarizeRoutes } from '../../shared/domain/analytics';
 import type { Shipment } from '../../shared/types';
-import { formatCents, formatPercent } from '../../shared/format';
+import { formatPercent } from '../../shared/format';
 import { ROUTE_DELAY_CRITICAL_SHARE, ROUTE_DELAY_WARNING_SHARE } from '../../shared/constants';
 import { useSnapshot } from '../state/DataContext';
 import { buildHash, navigate, useHashRoute } from '../router';
+import { displayMoneyTable } from '../lib/displayMoney';
 import { Card } from '../components/ui/Card';
 import { RouteLabel } from '../components/ui/RouteLabel';
 import { PageStage } from '../components/layout/PageStage';
@@ -84,7 +85,7 @@ const ATTENTION_FIGURES: ReadonlyArray<{ lane: string; label: string; tone: 'cri
 const UNMAPPED_COLUMNS: Column<RouteSummary>[] = [
   { key: 'route', header: 'Route', wrap: true, render: (r) => <RouteLabel label={r.label} /> },
   { key: 'count', header: 'Shipments', align: 'right', phoneLabel: 'Shipments', render: (r) => r.count },
-  { key: 'avgCost', header: 'Avg cost', align: 'right', phoneLabel: 'Avg cost', render: (r) => formatCents(r.avgCostCents) }
+  { key: 'avgCost', header: 'Avg cost', align: 'right', phoneLabel: 'Avg cost', render: (r) => displayMoneyTable(r.avgCostCents, 'price') }
 ];
 
 /** The Routes page (plan §8.6): lane figures, a schematic route map, its detail panel, and unmapped routes. */
@@ -212,11 +213,11 @@ export function RoutesPage() {
               </div>
               <div>
                 <dt>Total cost</dt>
-                <dd>{formatCents(selectedRoute.totalCostCents)}</dd>
+                <dd>{displayMoneyTable(selectedRoute.totalCostCents, 'amount')}</dd>
               </div>
               <div>
                 <dt>Average cost</dt>
-                <dd>{formatCents(selectedRoute.avgCostCents)}</dd>
+                <dd>{displayMoneyTable(selectedRoute.avgCostCents, 'price')}</dd>
               </div>
               <div>
                 <dt>Delayed</dt>

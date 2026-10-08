@@ -16,11 +16,12 @@ import {
 } from '../../shared/domain/analytics';
 import { METRIC_DEFINITIONS } from '../../shared/formulas';
 import { computeKpis } from '../../shared/domain/metrics';
-import { formatCents, formatCentsAxis, formatCentsCompact, formatCompactNumber, formatDays, formatMonth, formatMonthWithMtd, formatPercent, monthAxisLabels, monthAxisNote, statusLabel } from '../../shared/format';
+import { formatCentsAxis, formatCompactNumber, formatDays, formatMonth, formatMonthWithMtd, formatPercent, monthAxisLabels, monthAxisNote, statusLabel } from '../../shared/format';
 import type { ShipmentStatus, StockoutRisk } from '../../shared/types';
 import { useSnapshot } from '../state/DataContext';
 import { buildHash, navigate, useHashRoute } from '../router';
 import { ON_TIME_TARGET, onTimeTone } from '../lib/targets';
+import { displayMoneySummary, displayMoneyTable } from '../lib/displayMoney';
 import { PageStage } from '../components/layout/PageStage';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { SectionHeader } from '../components/ui/SectionHeader';
@@ -119,9 +120,9 @@ export function AnalyticsPage() {
                 {rate !== null && <span className={`stage-gauge stage-gauge--${tone}`} style={gaugeStyle} aria-hidden="true" />}
               </Figure>
               <Figure
-                value={formatCentsCompact(kpis.totalShippingCostCents)}
+                value={displayMoneySummary(kpis.totalShippingCostCents)}
                 label="Shipping cost"
-                detail={kpis.averageShippingCostCents === null ? 'No shipments' : `avg ${formatCents(kpis.averageShippingCostCents)} per shipment`}
+                detail={kpis.averageShippingCostCents === null ? 'No shipments' : `avg ${displayMoneySummary(kpis.averageShippingCostCents)} per shipment`}
               />
               <Figure value={formatDays(kpis.averageDeliveryDays)} label="Avg delivery" detail="ship date to delivery" />
               <Figure value={kpis.totalShipments.toLocaleString('en-US')} label="Shipments in range" detail={`${kpis.deliveredShipments.toLocaleString('en-US')} delivered`} />
@@ -138,12 +139,12 @@ export function AnalyticsPage() {
             <ChartFrame
               title="Inventory value by warehouse"
               isEmpty={valueByWarehouse.length === 0}
-              table={{ columns: ['Warehouse', 'Value'], rows: valueByWarehouse.map((d) => [d.label, formatCents(d.valueCents)]) }}
+              table={{ columns: ['Warehouse', 'Value'], rows: valueByWarehouse.map((d) => [d.label, displayMoneyTable(d.valueCents, 'amount')]) }}
             >
               <BarChart
                 data={valueByWarehouse.map((d) => ({ key: d.key, label: d.label, shortLabel: d.key.replace(/^WH-/, ''), value: d.valueCents / 100 }))}
                 orientation="vertical"
-                valueFormat={(n) => formatCents(Math.round(n * 100))}
+                valueFormat={(n) => displayMoneyTable(Math.round(n * 100), 'amount')}
                 tickFormat={(n) => formatCentsAxis(Math.round(n * 100))}
                 ariaLabel="Inventory value by warehouse"
               />
@@ -151,12 +152,12 @@ export function AnalyticsPage() {
             <ChartFrame
               title="Inventory value by category"
               isEmpty={valueByCategory.length === 0}
-              table={{ columns: ['Category', 'Value'], rows: valueByCategory.map((d) => [d.label, formatCents(d.valueCents)]) }}
+              table={{ columns: ['Category', 'Value'], rows: valueByCategory.map((d) => [d.label, displayMoneyTable(d.valueCents, 'amount')]) }}
             >
               <BarChart
                 data={valueByCategory.map((d) => ({ key: d.key, label: d.label, value: d.valueCents / 100 }))}
                 orientation="horizontal"
-                valueFormat={(n) => formatCents(Math.round(n * 100))}
+                valueFormat={(n) => displayMoneyTable(Math.round(n * 100), 'amount')}
                 tickFormat={(n) => formatCentsAxis(Math.round(n * 100))}
                 ariaLabel="Inventory value by category"
               />
@@ -178,11 +179,11 @@ export function AnalyticsPage() {
               subtitle={`Range: ${RANGE_OPTIONS.find((o) => o.value === range)?.label}`}
               isEmpty={costByMonth.length === 0}
               note={costAxisNote(costByMonth.map((d) => d.month), snapshot.today)}
-              table={{ columns: ['Month', 'Total cost', 'Shipments'], rows: costByMonth.map((d) => [formatMonthWithMtd(d.month, snapshot.today), formatCents(d.totalCents), d.count]) }}
+              table={{ columns: ['Month', 'Total cost', 'Shipments'], rows: costByMonth.map((d) => [formatMonthWithMtd(d.month, snapshot.today), displayMoneyTable(d.totalCents, 'amount'), d.count]) }}
             >
               <LineChart
                 points={costByMonth.map((d, i) => ({ label: formatMonthWithMtd(d.month, snapshot.today), axisLabel: costMonthLabels[i], value: d.totalCents / 100 }))}
-                valueFormat={(n) => formatCents(Math.round(n * 100))}
+                valueFormat={(n) => displayMoneyTable(Math.round(n * 100), 'amount')}
                 tickFormat={(n) => formatCentsAxis(Math.round(n * 100))}
                 ariaLabel="Shipping cost by month"
               />
@@ -210,12 +211,12 @@ export function AnalyticsPage() {
               subtitle={`Range: ${RANGE_OPTIONS.find((o) => o.value === range)?.label}`}
               isEmpty={routes.length === 0}
               controls={<SelectField label="Sort by" value={routeSortBy} options={ROUTE_SORT_OPTIONS} onChange={(v) => setRouteSortBy(v as 'count' | 'cost')} />}
-              table={{ columns: ['Route', 'Shipments', 'Total cost'], rows: routes.map((r) => [r.label, r.count, formatCents(r.totalCostCents)]) }}
+              table={{ columns: ['Route', 'Shipments', 'Total cost'], rows: routes.map((r) => [r.label, r.count, displayMoneyTable(r.totalCostCents, 'amount')]) }}
             >
               <BarChart
                 data={routes.map((r) => ({ key: r.routeKey, label: r.label, shortLabel: routeShortLabel(r), value: routeSortBy === 'count' ? r.count : r.totalCostCents / 100 }))}
                 orientation="horizontal"
-                valueFormat={(n) => (routeSortBy === 'count' ? n.toLocaleString('en-US') : formatCents(Math.round(n * 100)))}
+                valueFormat={(n) => (routeSortBy === 'count' ? n.toLocaleString('en-US') : displayMoneyTable(Math.round(n * 100), 'amount'))}
                 tickFormat={(n) => (routeSortBy === 'count' ? formatCompactNumber(n) : formatCentsAxis(Math.round(n * 100)))}
                 ariaLabel="Top shipping routes"
               />

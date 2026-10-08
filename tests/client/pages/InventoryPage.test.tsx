@@ -28,10 +28,21 @@ describe('InventoryPage', () => {
     const snapshot = makeSnapshot(inventory, [], { today: TODAY });
     await renderWithData(<InventoryPage />, { snapshot });
 
-    expect(screen.getByText('2 items · $510.00')).toBeInTheDocument();
+    expect(screen.getByText('2 items · $510')).toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1); // skip header row
     expect(rows[0]).toHaveTextContent('ELC-0002');
     expect(rows[1]).toHaveTextContent('ELC-0001');
+  });
+
+  // Phase 1 spec §4 (D5): in the table a unit price keeps its cents and a value rounds to the dollar; the band figure and
+  // the line over the table are summaries.
+  it('keeps the cents of Unit cost, rounds Value to the dollar, and shows the totals as summaries', async () => {
+    const snapshot = makeSnapshot([makeInventoryRecord({ sku: 'PRC-1', quantity: 3, unitCostCents: 61_707 })], [], { today: TODAY });
+    await renderWithData(<InventoryPage />, { snapshot });
+    expect(document.querySelector('tbody td.data-table__col--unitCost')?.textContent).toMatch(/\$617\.07$/);
+    expect(document.querySelector('tbody td.data-table__col--value')?.textContent).toMatch(/\$1,851$/);
+    expect(screen.getByText('Inventory value').closest('li')).toHaveTextContent('$1,851');
+    expect(screen.getByText('1 item · $1,851')).toBeInTheDocument();
   });
 
   it('filters by search text (SKU or product name)', async () => {
@@ -44,7 +55,7 @@ describe('InventoryPage', () => {
     await renderWithData(<InventoryPage />, { snapshot });
 
     await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'scanner');
-    expect(await screen.findByText('1 item · $500.00')).not.toBeNull();
+    expect(await screen.findByText('1 item · $500')).not.toBeNull();
     expect(screen.getByText('ELC-0001')).toBeInTheDocument();
     expect(screen.queryByText('PKG-0002')).not.toBeInTheDocument();
   });

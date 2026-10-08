@@ -7,11 +7,12 @@
 import { useRef } from 'react';
 import type { Location } from '../../../shared/types';
 import type { RouteSummary } from '../../../shared/domain/analytics';
-import { formatCentsCompact, formatPercent } from '../../../shared/format';
+import { formatPercent } from '../../../shared/format';
 import { projectToMap } from '../../../shared/geo';
 import { US_OUTLINE } from '../../../shared/reference/usOutline';
 import { ROUTE_DELAY_CRITICAL_SHARE } from '../../../shared/constants';
 import { buildHash } from '../../router';
+import { displayMoneySummary } from '../../lib/displayMoney';
 import { placeMapLabels } from '../routes/labelPlacement';
 import { useElementSize } from '../../hooks/useAtlasHooks';
 import { laneTone, lanePath, type TransitDot } from './atlasGeometry';
@@ -161,8 +162,8 @@ export function AtlasScene({ routes, locations, warehouseValueCents, dots, focus
               const hit = Math.max(side + 10, HIT_PX);
               const offset = placements.get(loc.code);
               return (
-                <a key={loc.code} href={buildHash('inventory', { warehouse: loc.code })} className="atlas__warehouse" aria-label={`${loc.name}, ${formatCentsCompact(value)} in inventory. View its inventory`}>
-                  <title>{`${loc.name} · ${formatCentsCompact(value)} in inventory`}</title>
+                <a key={loc.code} href={buildHash('inventory', { warehouse: loc.code })} className="atlas__warehouse" aria-label={`${loc.name}, ${displayMoneySummary(value)} in inventory. View its inventory`}>
+                  <title>{`${loc.name} · ${displayMoneySummary(value)} in inventory`}</title>
                   <rect x={x - hit / 2} y={y - hit / 2} width={hit} height={hit} className="atlas__warehouse-hit" />
                   <rect x={x - side / 2} y={y - side / 2} width={side} height={side} strokeWidth={2} className="atlas__warehouse-node" />
                   {offset !== undefined && (

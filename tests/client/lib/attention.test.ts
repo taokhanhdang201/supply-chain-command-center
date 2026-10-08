@@ -6,7 +6,7 @@ import type { Shipment, Snapshot } from '../../../src/shared/types';
 import { createSampleDataset } from '../../../src/shared/sample/generateSampleData';
 import { buildSnapshot } from '../../../src/shared/domain/snapshot';
 import { buildQueue, kindCounts, kindOf, MAX_STOCK_ROWS, shortBeforeRestockCents, shortUnitsBeforeRestock, stockAction } from '../../../src/client/lib/attention';
-import { formatCentsCompact } from '../../../src/shared/format';
+import { displayMoneySummary } from '../../../src/client/lib/displayMoney';
 import { makeInventoryRecord, makeShipmentRecord, makeSnapshot, TODAY } from '../../helpers/fixtures';
 
 const DAY = '2026-10-07';
@@ -138,7 +138,7 @@ describe('the money on a row matches its action', () => {
       const item = snap.inventory.find((i) => `stock:${i.id}` === row.key)!;
       const n = shortUnitsBeforeRestock(item)!;
       expect(unitsOf(row.action), row.key).toBe(n);
-      expect(row.damage, row.key).toBe(`${formatCentsCompact(n * item.unitCostCents)} short before restock`);
+      expect(row.damage, row.key).toBe(`${displayMoneySummary(n * item.unitCostCents)} short before restock`);
     }
   });
 
@@ -153,7 +153,7 @@ describe('the money on a row matches its action', () => {
     const [row] = buildQueue(snap);
     expect(row?.action).toBe('Move 9 from Atlanta, reorder 6');
     expect(unitsOf(row!.action)).toBe(15);
-    expect(row?.damage).toBe(`${formatCentsCompact(15 * 1_234)} short before restock`);
+    expect(row?.damage).toBe(`${displayMoneySummary(15 * 1_234)} short before restock`);
   });
 });
 
@@ -216,8 +216,8 @@ describe('the queue', () => {
       anomaly(b, 'Beta Lines', 20_000, 10_000, 'SHP-3') // +$100, 2× → warning
     ]);
     expect(buildQueue(snap).map((r) => [r.tone, r.what, r.action])).toEqual([
-      ['critical', 'Alpha Freight billed $350.00 above typical on 2 shipments', 'Check the invoices'],
-      ['warning', 'Beta Lines billed $100.00 above typical on SHP-3', 'Check the invoice']
+      ['critical', 'Alpha Freight billed $350 above typical on 2 shipments', 'Check the invoices'],
+      ['warning', 'Beta Lines billed $100 above typical on SHP-3', 'Check the invoice']
     ]);
   });
 

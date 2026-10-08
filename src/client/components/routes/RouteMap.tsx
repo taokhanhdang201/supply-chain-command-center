@@ -8,8 +8,9 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { Location } from '../../../shared/types';
 import type { RouteSummary } from '../../../shared/domain/analytics';
-import { formatCents, formatPercent } from '../../../shared/format';
+import { formatPercent } from '../../../shared/format';
 import { RouteLabel } from '../ui/RouteLabel';
+import { displayMoneyTable } from '../../lib/displayMoney';
 import { projectToMap } from '../../../shared/geo';
 import { US_OUTLINE } from '../../../shared/reference/usOutline';
 import { placeMapLabels } from './labelPlacement';
@@ -198,7 +199,7 @@ export function RouteMap({ routes, locations, selectedKey, onSelect }: RouteMapP
                       <RouteLabel label={route.label} />
                     </span>
                     <span className="route-map__list-detail">
-                      {route.count} shipment{route.count === 1 ? '' : 's'} · avg {formatCents(route.avgCostCents)} · {formatPercent(route.delayedShare, 0)} delayed
+                      {route.count} shipment{route.count === 1 ? '' : 's'} · avg {displayMoneyTable(route.avgCostCents, 'price')} · {formatPercent(route.delayedShare, 0)} delayed
                     </span>
                   </button>
                 </li>

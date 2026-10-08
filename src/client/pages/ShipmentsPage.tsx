@@ -3,11 +3,12 @@
 
 import { useEffect, useMemo } from 'react';
 import type { Shipment } from '../../shared/types';
-import { formatCents, formatDay, statusLabel } from '../../shared/format';
+import { formatDay, statusLabel } from '../../shared/format';
 import { useSnapshot } from '../state/DataContext';
 import { buildHash, navigate, useHashRoute } from '../router';
 import { useTableState } from '../hooks/useTableState';
 import { matchesSearch, paginate, sortRows } from '../lib/table';
+import { displayMoneyTable } from '../lib/displayMoney';
 import { PageStage } from '../components/layout/PageStage';
 import { DataTable, type Column } from '../components/ui/DataTable';
 import { RouteLabel } from '../components/ui/RouteLabel';
@@ -194,7 +195,7 @@ export function ShipmentsPage() {
     { key: 'shipDate', header: 'Ship date', sortable: true, phoneLabel: 'Ship', render: (s) => formatDay(s.shipDate) },
     { key: 'eta', header: 'ETA', sortable: true, phoneLabel: 'ETA', render: (s) => formatDay(s.estimatedDelivery) },
     { key: 'delivered', header: 'Delivered', sortable: true, phoneLabel: 'Delivered', render: (s) => formatDay(s.actualDelivery) },
-    { key: 'cost', header: 'Cost', sortable: true, align: 'right', emphasis: true, phoneLabel: 'Cost', render: (s) => formatCents(s.shippingCostCents) },
+    { key: 'cost', header: 'Cost', sortable: true, align: 'right', emphasis: true, phoneLabel: 'Cost', render: (s) => displayMoneyTable(s.shippingCostCents, 'price') },
     {
       key: 'flags',
       header: 'Flags',
@@ -204,7 +205,7 @@ export function ShipmentsPage() {
           {s.missingDates.includes('estimated_delivery') && <Badge tone="warning">Missing ETA</Badge>}{' '}
           {s.missingDates.includes('actual_delivery') && <Badge tone="warning">Missing delivery date</Badge>}{' '}
           {s.cost.isAnomaly && (
-            <Badge tone="warning" title={s.cost.baselineCents !== null ? `Typical: ${formatCents(s.cost.baselineCents)}` : undefined}>
+            <Badge tone="warning" title={s.cost.baselineCents !== null ? `Typical: ${displayMoneyTable(s.cost.baselineCents, 'price')}` : undefined}>
               Unusual cost
             </Badge>
           )}{' '}

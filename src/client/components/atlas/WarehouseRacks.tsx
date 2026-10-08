@@ -5,8 +5,9 @@
 
 import type { CSSProperties } from 'react';
 import type { WarehouseUtilization } from '../../../shared/types';
-import { formatCentsCompact, formatNumber, formatPercent } from '../../../shared/format';
+import { formatNumber, formatPercent } from '../../../shared/format';
 import { buildHash } from '../../router';
+import { displayMoneySummary } from '../../lib/displayMoney';
 
 export interface WarehouseRacksProps {
   warehouses: readonly WarehouseUtilization[];
@@ -25,7 +26,7 @@ export function WarehouseRacks({ warehouses }: WarehouseRacksProps) {
             <a
               className={`rack${over ? ' rack--over' : ''}${unknown ? ' rack--unknown' : ''}`}
               href={buildHash('inventory', { warehouse: w.code })}
-              aria-label={`${w.name}: ${formatPercent(w.utilization)} of capacity used, ${formatCentsCompact(w.valueCents)} inventory value. View its inventory`}
+              aria-label={`${w.name}: ${formatPercent(w.utilization)} of capacity used, ${displayMoneySummary(w.valueCents)} inventory value. View its inventory`}
               title={`${w.name}: ${formatNumber(w.units)} of ${formatNumber(w.capacityUnits)} units`}
             >
               <span className="rack__frame" aria-hidden="true">
@@ -38,7 +39,7 @@ export function WarehouseRacks({ warehouses }: WarehouseRacksProps) {
                 {formatPercent(w.utilization)}
               </span>
               <span className="rack__value" aria-hidden="true">
-                {formatCentsCompact(w.valueCents)}
+                {displayMoneySummary(w.valueCents)}
               </span>
             </a>
           </li>

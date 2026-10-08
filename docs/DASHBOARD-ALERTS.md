@@ -92,7 +92,7 @@ says "Move", never "fixes". (Current-column damages above use the first build's 
 ## 4. Copy (adjustment 2: short rows)
 
 Pattern: **what · where** · **damage** · **action**, then the arrow. Money uses the Dashboard's compact format
-(`formatCentsCompact`: $165.4K); the record shows the exact figure. Target: every row at most 2 lines at 1440 px.
+(`displayMoneySummary` in `src/client/lib/displayMoney.ts`: $165.4K); the record shows the exact figure. Target: every row at most 2 lines at 1440 px.
 
 - Out of stock: "Compact Webcam is out of stock in Newark · $118.6K short before restock · Move 269 from Dallas-Fort Worth"
 - Low stock: "Compact Docking Station runs out in Chicago in 12 days · $165.4K short before restock · Move 292 from Atlanta"

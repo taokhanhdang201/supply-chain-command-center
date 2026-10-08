@@ -6,7 +6,7 @@
 
 import type { Alert, InventoryItem, Location, Shipment, Snapshot } from '../../shared/types';
 import { COST_CRITICAL_MULTIPLIER, DELAY_CRITICAL_DAYS } from '../../shared/constants';
-import { formatCentsCompact } from '../../shared/format';
+import { displayMoneySummary } from './displayMoney';
 import { buildHash } from '../router';
 
 // ---- kinds ------------------------------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ function stockCandidates(snapshot: Snapshot): Candidate[] {
         key: `stock:${item.id}`,
         tone: item.stockStatus === 'out_of_stock' ? 'critical' : 'warning',
         what: stockWhat(item, placeName(item.warehouse, snapshot.locations)),
-        damage: `${formatCentsCompact(cents)} short before restock`,
+        damage: `${displayMoneySummary(cents)} short before restock`,
         action: stockAction(item, snapshot.inventory, snapshot.locations),
         href: buildHash('inventory', { q: item.sku, warehouse: item.warehouse })
       }
@@ -212,7 +212,7 @@ function billingCandidates(snapshot: Snapshot): Candidate[] {
       row: {
         key: `billing:${carrier}`,
         tone: critical ? 'critical' : 'warning',
-        what: `${carrier} billed ${formatCentsCompact(cents)} above typical on ${only ? only.shipmentId : `${count(group.length)} shipments`}`,
+        what: `${carrier} billed ${displayMoneySummary(cents)} above typical on ${only ? only.shipmentId : `${count(group.length)} shipments`}`,
         damage: null,
         action: only ? 'Check the invoice' : 'Check the invoices',
         href: buildHash('shipments', { carrier, flag: 'cost_anomaly' })

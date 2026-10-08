@@ -15,8 +15,6 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { DateRange, RouteSummary } from '../../shared/domain/analytics';
 import { filterShipmentsByRange, recentActivity, shippingCostByMonth, onTimeVsDelayedByMonth, summarizeRoutes } from '../../shared/domain/analytics';
 import {
-  formatCents,
-  formatCentsCompact,
   formatDay,
   formatDays,
   formatMonth,
@@ -38,6 +36,7 @@ import { RouteLabel } from '../components/ui/RouteLabel';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { ON_TIME_FLOOR, ON_TIME_TARGET, onTimeTone, type TargetTone } from '../lib/targets';
 import { buildQueue, kindCounts } from '../lib/attention';
+import { displayMoneySummary, displayMoneyTable } from '../lib/displayMoney';
 
 const RANGE_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'All' },
@@ -365,8 +364,8 @@ export function DashboardPage() {
           <div className="flow__figures">
             <Figure
               label="Total shipping cost"
-              value={formatCentsCompact(kpis.totalShippingCostCents)}
-              detail={`Avg ${kpis.averageShippingCostCents === null ? '—' : formatCents(kpis.averageShippingCostCents)} per shipment`}
+              value={displayMoneySummary(kpis.totalShippingCostCents)}
+              detail={`Avg ${kpis.averageShippingCostCents === null ? '—' : displayMoneySummary(kpis.averageShippingCostCents)} per shipment`}
             />
             <Figure label="Average delivery time" value={formatDays(kpis.averageDeliveryDays)} />
           </div>
@@ -377,12 +376,12 @@ export function DashboardPage() {
               subtitle={`Range: ${rangeLabel}`}
               isEmpty={costByMonth.length === 0}
               note={monthAxisNote(costByMonth.map((d) => d.month), snapshot.today)}
-              table={{ columns: ['Month', 'Total cost', 'Shipments'], rows: costByMonth.map((d) => [formatMonthWithMtd(d.month, snapshot.today), formatCents(d.totalCents), d.count]) }}
+              table={{ columns: ['Month', 'Total cost', 'Shipments'], rows: costByMonth.map((d) => [formatMonthWithMtd(d.month, snapshot.today), displayMoneyTable(d.totalCents, 'amount'), d.count]) }}
             >
               <CostChart
                 data={costByMonth.map((d, i) => ({ label: formatMonthWithMtd(d.month, snapshot.today), axisLabel: costMonthLabels[i] as string, cents: d.totalCents }))}
                 ariaLabel="Shipping cost by month"
-                valueFormat={formatCentsCompact}
+                valueFormat={displayMoneySummary}
               />
             </FlowFigure>
           </div>
@@ -395,7 +394,7 @@ export function DashboardPage() {
           <h2 className="scene__title">Warehouses and inventory</h2>
           <Figure
             label="Total inventory value"
-            value={formatCentsCompact(kpis.totalInventoryValueCents)}
+            value={displayMoneySummary(kpis.totalInventoryValueCents)}
             detail={`${kpis.totalUnits.toLocaleString('en-US')} units in ${kpis.inventoryRecordCount.toLocaleString('en-US')} records`}
             href={buildHash('inventory')}
           />
@@ -456,7 +455,7 @@ export function DashboardPage() {
                       {formatDay(s.actualDelivery ?? s.shipDate)}
                     </td>
                     <td role="cell" className="activity__cost">
-                      {formatCents(s.shippingCostCents)}
+                      {displayMoneyTable(s.shippingCostCents, 'price')}
                     </td>
                   </tr>
                 ))}

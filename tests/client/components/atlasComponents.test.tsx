@@ -84,7 +84,7 @@ const rack = (over: Partial<WarehouseUtilization>): WarehouseUtilization => ({
 describe('WarehouseRacks', () => {
   it('shows the existing utilization and value, and links to that warehouse', () => {
     render(<WarehouseRacks warehouses={[rack({})]} />);
-    const link = screen.getByRole('link', { name: 'Dallas-Fort Worth DC: 50.0% of capacity used, $2.50M inventory value. View its inventory' });
+    const link = screen.getByRole('link', { name: 'Dallas-Fort Worth DC: 50.0% of capacity used, $2.5M inventory value. View its inventory' });
     expect(link).toHaveAttribute('href', '#/inventory?warehouse=WH-DFW');
     expect(link.querySelector('.rack__fill')).toHaveStyle({ '--fill': '50%' });
   });
