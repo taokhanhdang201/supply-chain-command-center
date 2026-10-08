@@ -61,7 +61,7 @@ describe('ImportPage: presentation', () => {
   it('shows a sample data source as "Sample data (seed 7)" in the top bar', () => {
     const snapshot = makeSnapshot([makeInventoryRecord()], [], { today: TODAY });
     snapshot.dataSources.shipments = { kind: 'import', label: 'sample-shipments-seed-7.csv', loadedAt: '2026-06-15T00:00:00.000Z', rowCount: 480 };
-    render(<Topbar title="Data Import" today={TODAY} dataSources={snapshot.dataSources} refreshing={false} onRefresh={vi.fn()} drawerOpen={false} onMenuClick={vi.fn()} menuButtonRef={{ current: null }} />);
+    render(<Topbar today={TODAY} dataSources={snapshot.dataSources} refreshing={false} onRefresh={vi.fn()} drawerOpen={false} onMenuClick={vi.fn()} menuButtonRef={{ current: null }} />);
     expect(screen.getByText('Shipments: Sample data (seed 7)')).toBeInTheDocument();
     expect(screen.getByText(`Inventory: ${snapshot.dataSources.inventory.label}`)).toBeInTheDocument(); // any other label is shown as is
   });

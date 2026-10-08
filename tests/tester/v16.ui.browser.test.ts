@@ -274,8 +274,8 @@ describe('V1.6 redesign (real Chromium)', () => {
         const q = (s: string) => [...document.querySelectorAll(s)];
         const visibleText = q('.atlas-page *').filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && (n.textContent ?? '').trim()) && e.getBoundingClientRect().width > 0 && !e.closest('.visually-hidden') && e.tagName !== 'title' && !e.closest('.select-field'));
         const hero = document.querySelector('.hero__value') as HTMLElement;
-        // Below 768px the h1 is visually hidden on purpose (atlas.css: 1x1, clipped, margin -1px), so its box is not part of
-        // the visible layout and only counts toward the shared left edge when it is actually shown.
+        // Since commit 7 the h1 is shown at every width (the top bar no longer repeats the title). h1Hidden stays as a
+        // guard: a clipped 1x1 h1 fails below and never joins the shared left edge.
         const h1 = document.querySelector('h1')!;
         const h1Hidden = h1.getBoundingClientRect().width <= 1 && getComputedStyle(h1).position === 'absolute';
         return {
@@ -296,7 +296,7 @@ describe('V1.6 redesign (real Chromium)', () => {
           sceneBg: q('.scene').map((e) => getComputedStyle(e).backgroundColor)
         };
       });
-      expect(m.h1Hidden, `${w}: h1 visually hidden only on phones`).toBe(w < 768);
+      expect(m.h1Hidden, `${w}: h1 shown at every width`).toBe(false);
       expect(new Set(m.left).size, `${w}: left edges ${m.left}`).toBe(1);
       expect(m.frames).toHaveLength(5);
       if (w >= 768) {
@@ -323,7 +323,7 @@ describe('V1.6 redesign (real Chromium)', () => {
   }, 60_000);
 
   // The page h1 is the title role: 24px, weight 600. Its line box is 32px, except from 1100px where it is held at the
-  // 24px first-screen budget (--sit-title-line) so the map and the four figures do not move. On phones it is visually hidden.
+  // 24px first-screen budget (--sit-title-line) so the map and the four figures do not move. Phones show it on a 32px line.
   it('atlas dashboard: the h1 is 24px / 600 at every width, on a 24px line from 1100px and a 32px line below', async () => {
     for (const w of [1440, 1100, 1099, 1024, 768, 390]) {
       const { ctx, page } = await open(w, '', { reducedMotion: 'reduce' });
@@ -334,7 +334,7 @@ describe('V1.6 redesign (real Chromium)', () => {
       await ctx.close();
       expect(h.size, `${w}: size`).toBe('24px');
       expect(h.weight, `${w}: weight`).toBe('600');
-      if (w >= 768) expect(h.line, `${w}: line height`).toBe(w >= 1100 ? '24px' : '32px');
+      expect(h.line, `${w}: line height`).toBe(w >= 1100 ? '24px' : '32px');
     }
   }, 60_000);
 
@@ -902,6 +902,35 @@ describe('V1.6 redesign (real Chromium)', () => {
       expect(stage.height, `${w}`).toBeLessThanOrEqual(64);
     }
   });
+
+  // DESIGN.md "The page band" (Phase 1 spec §3): the dark band is at most 256px tall from 768px and at most 360px below; the
+  // slim band (Data Import, Page not found) at most 64px. Pages that still hold figures, a map or controls in the band are
+  // brought to the rule in Phase 2, so their cases are `it.fails`: each turns red the day its page complies, and then moves
+  // to `it`. Measured at commit 7 (1440 / 1024 / 768 / 390): Inventory 358 / 358 / 377 / 419, Shipments 377 / 394 / 394 /
+  // 516, Routes 1148 / 1215 / 1215 / 1804, Analytics 359 / 376 / 376 / 452, Alerts 360 / 438 / 457 / 576; both slim bands 63.
+  const BAND_WIDTHS = [1440, 1024, 768, 390];
+  const BAND_PAGES: Array<{ name: string; hash: string; slim: boolean; phase2: boolean }> = [
+    { name: 'Data Import', hash: 'import', slim: true, phase2: false },
+    { name: 'Page not found', hash: 'nope', slim: true, phase2: false },
+    { name: 'Inventory', hash: 'inventory', slim: false, phase2: true },
+    { name: 'Shipments', hash: 'shipments', slim: false, phase2: true },
+    { name: 'Routes', hash: 'routes', slim: false, phase2: true },
+    { name: 'Analytics', hash: 'analytics', slim: false, phase2: true },
+    { name: 'Alerts', hash: 'alerts', slim: false, phase2: true }
+  ];
+  for (const { name, hash, slim, phase2 } of BAND_PAGES) {
+    const title = `page band: ${name} is at most ${slim ? '64px tall' : '256px tall from 768px and 360px below'}${phase2 ? ' (Phase 2)' : ''}`;
+    const check = async () => {
+      for (const w of BAND_WIDTHS) {
+        const { ctx, page } = await open(w, hash, { reducedMotion: 'reduce' });
+        const height: number = await page.evaluate(() => (document.querySelector('.page-stage') as HTMLElement).getBoundingClientRect().height);
+        await ctx.close();
+        expect(height, `${name} at ${w}`).toBeLessThanOrEqual(slim ? 64 : w >= 768 ? 256 : 360);
+      }
+    };
+    if (phase2) it.fails(title, check, 60_000);
+    else it(title, check, 60_000);
+  }
 
   // V16-BUG-1 (pre-existing since V1.5), fixed in V1.6 fix round 1 (S-1).
   it('V16-BUG-1: with the mobile drawer closed, keyboard Tab must not land on off-screen sidebar links', async () => {

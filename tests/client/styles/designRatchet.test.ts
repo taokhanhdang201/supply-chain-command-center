@@ -180,7 +180,7 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'raw colours outside custom properties',
-    limit: 1,
+    limit: 0,
     target: 0,
     count: (m) => ({ scanned: m.decls.length, offenders: m.decls.flatMap((d) => (d.value.match(RAW_COLOUR) ?? []).map((c) => `${offender(d)} -> ${c}`)) })
   },

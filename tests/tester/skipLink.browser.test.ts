@@ -64,7 +64,7 @@ describe('Skip link (real Chromium)', () => {
     return { ctx, page, errors };
   };
 
-  // At 390 the Dashboard h1 is hidden by clip (never display:none), so it is still a focus target.
+  // The Dashboard h1 is shown at 390 too since commit 7 (it used to be clipped there); the phone case stays.
   it.each([
     { name: 'Shipments', hash: 'shipments', width: 1440 },
     { name: 'Dashboard', hash: '', width: 1440 },

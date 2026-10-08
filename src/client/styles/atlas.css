@@ -203,20 +203,6 @@
   margin-bottom: 24px;
 }
 
-/* Phones: the shell's top bar already says "Dashboard" a few pixels above, so the h1 (still the page's single h1 and the
-   programmatic focus target) is visually hidden to give the first screen back its height. Never display:none. */
-@media (max-width: 767px) {
-  .atlas-page .situation__title {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-  }
-}
-
 /* The hero: 85.6% at display size. The map is the opening scene; from 1100px the figure sits inside it, in the empty
    south-west corner (open sea off Baja), and above it on narrower screens. */
 .atlas-page .hero {

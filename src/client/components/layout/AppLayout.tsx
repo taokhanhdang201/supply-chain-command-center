@@ -143,7 +143,6 @@ export function AppLayout() {
       {drawerOpen && <div className="drawer-backdrop" onClick={handleBackdropClick} />}
       <div className="app-shell__content">
         <Topbar
-          title={titleFor(route.id)}
           today={today}
           dataSources={dataSources}
           refreshing={refreshing}

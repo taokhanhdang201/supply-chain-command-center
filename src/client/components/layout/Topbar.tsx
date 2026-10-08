@@ -1,5 +1,5 @@
-// Page header (plan §8.1): mobile menu toggle, page title, "Data as of ..." + data source chips, and a Refresh
-// button with a polite live region announcing "Refreshing…".
+// Page header (plan §8.1): mobile menu toggle, "Data as of ..." + data source chips, and a Refresh button with a polite
+// live region announcing "Refreshing…". It does not repeat the page title: the page's h1 is its only visible title.
 
 import type { RefObject } from 'react';
 import type { DataSourceInfo, DayString } from '../../../shared/types';
@@ -8,7 +8,6 @@ import { Icon } from '../ui/Icon';
 import { displaySourceLabel } from '../../import/sampleFiles';
 
 export interface TopbarProps {
-  title: string;
   today: DayString | null;
   dataSources: { inventory: DataSourceInfo; shipments: DataSourceInfo } | null;
   refreshing: boolean;
@@ -18,8 +17,8 @@ export interface TopbarProps {
   menuButtonRef: RefObject<HTMLButtonElement | null>;
 }
 
-/** The topbar: mobile nav toggle, page heading context, data-source chips, and a manual refresh control. */
-export function Topbar({ title, today, dataSources, refreshing, onRefresh, drawerOpen, onMenuClick, menuButtonRef }: TopbarProps) {
+/** The topbar: mobile nav toggle, the data date, data-source chips, and a manual refresh control. */
+export function Topbar({ today, dataSources, refreshing, onRefresh, drawerOpen, onMenuClick, menuButtonRef }: TopbarProps) {
   return (
     <header className="topbar surface-stage">
       <button
@@ -35,7 +34,6 @@ export function Topbar({ title, today, dataSources, refreshing, onRefresh, drawe
       </button>
 
       <div className="topbar__title">
-        <span className="topbar__page-title">{title}</span>
         {today !== null && <span className="topbar__date">Data as of {formatDay(today)}</span>}
       </div>
 

@@ -796,12 +796,6 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   margin-right: auto;
 }
 
-.topbar__page-title {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
 .topbar__date {
   font-size: var(--text-xs);
   color: var(--stage-text-3);

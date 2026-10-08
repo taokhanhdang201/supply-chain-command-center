@@ -5,15 +5,10 @@
   min-width: 0;
 }
 
-/* Stage: the dark headline band. One cool light top-right and a faint 12-column rhythm, nothing else. */
+/* Stage: the dark headline band (DESIGN.md "The page band"): the h1, at most one context line and one row of figures on a
+   flat stage. No glow, no rhythm lines, no eyebrow dash. */
 .page-stage {
-  background-color: var(--stage-bg);
-  background-image:
-    radial-gradient(120% 90% at 88% -20%, rgba(110, 151, 255, 0.1), transparent 60%),
-    linear-gradient(to right, var(--stage-grid) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    calc(100% / 12) 100%;
+  background: var(--stage-bg);
   border-bottom: 1px solid var(--stage-line);
   padding: var(--space-12) var(--gutter);
 }
@@ -29,21 +24,15 @@
   }
 }
 
-/* Slim: a stage that holds only its title (Data Import), so it stays a thin band. */
+/* Slim: a stage that holds only its title (Data Import, Page not found): 16px above and below the 30px h1 line and the
+   1px rule, so the band stays under 64px at every width. */
 .page-stage.page-stage--slim {
-  padding: var(--space-5) var(--gutter);
-}
-
-@media (max-width: 767px) {
-  .page-stage.page-stage--slim {
-    padding: var(--space-4) var(--gutter);
-  }
+  padding: var(--space-4) var(--gutter);
 }
 
 .page-stage__inner {
   max-width: var(--content-max);
   margin-inline: auto;
-  container-type: inline-size;
 }
 
 .page-stage__head {
@@ -54,22 +43,19 @@
   flex-wrap: wrap;
 }
 
-/* The h1 is the functional page label (focus target); the display lines below are an aria-hidden restatement. */
+/* The page's only visible title at the title size and weight (24px, 600, display face), and its programmatic focus target;
+   the display lines below are an aria-hidden restatement. Its 30px line keeps the slim band under 64px. */
 .page-stage__title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: var(--tracking-label);
+  font: 600 var(--text-lg) / 1.25 var(--font-display);
+  letter-spacing: var(--tracking-title);
   color: var(--stage-text);
 }
 
-.page-stage__title::before {
-  content: '';
-  width: 24px;
-  height: 2px;
-  background: var(--color-accent);
+/* At most one line of context under the h1; a fifth number goes here, never into a fifth figure. */
+.page-stage__context {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--stage-text-2);
 }
 
 .page-stage__display {
