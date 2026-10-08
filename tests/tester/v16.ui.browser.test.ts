@@ -700,6 +700,65 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   });
 
+  // Phase 1 spec §5: a number column is right-aligned with tabular figures, its header level with the numbers. A cell's box
+  // has the column's edges whatever its alignment, so the text edges are read with a Range. Stacked records keep their
+  // numbers at the left, under their labels (below 1100px every stacking table; 1100-1279px Shipments and Inventory).
+  it('number columns: right-aligned, tabular and level with their header at 1440; stacked records keep them at the left', async () => {
+    // [page, number columns, a column whose values have several widths on the first page]
+    const wide: Array<[string, string[], string]> = [
+      ['inventory', ['quantity', 'reorderPoint', 'unitCost', 'value', 'daysOfSupply'], 'value'],
+      ['shipments', ['cost'], 'cost']
+    ];
+    for (const [hash, keys, varied] of wide) {
+      const { ctx, page } = await open(1440, hash, { reducedMotion: 'reduce' });
+      const cols = await page.evaluate((keys: string[]) => {
+        const edges = (el: Element) => {
+          const r = document.createRange();
+          r.selectNodeContents(el);
+          const b = r.getBoundingClientRect();
+          return [Math.round(b.left), Math.round(b.right)] as const;
+        };
+        return keys.map((k) => {
+          const cells = [...document.querySelectorAll(`tbody td.data-table__col--${k}`)];
+          return {
+            k,
+            rows: cells.length,
+            lefts: new Set(cells.map((c) => edges(c)[0])).size,
+            rights: [...new Set(cells.map((c) => edges(c)[1]))],
+            head: edges(document.querySelector(`thead th.data-table__col--${k}`)!)[1],
+            align: getComputedStyle(cells[0]!).textAlign,
+            numeric: getComputedStyle(cells[0]!).fontVariantNumeric
+          };
+        });
+      }, keys);
+      await ctx.close();
+      for (const c of cols) {
+        expect(c.rows, `${hash} ${c.k}: rows`).toBe(25);
+        expect(c.align, `${hash} ${c.k}`).toBe('right');
+        expect(c.numeric, `${hash} ${c.k}`).toContain('tabular-nums');
+        expect(c.rights, `${hash} ${c.k}: one right edge`).toHaveLength(1);
+        expect(Math.abs(c.head - c.rights[0]!), `${hash} ${c.k}: header level with the numbers`).toBeLessThanOrEqual(1);
+        if (c.k === varied) expect(c.lefts, `${hash} ${c.k}: values of several widths`).toBeGreaterThan(1);
+      }
+    }
+    const stacked: Array<[number, string, string[]]> = [
+      [390, 'inventory', ['quantity', 'value']],
+      [1024, 'shipments', ['cost']],
+      [1024, 'routes', ['count', 'avgCost']],
+      [1200, 'inventory', ['quantity', 'value']],
+      [1200, 'shipments', ['cost']]
+    ];
+    for (const [w, hash, keys] of stacked) {
+      const { ctx, page } = await open(w, hash, { reducedMotion: 'reduce' });
+      const aligns = await page.evaluate(
+        (keys: string[]) => keys.map((k) => getComputedStyle(document.querySelector(`tbody td.data-table__col--${k}`)!).textAlign),
+        keys
+      );
+      await ctx.close();
+      expect(aligns, `${w} ${hash}: stacked numbers at the left`).toEqual(keys.map(() => 'left'));
+    }
+  }, 60_000);
+
   it('inventory: each attention figure links to a filter showing exactly that many items', async () => {
     const { ctx, page } = await open(1440, 'inventory', { reducedMotion: 'reduce' });
     const figures = await page.locator('#inventory-attention + ul a').evaluateAll((as: Element[]) =>

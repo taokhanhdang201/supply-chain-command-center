@@ -55,7 +55,7 @@ function ValueTable({ caption, sourceHeading, targetHeading, entries, options, p
         <thead>
           <tr>
             <th scope="col">{sourceHeading}</th>
-            <th scope="col">Rows</th>
+            <th scope="col" className="data-table__header--right">Rows</th>
             <th scope="col">{targetHeading}</th>
             <th scope="col">Status</th>
           </tr>
@@ -64,7 +64,7 @@ function ValueTable({ caption, sourceHeading, targetHeading, entries, options, p
           {entries.map((e) => (
             <tr key={e.source}>
               <td className="ingest-table__name">{clip(e.source, 60)}</td>
-              <td>{e.count.toLocaleString('en-US')}</td>
+              <td className="data-table__cell--right">{e.count.toLocaleString('en-US')}</td>
               <td>
                 <select
                   className="select-field__control"

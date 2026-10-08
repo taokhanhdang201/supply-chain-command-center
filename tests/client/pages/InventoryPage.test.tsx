@@ -196,6 +196,30 @@ describe('InventoryPage: a triaged ledger', () => {
     expect(screen.getByRole('button', { name: 'Clear filters' })).toBeInTheDocument();
   });
 
+  // The Category column is visually hidden from 1280px (the category sits under the product), so Sort by sorts by it: the
+  // same order as the column, highest value first until then.
+  it('sorts by Category from "Sort by", A to Z, as its column does', async () => {
+    const snapshot = makeSnapshot(
+      [
+        makeInventoryRecord({ sku: 'CAT-1', category: 'Packaging', unitCostCents: 900 }),
+        makeInventoryRecord({ sku: 'CAT-2', category: 'Apparel', unitCostCents: 100 }),
+        makeInventoryRecord({ sku: 'CAT-3', category: 'Electronics', unitCostCents: 500 })
+      ],
+      [],
+      { today: TODAY }
+    );
+    const user = userEvent.setup();
+    await renderWithData(<InventoryPage />, { snapshot });
+    const order = () => screen.getAllByRole('row').slice(1).map((r) => r.textContent?.match(/CAT-\d/)?.[0]);
+    const sort = screen.getByRole('combobox', { name: 'Sort by' });
+    expect(order()).toEqual(['CAT-1', 'CAT-3', 'CAT-2']);
+    expect(within(sort).getByRole('option', { name: 'Category' })).toHaveAttribute('value', 'category:asc');
+    await user.selectOptions(sort, 'category:asc');
+    expect(order()).toEqual(['CAT-2', 'CAT-3', 'CAT-1']);
+    expect(screen.getByRole('columnheader', { name: /category/i })).toHaveAttribute('aria-sort', 'ascending');
+    expect(within(sort).queryByRole('option', { name: 'Column order' })).toBeNull();
+  });
+
   it('marks the ledger as a stacking table with explicit roles, labelled numbers and an aria-hidden category copy', async () => {
     await renderWithData(<InventoryPage />, { snapshot: triage() });
     const table = screen.getByRole('table', { name: 'Inventory' });

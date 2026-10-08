@@ -16,7 +16,7 @@ export function ImportIssueTable({ issues, totalErrors, caption }: ImportIssueTa
           <caption className="visually-hidden">{caption}</caption>
           <thead>
             <tr>
-              <th scope="col">Line</th>
+              <th scope="col" className="data-table__header--right">Line</th>
               <th scope="col">Column</th>
               <th scope="col">Problem</th>
             </tr>
@@ -24,7 +24,7 @@ export function ImportIssueTable({ issues, totalErrors, caption }: ImportIssueTa
           <tbody>
             {issues.map((issue, i) => (
               <tr key={i}>
-                <td>{issue.line === null ? 'File' : issue.line}</td>
+                <td className="data-table__cell--right">{issue.line === null ? 'File' : issue.line}</td>
                 <td>{issue.column ?? '—'}</td>
                 <td className="data-table__cell--wrap">{issue.message}</td>
               </tr>

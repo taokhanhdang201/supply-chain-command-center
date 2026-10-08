@@ -5,6 +5,8 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Card } from '../ui/Card';
 
+/** The data behind a chart, for its "Show data table" view. The first column names the row (a month, a warehouse, a
+ * route); every other column holds a number and is right-aligned. */
 export interface ChartTable {
   columns: string[];
   rows: Array<Array<string | number>>;
@@ -58,8 +60,8 @@ export function ChartFrame({ title, subtitle, actions, controls, isEmpty, note, 
             <caption className="visually-hidden">{title} data</caption>
             <thead>
               <tr>
-                {table.columns.map((column) => (
-                  <th key={column} scope="col">
+                {table.columns.map((column, j) => (
+                  <th key={column} scope="col" className={j > 0 ? 'data-table__header--right' : undefined}>
                     {column}
                   </th>
                 ))}
@@ -69,7 +71,7 @@ export function ChartFrame({ title, subtitle, actions, controls, isEmpty, note, 
               {table.rows.map((row, i) => (
                 <tr key={i}>
                   {row.map((cell, j) => (
-                    <td key={j}>{cell}</td>
+                    <td key={j} className={j > 0 ? 'data-table__cell--right' : undefined}>{cell}</td>
                   ))}
                 </tr>
               ))}

@@ -443,9 +443,12 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   min-width: 28ch;
 }
 
-.data-table__header--right,
-.data-table__cell--right {
+/* A number column: right-aligned with tabular figures, header included. Qualified with th/td (0,2,1) so it beats the
+   left alignment of `.data-table th, .data-table td` (0,1,1), as the wrap rule above does. */
+.data-table th.data-table__header--right,
+.data-table td.data-table__cell--right {
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .data-table td.data-table__cell--strong {
@@ -523,6 +526,11 @@ a.kpi-card:focus-visible .kpi-card__label::after {
     padding: 0;
     border: 0;
     white-space: normal;
+    text-align: left;
+  }
+
+  /* A stacked record keeps its numbers at the left, under their labels (beats the number column rule above). */
+  .data-table--stack tbody td.data-table__cell--right {
     text-align: left;
   }
 

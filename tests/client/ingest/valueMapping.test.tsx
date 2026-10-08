@@ -42,6 +42,24 @@ describe('value mapping panel', () => {
     expect(within(screen.getByRole('table', { name: 'Status value mapping' })).getByText('Chosen by you')).toBeInTheDocument();
   });
 
+  // Phase 1 spec §5: the row count is a number column, right-aligned like the DataTable's.
+  it('right-aligns the Rows count of a value table, header included', async () => {
+    const r = await renderCard();
+    const text = ship([
+      'SHP-901,WH-DFW,Houston TX,Alder,Shipped,2026-03-02,2026-03-05,,10.00',
+      'SHP-902,WH-ATL,Miami FL,Alder,Shipped,2026-03-03,2026-03-06,,11.00',
+      'SHP-903,WH-ORD,Denver CO,Alder,Arrived,2026-03-04,2026-03-07,,12.00',
+      'SHP-904,WH-LAX,Boston MA,Alder,Delivered,2026-03-01,2026-03-03,2026-03-03,13.00'
+    ]);
+    await review(r, fileOf(text, 'status.csv'));
+    const table = screen.getByRole('table', { name: 'Status value mapping' });
+    expect(within(table).getByRole('columnheader', { name: 'Rows' })).toHaveClass('data-table__header--right');
+    expect(within(table).getByRole('columnheader', { name: 'Status' })).not.toHaveClass('data-table__header--right');
+    const first = within(table).getAllByRole('row')[1] as HTMLElement;
+    expect(within(first).getByText('2').closest('td')).toHaveClass('data-table__cell--right');
+    expect(within(first).getByText('Shipped').closest('td')).not.toHaveClass('data-table__cell--right');
+  });
+
   it('warehouse values that are not SCC warehouses need an explicit choice among the five known codes', async () => {
     const r = await renderCard();
     await review(r, fileOfFixture(fixtureByName('fjord_sap_inventory.csv')));

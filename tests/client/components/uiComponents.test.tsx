@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // Phase 1 spec §6 component contracts: Button, SelectField, Pagination, SectionHeader, EmptyState, SearchInput, Figure, the
-// control states in components.css (hover, active, disabled) and the Figure link states in pages.css.
+// control states in components.css (hover, active, disabled, the bare disabled button in base.css) and the Figure link states in pages.css.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { useState } from 'react';
@@ -302,6 +302,13 @@ describe('control states in components.css', () => {
     const disabled = rules.filter((r) => /:disabled/.test(r.selector.replace(/:not\(:disabled\)/g, '')) && /opacity:/.test(r.body));
     expect(new Set(disabled.map((r) => /opacity:\s*([\d.]+)/.exec(r.body)?.[1]))).toEqual(new Set(['0.45']));
     expect(disabled.some((r) => r.selector.includes('.button:disabled') && r.selector.includes('.select-field__control:disabled'))).toBe(true);
+  });
+
+  it('fades a bare disabled button as much as the component buttons (base.css)', () => {
+    const base = readFileSync(resolve('src/client/styles/base.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const bare = [...base.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => (m[1] as string).trim() === 'button:disabled');
+    expect(bare).toHaveLength(1);
+    expect((bare[0] as RegExpMatchArray)[2]).toMatch(/opacity:\s*0\.45;/);
   });
 
   it('darkens the select border on hover unless it is disabled', () => {

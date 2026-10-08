@@ -79,12 +79,14 @@ function attentionRank(item: InventoryItem): number {
   return item.stockoutRisk === 'high' ? 1 : 0;
 }
 
-/** The "Sort by" choices (needed below 1280px, where the column headers are hidden). Value is `key:direction`. */
+/** The "Sort by" choices. Below 1280px the column headers are hidden, and from 1280px the Category column is (the
+ * category sits under the product), so Category is sorted from here. Value is `key:direction`. */
 const SORT_OPTIONS: SelectOption[] = [
   { value: 'value:desc', label: 'Highest value' },
   { value: 'attention:desc', label: 'Needs attention first' },
   { value: 'daysOfSupply:asc', label: 'Fewest days of supply' },
-  { value: 'sku:asc', label: 'SKU' }
+  { value: 'sku:asc', label: 'SKU' },
+  { value: 'category:asc', label: 'Category' }
 ];
 
 /** The attention row: one figure per filter, never a combined total (an item can be both low and high risk). Only an

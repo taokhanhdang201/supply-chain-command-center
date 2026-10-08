@@ -43,8 +43,8 @@ export function FlowFigure({ title, subtitle, note, isEmpty, table, children }: 
             <caption className="visually-hidden">{title} data</caption>
             <thead>
               <tr>
-                {table.columns.map((column) => (
-                  <th key={column} scope="col">
+                {table.columns.map((column, j) => (
+                  <th key={column} scope="col" className={j > 0 ? 'data-table__header--right' : undefined}>
                     {column}
                   </th>
                 ))}
@@ -54,7 +54,7 @@ export function FlowFigure({ title, subtitle, note, isEmpty, table, children }: 
               {table.rows.map((row, i) => (
                 <tr key={i}>
                   {row.map((cell, j) => (
-                    <td key={j}>{cell}</td>
+                    <td key={j} className={j > 0 ? 'data-table__cell--right' : undefined}>{cell}</td>
                   ))}
                 </tr>
               ))}

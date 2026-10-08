@@ -44,9 +44,10 @@ button {
   cursor: pointer;
 }
 
+/* The one disabled opacity of the component buttons and selects (components.css), for a bare button too. */
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.45;
 }
 
 a {
