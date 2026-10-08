@@ -672,7 +672,7 @@ A component sets its text with a role (`font: var(--type-label)`), not with a si
 
 
 
-The page h1 is `--type-title` (24px, 600). In the page band it sits on a 30px line in `--stage-text`. The Dashboard has no page band: its h1 heads the map scene on a 32px line (24px from 1100px) in `--stage-text-2`. A section h2 on paper is lg at 500: it differs from the h1 by weight and place. Figures use `--type-figure` (36px).
+The page h1 is `--type-title` (24px, 600) in `--stage-text`. In the page band it sits on a 30px line. The Dashboard has no page band: its h1 heads the map scene, on the same 30px line from 1100px (32px below), so from 1100px the h1 sits on one baseline on every page but the slim band's. A section h2 on paper is lg at 500: it differs from the h1 by weight and place; the line over a table and an empty state's title use the same type. The Top alerts title is the one larger heading (36px, 600). Figures use `--type-figure` (36px).
 
 
 
@@ -750,7 +750,7 @@ Every money string of the client comes from one module, `src/client/lib/displayM
 
 \- Amount in a table (a value, a total, every chart data table, the Analytics chart tooltips): whole dollars (`$1,403,217`).
 
-\- Price in a table (one unit, one shipment, or an average of those): to the cent (`$617.07`, `$545.08`, `$1,996.73`).
+\- Price in a table (one unit, one shipment, or an average of those): to the cent (`$617.07`, `$545.08`, `$1,996.73`). What one shipment was billed above typical, in Top alerts, is a price too under $10,000 (`$517.07`): the Alerts page gives its cost and the typical cost to the cent. A sum over several shipments, or $10,000 and more, is a summary.
 
 \- Chart axes keep their short format (`formatCentsAxis` in `src/shared/format.ts`). A value that rounds to zero reads `$0`, never `-$0`.
 

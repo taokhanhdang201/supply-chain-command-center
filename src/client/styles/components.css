@@ -711,12 +711,11 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   color: var(--color-text-muted);
 }
 
+/* An empty or error state's title: the type of a section h2 on paper (lg, 500, the display face). */
 .empty-state__title,
 .error-state__title {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 600;
-  font-stretch: 104%;
+  font: 500 var(--text-lg) / 1.25 var(--font-display);
+  letter-spacing: var(--tracking-title);
   color: var(--color-text);
   margin-bottom: var(--space-2);
 }

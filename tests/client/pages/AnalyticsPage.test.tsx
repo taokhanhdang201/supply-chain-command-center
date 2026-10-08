@@ -55,6 +55,23 @@ describe('AnalyticsPage: range figures on the stage', () => {
     expect(figure('On-time rate')).toHaveClass('stage-figure--critical');
     expect(figure('On-time rate').querySelector('.stage-gauge')).toHaveClass('stage-gauge--critical');
   });
+
+  // Lô 9 (WCAG 1.3.1): one outline: the range h2 on the band, three section h2s on the floor, and under them each chart and
+  // each panel an h3 (the six chart cards were h2s beside "Charts").
+  it('outlines the page: section h2s, and every chart and panel an h3 under them', async () => {
+    await renderWithData(<AnalyticsPage />, { snapshot: makeSnapshot([makeInventoryRecord()], shipments(9, 1), { today: TODAY }) });
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Range: 180d', 'Charts', 'Metrics', 'How these are calculated']);
+    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
+      'Inventory value by warehouse',
+      'Inventory value by category',
+      'Shipment status',
+      'Shipping cost over time',
+      'On-time vs delayed by month',
+      'Top shipping routes',
+      'Stockout risk distribution',
+      'Warehouse utilization'
+    ]);
+  });
 });
 
 describe('AnalyticsPage: range in the URL, charts in system colours', () => {

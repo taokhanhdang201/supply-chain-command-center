@@ -217,7 +217,24 @@ describe('the queue', () => {
     ]);
     expect(buildQueue(snap).map((r) => [r.tone, r.what, r.action])).toEqual([
       ['critical', 'Alpha Freight billed $350 above typical on 2 shipments', 'Check the invoices'],
-      ['warning', 'Beta Lines billed $100 above typical on SHP-3', 'Check the invoice']
+      ['warning', 'Beta Lines billed $100.00 above typical on SHP-3', 'Check the invoice']
+    ]);
+  });
+
+  // Lô 9 (owner decision D5, a price keeps its cents): one shipment's excess is the difference of two prices the Alerts page
+  // shows to the cent, so under $10,000 it keeps its cents; from $10,000, and summed over several shipments, it is a summary.
+  it("names one shipment's excess to the cent under $10,000; a sum, or $10,000 and more, reads as a summary", () => {
+    const b = base();
+    const snap = withShipments(makeSnapshot([], []), [
+      anomaly(b, 'Gamma', 61_707, 10_000, 'SHP-7'), // +$517.07, one shipment
+      anomaly(b, 'Delta', 1_300_000, 100_000, 'SHP-8'), // +$12,000.00, one shipment
+      anomaly(b, 'Eta', 10_150, 10_000, 'SHP-9'), // +$1.50
+      anomaly(b, 'Eta', 10_150, 10_000, 'SHP-10') // +$1.50: $3.00 over two
+    ]);
+    expect(buildQueue(snap).map((r) => r.what)).toEqual([
+      'Delta billed $12.0K above typical on SHP-8',
+      'Gamma billed $517.07 above typical on SHP-7',
+      'Eta billed $3 above typical on 2 shipments'
     ]);
   });
 

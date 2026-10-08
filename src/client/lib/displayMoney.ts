@@ -9,7 +9,7 @@ import { centsToDollars } from '../../shared/money';
 export type MoneyKind = 'amount' | 'price';
 
 /** $10,000: from here a summary figure reads compact. */
-const COMPACT_FROM_CENTS = 1_000_000;
+export const COMPACT_FROM_CENTS = 1_000_000;
 
 const usd = (options: Intl.NumberFormatOptions): Intl.NumberFormat =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', ...options });

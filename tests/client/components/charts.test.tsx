@@ -6,6 +6,7 @@ import { BarChart } from '../../../src/client/components/charts/BarChart';
 import { LineChart } from '../../../src/client/components/charts/LineChart';
 import { DonutChart } from '../../../src/client/components/charts/DonutChart';
 import { ChartFrame } from '../../../src/client/components/charts/ChartFrame';
+import { Card } from '../../../src/client/components/ui/Card';
 import { formatNumber } from '../../../src/shared/format';
 
 const barData = [
@@ -72,6 +73,21 @@ describe('BarChart', () => {
     expect(screen.getByRole('columnheader', { name: 'Label' })).toBeInTheDocument();
     expect(screen.getByText('Alpha')).toBeInTheDocument();
     expect(screen.getByText('20')).toBeInTheDocument();
+  });
+
+  // Lô 9 (WCAG 1.3.1): a chart sits under its section's h2 ("Charts" on Analytics), so its card's title is an h3; a Card on its
+  // own keeps an h2.
+  it('titles a chart one level under its section (h3); a Card is an h2 unless told otherwise', () => {
+    render(
+      <ChartFrame title="Bar chart" isEmpty={false} table={{ columns: [], rows: [] }}>
+        <span />
+      </ChartFrame>
+    );
+    expect(screen.getByRole('heading', { level: 3, name: 'Bar chart' })).toHaveClass('card__title');
+    render(<Card title="Restore sample data">x</Card>);
+    expect(screen.getByRole('heading', { level: 2, name: 'Restore sample data' })).toHaveClass('card__title');
+    render(<Card title="Inner" titleLevel={3}>x</Card>);
+    expect(screen.getByRole('heading', { level: 3, name: 'Inner' })).toBeInTheDocument();
   });
 });
 

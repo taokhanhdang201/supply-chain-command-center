@@ -109,4 +109,16 @@ describe('RoutesPage: lane figures and URL filters', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Routes' })).toBeInTheDocument();
     expect(document.querySelector('.page-stage__display')).toBeNull();
   });
+
+  // Lô 9: on paper a section's title is a SectionHeader (h2 24/500 over the ink rule), Unmapped routes included; the band is the
+  // compact band of the other pages, so the h1 sits where theirs does.
+  it('titles the Unmapped routes ledger with a section header, on the compact band', async () => {
+    const snapshot = makeSnapshot([], [makeShipmentRecord({ origin: 'WH-DFW', destination: 'HOU' }), makeShipmentRecord({ origin: 'WH-DFW', destination: 'Plant 7' })], { today: TODAY });
+    await renderWithData(<RoutesPage />, { snapshot });
+    const h2 = screen.getByRole('heading', { level: 2, name: 'Unmapped routes' });
+    expect(h2).toHaveClass('section-label');
+    expect(h2.parentElement).toHaveClass('section-bar');
+    expect(screen.getByRole('region', { name: 'Unmapped routes' })).toContainElement(screen.getByRole('table', { name: 'Unmapped routes' }));
+    expect(document.querySelector('.page-stage')).toHaveClass('page-stage--compact');
+  });
 });

@@ -325,9 +325,10 @@ describe('V1.6 redesign (real Chromium)', () => {
     }
   }, 60_000);
 
-  // The page h1 is the title role: 24px, weight 600. Its line box is 32px, except from 1100px where it is held at the
-  // 24px first-screen budget (--sit-title-line) so the map and the four figures do not move. Phones show it on a 32px line.
-  it('atlas dashboard: the h1 is 24px / 600 at every width, on a 24px line from 1100px and a 32px line below', async () => {
+  // The page h1 is the title role: 24px, weight 600. From 1100px its line box is the page band h1's 30px (Lô 9: one baseline
+  // for every page's h1); the gap under it gives the 6px back, so the first-screen budget, the map and the four figures do
+  // not move. Below 1100px it sits on a 32px line.
+  it('atlas dashboard: the h1 is 24px / 600 at every width, on a 30px line from 1100px and a 32px line below', async () => {
     for (const w of [1440, 1100, 1099, 1024, 768, 390]) {
       const { ctx, page } = await open(w, '', { reducedMotion: 'reduce' });
       const h = await page.evaluate(() => {
@@ -337,7 +338,7 @@ describe('V1.6 redesign (real Chromium)', () => {
       await ctx.close();
       expect(h.size, `${w}: size`).toBe('24px');
       expect(h.weight, `${w}: weight`).toBe('600');
-      expect(h.line, `${w}: line height`).toBe(w >= 1100 ? '24px' : '32px');
+      expect(h.line, `${w}: line height`).toBe(w >= 1100 ? '30px' : '32px');
     }
   }, 60_000);
 
@@ -1065,7 +1066,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     expect(before.cityLabels).toBe(0);
     expect(before.cityDots).toBeGreaterThan(0);
     expect(before.warehouseLabels).toBe(5);
-    await page.getByRole('button', { name: 'Show all 25 lanes on the map' }).click();
+    await page.getByRole('button', { name: 'Show all 25 lanes in the list' }).click();
     expect((await read()).lanes).toBe(25);
     await ctx.close();
   });

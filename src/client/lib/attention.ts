@@ -6,7 +6,7 @@
 
 import type { Alert, InventoryItem, Location, Shipment, Snapshot } from '../../shared/types';
 import { COST_CRITICAL_MULTIPLIER, DELAY_CRITICAL_DAYS } from '../../shared/constants';
-import { displayMoneySummary } from './displayMoney';
+import { COMPACT_FROM_CENTS, displayMoneySummary, displayMoneyTable } from './displayMoney';
 import { buildHash } from '../router';
 
 // ---- kinds ------------------------------------------------------------------------------------------------------
@@ -209,6 +209,10 @@ function billingCandidates(snapshot: Snapshot): Candidate[] {
     const cents = group.reduce((sum, s) => sum + s.shippingCostCents - (s.cost.baselineCents as number), 0);
     const critical = group.some((s) => s.shippingCostCents >= COST_CRITICAL_MULTIPLIER * (s.cost.baselineCents as number));
     const only = group.length === 1 ? (group[0] as Shipment) : null;
+    // One shipment: the excess is the difference of two prices the Alerts page shows to the cent (its cost and the
+    // typical cost), so under $10,000 it keeps its cents (owner decision D5: a price keeps its cents). Several shipments:
+    // their sum, a summary.
+    const excess = only !== null && Math.abs(cents) < COMPACT_FROM_CENTS ? displayMoneyTable(cents, 'price') : displayMoneySummary(cents);
     return {
       cents,
       daysOfSupply: null,
@@ -217,7 +221,7 @@ function billingCandidates(snapshot: Snapshot): Candidate[] {
       row: {
         key: `billing:${carrier}`,
         tone: critical ? 'critical' : 'warning',
-        what: `${carrier} billed ${displayMoneySummary(cents)} above typical on ${only ? only.shipmentId : `${count(group.length)} shipments`}`,
+        what: `${carrier} billed ${excess} above typical on ${only ? only.shipmentId : `${count(group.length)} shipments`}`,
         damage: null,
         action: only ? 'Check the invoice' : 'Check the invoices',
         href: buildHash('shipments', { carrier, flag: 'cost_anomaly' })

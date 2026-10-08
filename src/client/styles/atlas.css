@@ -202,12 +202,12 @@
   flex: 1;
 }
 
-/* The page h1 at the title role (24px, 600, display face). From 1100px its line box stays the first-screen budget's
-   --sit-title-line (24px, below), so the map and the four figures do not move. */
+/* The page h1 at the title role (24px, 600, display face) in the page band h1's ink. From 1100px its line box is the band
+   h1's 30px (--sit-title-line, below), so it sits on the band pages' baseline; the first-screen budget counts it. */
 .atlas-page .situation__title {
   font: 600 var(--fs-h2) / 32px var(--font-display);
   letter-spacing: -0.015em;
-  color: var(--stage-text-2);
+  color: var(--stage-text);
   margin-bottom: 24px;
 }
 
@@ -500,8 +500,10 @@
      use the same variables, so the budget cannot drift from the layout. */
   .atlas-page .situation {
     --sit-pad-top: 40px;
-    --sit-title-line: 24px;
-    --sit-title-gap: 24px;
+    /* The h1's line is the page band's 30px; with the 18px gap under it the title row is the 48px it always was, so the
+       map, the hero and the four figures do not move. */
+    --sit-title-line: 30px;
+    --sit-title-gap: 18px;
     /* The hero lockup above the map: the figure (0.86em line box, gauge 12px under the baseline and 2px tall) and its
        bottom margin. Zero where the figure sits inside or beside the map. */
     --sit-hero: calc(0.86 * var(--fs-display) - 0.0987 * var(--fs-display) + 14px + 24px);
@@ -1508,6 +1510,16 @@
 .atlas-page .queue-row:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+/* Phones: the 16px margin has no room for the rows' 12px hover bleed, so the kind rows, the five rows and their rules start
+   and end at the margin. */
+@media (max-width: 767px) {
+  .atlas-page .kind-row,
+  .atlas-page .queue-row {
+    margin-inline: 0;
+    padding-inline: 0;
+  }
 }
 
 .atlas-page .queue-row__text {

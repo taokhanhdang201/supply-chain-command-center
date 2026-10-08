@@ -139,14 +139,14 @@ describe('5. Routes: the lanes on the map and the lanes that are not', () => {
   it('seed 42: 25 of the 32 lanes on the map, the button names them', async () => {
     await renderWithData(<RoutesPage />, { snapshot: seed42 });
     expect(text('.routes__summary')).toBe('32 lanes · the map shows the top 25 · 7 lanes are not on the map');
-    expect(screen.getByRole('button', { name: 'Show all 25 lanes on the map' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show all 25 lanes in the list' })).toBeInTheDocument();
   });
 
   it('seed 42 with every lane shown: only the 2 without coordinates are off the map', async () => {
     window.location.hash = '#/routes?top=all';
     await renderWithData(<RoutesPage />, { snapshot: seed42 });
     expect(text('.routes__summary')).toBe('32 lanes · 2 lanes are not on the map');
-    expect(screen.getByRole('button', { name: 'Show all 30 lanes on the map' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show all 30 lanes in the list' })).toBeInTheDocument();
   });
 
   it('one lane off the map reads "1 lane is"; none off the map adds nothing', async () => {

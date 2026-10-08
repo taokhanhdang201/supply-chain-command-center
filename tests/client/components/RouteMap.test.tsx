@@ -95,7 +95,7 @@ describe('RouteMap', () => {
     const user = userEvent.setup();
     const { container } = render(<RouteMap routes={routes} locations={LOCATIONS} selectedKey={null} onSelect={vi.fn()} />);
     expect(container.querySelectorAll('.route-map__list-item--extra')).toHaveLength(2);
-    await user.click(screen.getByRole('button', { name: 'Show all 12 lanes on the map' }));
+    await user.click(screen.getByRole('button', { name: 'Show all 12 lanes in the list' }));
     expect(container.querySelectorAll('.route-map__list-item--extra')).toHaveLength(0);
     expect(screen.queryByRole('button', { name: /^Show all/ })).toBeNull();
   });

@@ -1,5 +1,5 @@
-// Design ratchet (Phase 1 spec section 0d): seven counts of how far the stylesheets are from the design system (type scale,
-// spacing scale, tokens, breakpoints, durations). Each `limit` is today's count and may only go DOWN: the commit that
+// Design ratchet (Phase 1 spec section 0d): eight counts of how far the stylesheets are from the design system (type scale,
+// weights, spacing scale, tokens, breakpoints, durations). Each `limit` is today's count and may only go DOWN: the commit that
 // removes violations lowers its limit in the same commit; a commit that adds one fails here. `target` is where Phase 1 ends.
 // The counters are pure functions of the sources, so a sample stylesheet below proves they see a violation.
 import fs from 'node:fs';
@@ -21,6 +21,7 @@ const SVG_CONSTANTS = [
   { file: 'src/client/components/atlas/AtlasScene.tsx', name: 'LABEL_PX' },
   { file: 'src/client/components/routes/RouteMap.tsx', name: 'MIN_LABEL_PX' }
 ];
+const WEIGHTS = new Set(['400', '500', '600', 'normal', 'inherit']);
 const SIZE_SHORTHAND_SKIP = /^(normal|italic|oblique|small-caps|bold|bolder|lighter|\d+|(ultra-|extra-|semi-)?(condensed|expanded))$/;
 const SPACING_PROP = /^(margin|padding)(-[a-z-]+)?$|^(row-|column-)?gap$/;
 // `%23` is a `#` inside a data-URI (the select chevrons), so a colour hidden there is as raw as a hex written in the open.
@@ -117,6 +118,24 @@ function fontSizes(model: Model): Array<{ decl: Decl; sizes: string[] }> {
   return out;
 }
 
+/** Every declaration that sets a font weight, with the weights it can resolve to. In a `font` shorthand the weight comes
+ *  before the size, so only the tokens before the size count (a unitless line height after the slash is not a weight). */
+function fontWeights(model: Model): Array<{ decl: Decl; weights: string[] }> {
+  const out: Array<{ decl: Decl; weights: string[] }> = [];
+  for (const decl of model.decls) {
+    if (decl.prop === 'font-weight') out.push({ decl, weights: resolve(decl.value, model.custom).map(norm) });
+    else if (decl.prop === 'font' && !/^(inherit|initial|unset|revert)$/.test(decl.value)) {
+      const weights = resolve(decl.value, model.custom).flatMap((s) => {
+        const tokens = splitTop(s, ' ');
+        const size = tokens.findIndex((t) => !SIZE_SHORTHAND_SKIP.test(t));
+        return (size < 0 ? tokens : tokens.slice(0, size)).filter((t) => /^(\d+|bold|bolder|lighter)$/.test(t));
+      });
+      out.push({ decl, weights });
+    }
+  }
+  return out;
+}
+
 /** Durations in ms. `*-duration` is a list of times; in a shorthand the duration is the FIRST time token (the second is a delay). */
 function durations(model: Model): Array<{ decl: Decl; ms: number[] }> {
   const toMs = (v: string): number => {
@@ -199,6 +218,15 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
       const timed = durations(m);
       return { scanned: timed.length, offenders: timed.filter((t) => t.ms.some((v) => !(v < 1 || DURATIONS_MS.has(v)))).map((t) => offender(t.decl)) };
     }
+  },
+  {
+    name: 'font weights other than 400/500/600',
+    limit: 0,
+    target: 0,
+    count: (m) => {
+      const weighted = fontWeights(m);
+      return { scanned: weighted.length, offenders: weighted.filter((w) => w.weights.some((v) => !WEIGHTS.has(v))).map((w) => offender(w.decl)) };
+    }
   }
 ];
 
@@ -242,6 +270,7 @@ describe('design ratchet', () => {
             .chevron { background-image: url("data:image/svg+xml,%3Cpath stroke='%23123456'/%3E"); }
             @media (max-width: 640px) and (min-width: 1024px) { .narrow { margin: 0; } }
             .motion { transition: opacity var(--dur-odd) ease; animation: spin 1.8s linear 300ms; transition-delay: 3s; }
+            .heavy { font-weight: 700; } .heavier { font-weight: bold; } .heavy-short { font: 700 0.875rem/1 sans-serif; } .light-short { font: 400 0.875rem/1 sans-serif; }
             .still { transition: color 120ms ease, opacity 200ms ease; animation-duration: 0s; }`
         }
       ],
@@ -255,13 +284,15 @@ describe('design ratchet', () => {
             :root { --fs-body: 1rem; --dur-fast: 120ms; }
             .a { font: 500 var(--fs-body)/1.4 sans-serif; font-size: 0.875rem; margin: 8px 16px; gap: var(--space-2); }
             .b { color: var(--ink); transition: opacity var(--dur-fast) ease; }
+            .w { font-weight: 600; } .w2 { font: 400 1rem/1 sans-serif; }
             @media (max-width: 767px) { .a { margin: 0; } }`
         }
       ],
       svg('const AXIS_FONT_SIZE = 12;', 'const LABEL_PX = 14;', 'const MIN_LABEL_PX = 12;')
     );
-    // Order of GROUPS: sizes off scale, distinct sizes (13px, 1.0625rem, .875rem), SVG, spacing, colours, @media, durations.
-    expect(GROUPS.map((g) => g.count(dirty).offenders.length)).toEqual([2, 3, 3, 2, 3, 1, 2]);
-    expect(GROUPS.map((g) => g.count(clean).offenders.length)).toEqual([0, 2, 0, 0, 0, 0, 0]);
+    // Order of GROUPS: sizes off scale, distinct sizes (13px, 1.0625rem, .875rem), SVG, spacing, colours, @media, durations,
+    // weights (700, bold, a 700 shorthand; a unitless line height after the size is not a weight).
+    expect(GROUPS.map((g) => g.count(dirty).offenders.length)).toEqual([2, 3, 3, 2, 3, 1, 2, 3]);
+    expect(GROUPS.map((g) => g.count(clean).offenders.length)).toEqual([0, 2, 0, 0, 0, 0, 0, 0]);
   });
 });

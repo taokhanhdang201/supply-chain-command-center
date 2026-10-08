@@ -126,14 +126,12 @@
   border-style: dashed;
 }
 
-/* Table summary line: the display numeral above a table. */
+/* The count over a table, in the type of a section h2 on paper (lg, 500, the display face, no wider stretch): the floor has
+   one heading style. */
 .table-summary {
   margin: 0 0 var(--space-3);
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 600;
-  font-stretch: 106%;
-  line-height: 1.2;
+  font: 500 var(--text-lg) / 1.25 var(--font-display);
+  letter-spacing: var(--tracking-title);
 }
 
 /* IDs (SHP-100138, APP-0005, WH-ORD) never break at their hyphen. */
@@ -434,6 +432,20 @@
 
 .stage-gauge--critical {
   background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--critical) var(--rate) 100%);
+}
+
+/* The on-time figure draws its gauge between its value and its label; every figure of the range keeps that row (the
+   gauge's 8px, its 2px line and 4px), so the four labels share a line and so do the details. */
+.analytics-stage .stage-figure {
+  grid-template-rows: auto calc(var(--space-2) + 2px + var(--space-1)) auto auto;
+}
+
+.analytics-stage .stage-figure__label {
+  grid-row: 3;
+}
+
+.analytics-stage .stage-figure__detail {
+  grid-row: 4;
 }
 
 /* Metrics panels and the formula reference sit on the floor under a hairline, like the chart sections. */
@@ -1002,8 +1014,11 @@
   list-style: none;
 }
 
+/* align-content: a figure beside a taller one (a detail on two lines, the Analytics gauge) keeps its rows at their heights,
+   so its label and detail sit right under its value instead of spreading out. */
 .stage-figure {
   display: grid;
+  align-content: start;
   color: var(--stage-text);
   text-decoration: none;
 }
@@ -1210,11 +1225,11 @@ a.stage-figure:focus-visible .stage-figure__label::after {
 /* From 1280px: eleven columns do not fit, so the category moves under the product. The Category column stays in the
    table and the accessibility tree (visually hidden, never display: none). Measured with 14px table text: merged, the
    table still scrolled sideways up to ~1250px, so Inventory stacks up to 1279px (below), as Alerts does; unmerged it
-   needs ~1150px, more than a 1440px screen leaves it, and no listed breakpoint lies above 1440px. */
+   needs ~1150px, more than a 1440px screen leaves it, and no listed breakpoint lies above 1440px. The product takes the
+   width the other columns leave: at 1440px every sample name is one line (the longest is 218px); a longer name wraps. */
 @media (min-width: 1280px) {
   .inventory-ledger .data-table td.data-table__col--product {
     white-space: normal;
-    max-width: 180px;
   }
 
   .inventory-product__category {
@@ -1382,18 +1397,8 @@ a.stage-figure:focus-visible .stage-figure__label::after {
   font-variant-numeric: tabular-nums;
 }
 
-.routes-ledger {
-  border-top: 1px solid var(--color-text);
-  padding-top: var(--space-6);
-}
-
-.routes-ledger__title {
-  margin: 0;
-  font: 600 var(--text-md) / 1.3 var(--font-display);
-}
-
 .routes-ledger__note {
-  margin: var(--space-1) 0 var(--space-4);
+  margin: 0 0 var(--space-4);
   color: var(--color-text-muted);
 }
 

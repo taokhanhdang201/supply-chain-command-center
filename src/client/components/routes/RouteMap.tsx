@@ -184,7 +184,7 @@ export function RouteMap({ routes, locations, selectedKey, onSelect }: RouteMapP
           <ul className="route-map__list">
             {drawable.map((route, index) => {
               const isSelected = selectedKey === route.routeKey;
-              // Past the first ten, a lane is hidden on phones only (CSS) until "Show all N lanes on the map"; the selected one never is.
+              // Past the first ten, a lane is hidden on phones only (CSS) until "Show all N lanes in the list"; the selected one never is.
               const isExtra = !showAllLanes && !isSelected && index >= PHONE_LIST_LIMIT;
               return (
                 <li key={route.routeKey} className={isExtra ? 'route-map__list-item--extra' : undefined}>
@@ -208,7 +208,7 @@ export function RouteMap({ routes, locations, selectedKey, onSelect }: RouteMapP
           </ul>
           {!showAllLanes && drawable.length > PHONE_LIST_LIMIT && (
             <button type="button" className="button route-map__show-all" onClick={() => setShowAllLanes(true)}>
-              Show all {drawable.length} lanes on the map
+              Show all {drawable.length} lanes in the list
             </button>
           )}
         </div>

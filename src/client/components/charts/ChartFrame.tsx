@@ -37,10 +37,12 @@ export function ChartFrame({ title, subtitle, actions, controls, isEmpty, note, 
     </button>
   );
 
+  // A chart sits under its section's h2 ("Charts" on Analytics), so its card's title is an h3.
   return (
     <Card
       className={className}
       title={title}
+      titleLevel={3}
       subtitle={subtitle}
       actions={
         actions !== undefined || toggle ? (

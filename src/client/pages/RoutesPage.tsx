@@ -12,6 +12,7 @@ import { useSnapshot } from '../state/DataContext';
 import { buildHash, navigate, useHashRoute } from '../router';
 import { displayMoneyTable } from '../lib/displayMoney';
 import { Card } from '../components/ui/Card';
+import { SectionHeader } from '../components/ui/SectionHeader';
 import { RouteLabel } from '../components/ui/RouteLabel';
 import { PageStage } from '../components/layout/PageStage';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
@@ -152,7 +153,8 @@ export function RoutesPage() {
 
   return (
     <div className="page">
-      <PageStage title="Routes">
+      {/* The compact band, as every other page's: the h1 sits where theirs does. */}
+      <PageStage title="Routes" variant="compact">
         {network.length > 0 && (
           <div className="figure-stage">
             <section className="figure-stage__group" aria-labelledby="routes-network">
@@ -238,9 +240,7 @@ export function RoutesPage() {
       {unmappedRoutes.length > 0 && (
         <div className="page-floor">
           <section className="routes-ledger" aria-labelledby="routes-unmapped">
-            <h2 className="routes-ledger__title" id="routes-unmapped">
-              Unmapped routes
-            </h2>
+            <SectionHeader title="Unmapped routes" id="routes-unmapped" />
             <p className="routes-ledger__note">These locations are not in the reference map.</p>
             <DataTable caption="Unmapped routes" columns={UNMAPPED_COLUMNS} rows={unmappedRoutes} rowKey={(r) => r.routeKey} stackOnPhone />
           </section>
