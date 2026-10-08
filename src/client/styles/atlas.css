@@ -261,6 +261,27 @@
   color: var(--stage-text-2);
 }
 
+/* "8 not measurable" (Phase 1 spec §8): the delivered shipments the rate cannot rate, beside its label in the detail's size
+   and ink. Beside the label, not in the detail line: inside the map (from 1280px) the figure keeps the box it has, since a
+   longer detail line widened or deepened it onto Texas or WH-LAX at 1280px. From 768 to 1099px the label has four
+   columns, so the note takes its own line and drops the dot. */
+.atlas-page .hero__note {
+  font: 400 var(--fs-small) / 20px var(--font-sans);
+  letter-spacing: 0.005em;
+  color: var(--stage-text-2);
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) and (max-width: 1099px) {
+  .atlas-page .hero__note {
+    display: block;
+  }
+
+  .atlas-page .hero__sep {
+    display: none;
+  }
+}
+
 /* The network is the opening scene: full width from 1100px (the figure inside it), under the figure below that; on
    phones it bleeds to the edges. */
 .atlas-page .situation__map {
@@ -1417,6 +1438,22 @@
   fill: none;
   stroke: var(--color-accent);
   stroke-width: 1.75;
+}
+
+/* A few muted words beside a kind whose name alone reads two ways (Overdue: past ETA, not delivered; Phase 1 spec §8), in
+   the detail size; the row stays one 40px line. Muted ink stays AA on the 7% hover tint. */
+.atlas-page .kind-row__sep,
+.atlas-page .kind-row__note {
+  font: 400 var(--fs-small) / 20px var(--font-sans);
+  color: var(--color-text-muted);
+}
+
+/* Under the total: the kinds count only the alerts that need attention, so one muted line says the info alerts (in the
+   Alerts page's total) are left out. */
+.atlas-page .attention__note {
+  margin: 8px 0 0;
+  font: 400 var(--fs-small) / 20px var(--font-sans);
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 767px) {

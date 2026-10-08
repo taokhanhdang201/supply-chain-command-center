@@ -34,8 +34,8 @@ import { CostChart, FlowFigure, ReliabilityChart } from '../components/atlas/Flo
 import { WarehouseRacks } from '../components/atlas/WarehouseRacks';
 import { RouteLabel } from '../components/ui/RouteLabel';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
-import { ON_TIME_FLOOR, ON_TIME_TARGET, onTimeTone, type TargetTone } from '../lib/targets';
-import { buildQueue, kindCounts } from '../lib/attention';
+import { notMeasurableNote, ON_TIME_FLOOR, ON_TIME_TARGET, onTimeTone, type TargetTone } from '../lib/targets';
+import { buildQueue, KIND_NOTES, kindCounts } from '../lib/attention';
 import { displayMoneySummary, displayMoneyTable } from '../lib/displayMoney';
 
 const RANGE_OPTIONS: SelectOption[] = [
@@ -180,6 +180,9 @@ export function DashboardPage() {
 
   const rate = kpis.onTimeRate;
   const tone = onTimeTone(rate);
+  // "8 not measurable" beside the rate's label, not in the detail line: inside the map (from 1280px) a longer detail line
+  // widened or deepened the figure onto Texas or WH-LAX (Phase 1 spec §8; the figure keeps the box the map leaves it).
+  const notMeasurable = notMeasurableNote(snapshot.shipments);
 
   return (
     <div className="atlas-page">
@@ -191,7 +194,15 @@ export function DashboardPage() {
           </h1>
 
           <div className="hero">
-            <p className="hero__label">On-time delivery rate</p>
+            <p className="hero__label">
+              On-time delivery rate
+              {notMeasurable !== null && (
+                <span className="hero__note">
+                  <Separator className="hero__sep" />
+                  {notMeasurable}
+                </span>
+              )}
+            </p>
             <div className="hero__figure">
               <div className="hero__num">
                 <p className="hero__value">{formatPercent(rate)}</p>
@@ -273,14 +284,37 @@ export function DashboardPage() {
           <div className="attention__kinds">
             {kinds.length > 0 && (
               <ul className="kind-list" aria-label="Alerts that need attention, by kind">
-                {kinds.map((k) => (
-                  <li key={k.kind}>
-                    <a className="kind-row" href={k.href} aria-label={`${k.label}, ${k.count.toLocaleString('en-US')}, view in Alerts`}>
-                      <span className="kind-row__label">{k.label}</span>
-                      <span className="kind-row__count">{k.count.toLocaleString('en-US')}</span>
-                    </a>
-                  </li>
-                ))}
+                {kinds.map((k) => {
+                  // A kind whose name reads two ways carries a few words beside it (Overdue: past ETA, not delivered); the
+                  // link's name stays "Overdue, 12, view in Alerts" and the words are its description.
+                  const note = KIND_NOTES[k.kind];
+                  const noteId = `kind-note-${k.kind}`;
+                  return (
+                    <li key={k.kind}>
+                      <a
+                        className="kind-row"
+                        href={k.href}
+                        aria-label={`${k.label}, ${k.count.toLocaleString('en-US')}, view in Alerts`}
+                        aria-describedby={note === undefined ? undefined : noteId}
+                      >
+                        <span className="kind-row__text">
+                          <span className="kind-row__label">{k.label}</span>
+                          {note !== undefined && (
+                            <>
+                              <span className="kind-row__sep" aria-hidden="true">
+                                {' · '}
+                              </span>
+                              <span className="kind-row__note" id={noteId}>
+                                {note}
+                              </span>
+                            </>
+                          )}
+                        </span>
+                        <span className="kind-row__count">{k.count.toLocaleString('en-US')}</span>
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             )}
             <a className="kind-row kind-row--total" href={buildHash('alerts', { kind: 'any' })} aria-label={`${alertsNeedingAttention.toLocaleString('en-US')} ${alertsNeedingAttention === 1 ? 'needs' : 'need'} attention, view in Alerts`}>
@@ -290,6 +324,9 @@ export function DashboardPage() {
                 <path d="M4 10h11M11 5l5 5-5 5" />
               </svg>
             </a>
+            {/* The kinds and their total count only the alerts that need attention; the Alerts page's total has the info
+                ones too (Phase 1 spec §8). */}
+            {infoAlertCount > 0 && <p className="attention__note">Info alerts are not counted.</p>}
           </div>
         </div>
 

@@ -95,14 +95,14 @@ describe('RouteMap', () => {
     const user = userEvent.setup();
     const { container } = render(<RouteMap routes={routes} locations={LOCATIONS} selectedKey={null} onSelect={vi.fn()} />);
     expect(container.querySelectorAll('.route-map__list-item--extra')).toHaveLength(2);
-    await user.click(screen.getByRole('button', { name: 'Show all lanes (12)' }));
+    await user.click(screen.getByRole('button', { name: 'Show all 12 lanes on the map' }));
     expect(container.querySelectorAll('.route-map__list-item--extra')).toHaveLength(0);
-    expect(screen.queryByRole('button', { name: /Show all lanes/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Show all/ })).toBeNull();
   });
 
   it('offers no Show all lanes button for ten lanes or fewer', () => {
     render(<RouteMap routes={[makeRoute()]} locations={LOCATIONS} selectedKey={null} onSelect={vi.fn()} />);
-    expect(screen.queryByRole('button', { name: /Show all lanes/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Show all/ })).toBeNull();
   });
 
   it('handles zero routes without dividing by zero', () => {

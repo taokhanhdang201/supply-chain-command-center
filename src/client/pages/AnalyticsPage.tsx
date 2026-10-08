@@ -20,7 +20,7 @@ import { formatCentsAxis, formatCompactNumber, formatDays, formatMonth, formatMo
 import type { ShipmentStatus, StockoutRisk } from '../../shared/types';
 import { useSnapshot } from '../state/DataContext';
 import { buildHash, navigate, useHashRoute } from '../router';
-import { ON_TIME_TARGET, onTimeTone } from '../lib/targets';
+import { notMeasurableNote, ON_TIME_TARGET, onTimeTone } from '../lib/targets';
 import { displayMoneySummary, displayMoneyTable } from '../lib/displayMoney';
 import { PageStage } from '../components/layout/PageStage';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
@@ -99,6 +99,8 @@ export function AnalyticsPage() {
   const tone = onTimeTone(rate);
   const belowTarget = tone === 'warning' || tone === 'critical';
   const gaugeStyle = { ['--rate' as string]: `${((rate ?? 0) * 100).toFixed(2)}%` } as CSSProperties;
+  // "8 not measurable": the range's delivered shipments the rate leaves out (Phase 1 spec §8; the Dashboard says it too).
+  const notMeasurable = notMeasurableNote(rangedShipments);
 
   return (
     <div className="page">
@@ -114,7 +116,7 @@ export function AnalyticsPage() {
                 value={formatPercent(rate)}
                 label="On-time rate"
                 tone={tone === 'good' ? 'neutral' : tone}
-                detail={`${kpis.onTimeCount} of ${kpis.onTimeCount + kpis.lateCount} delivered on time${belowTarget ? ` · below the ${formatPercent(ON_TIME_TARGET, 0)} target` : ''}`}
+                detail={`${kpis.onTimeCount} of ${kpis.onTimeCount + kpis.lateCount} delivered on time${notMeasurable === null ? '' : ` · ${notMeasurable}`}${belowTarget ? ` · below the ${formatPercent(ON_TIME_TARGET, 0)} target` : ''}`}
               >
                 {/* The gauge is decoration (aria-hidden); being under target is also said in words. */}
                 {rate !== null && <span className={`stage-gauge stage-gauge--${tone}`} style={gaugeStyle} aria-hidden="true" />}

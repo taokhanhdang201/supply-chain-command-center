@@ -36,6 +36,11 @@ export const ATTENTION_KIND_LABELS: Record<AttentionKind, string> = {
   records: 'Incomplete or wrong record'
 };
 
+/** A few words beside a kind whose name alone reads two ways (Phase 1 spec §8). "Overdue" sits under the Dashboard's
+ *  "Delayed shipments" figure, which also counts deliveries that arrived late; this kind is only the shipments past their
+ *  ETA and not delivered (pending or in transit: deliveryState "overdue"). Delivered-late alerts are info and have no kind. */
+export const KIND_NOTES: Readonly<Partial<Record<AttentionKind, string>>> = { overdue: 'past ETA, not delivered' };
+
 /** The kind of an alert that needs attention; null for info alerts, which ask for no action. */
 export function kindOf(alert: Alert): AttentionKind | null {
   if (alert.severity === 'info') return null;

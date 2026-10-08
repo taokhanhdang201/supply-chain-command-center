@@ -138,6 +138,9 @@ export function RoutesPage() {
   const unmappedRoutes = allRoutes.filter((r) => !r.mapped);
   const limit = top === 'all' ? mappedRoutes.length : Number(top);
   const shownRoutes = mappedRoutes.slice(0, limit);
+  // Listed but not drawn (Phase 1 spec §8): past the "Show top" limit, or without coordinates (the Unmapped table). With
+  // the map's count this adds up to the lane count: 25 + 7 = 32 on seed 42.
+  const notOnMap = allRoutes.length - shownRoutes.length;
 
   // Stage figures over every shipment (no filter), counted with the filter functions above.
   const network = useMemo(() => summarizeRoutes(snapshot.shipments, snapshot.locations).filter(isListed), [snapshot.shipments, snapshot.locations]);
@@ -199,6 +202,7 @@ export function RoutesPage() {
             <p className="routes__summary">
               {allRoutes.length} lane{allRoutes.length === 1 ? '' : 's'}
               {shownRoutes.length < mappedRoutes.length ? ` · the map shows the top ${shownRoutes.length}` : ''}
+              {notOnMap > 0 ? ` · ${notOnMap} lane${notOnMap === 1 ? ' is' : 's are'} not on the map` : ''}
             </p>
             <RouteMap routes={shownRoutes} locations={snapshot.locations} selectedKey={selectedKey} onSelect={setSelectedKey} />
           </>

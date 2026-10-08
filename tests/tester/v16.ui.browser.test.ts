@@ -503,6 +503,63 @@ describe('V1.6 redesign (real Chromium)', () => {
     await ctx.close();
   });
 
+  // Phase 1 spec §8 (owner: a short line beside each number that differs on purpose from another place; no number changes).
+  // Seed 42: 8 delivered shipments cannot be rated (433 delivered, 425 rated); 57 of the 67 alerts need attention; the kinds
+  // count only those; Overdue is past ETA and not delivered; 25 of the 32 lanes are on the map. On the Dashboard the note sits
+  // beside the rate's label: a longer detail line widened or deepened the figure onto the map's marks at 1280px.
+  it('explanation lines (Phase 1 spec §8): beside their numbers on seed 42, at AA, the Dashboard figure unchanged', async () => {
+    const read = (page: any, sels: string[]) =>
+      page.evaluate((s: string[]) => {
+        const rgb = (c: string) => c.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+        const lum = ([r = 0, g = 0, b = 0]: number[]) => { const f = (x: number) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+        const solidBg = (el: Element) => { for (let n: Element | null = el; n; n = n.parentElement) { const c = getComputedStyle(n).backgroundColor; if (/^rgb\(/.test(c)) return c; } return 'rgb(255,255,255)'; };
+        return s.map((sel) => {
+          const el = document.querySelector(sel) as HTMLElement | null;
+          if (el === null) return { sel, text: null, ratio: 0, display: '', height: 0 };
+          const a = lum(rgb(getComputedStyle(el).color)), b = lum(rgb(solidBg(el)));
+          return { sel, text: (el.textContent ?? '').replace(/\s+/g, ' ').trim(), ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05), display: getComputedStyle(el).display, height: el.getBoundingClientRect().height };
+        });
+      }, sels);
+
+    let { ctx, page } = await open(1440, '', { reducedMotion: 'reduce' });
+    const [note, label, detail, info, overdue] = await read(page, ['.hero__note', '.hero__label', '.hero__detail', '.attention__note', '.kind-row__note']);
+    expect(note!.text).toContain('8 not measurable');
+    expect(note!.display, '1440: note beside the label').toBe('inline');
+    expect(label!.height, '1440: the label stays one 24px line').toBeLessThanOrEqual(24.5);
+    expect(detail!.text).toBe('364 of 425 delivered on time · below the 90% target');
+    expect(info!.text).toBe('Info alerts are not counted.');
+    expect(overdue!.text).toBe('past ETA, not delivered');
+    const described = await page.evaluate(() => {
+      const a = document.querySelector('.attention .kind-row[aria-describedby]') as HTMLElement;
+      return [a.getAttribute('aria-label'), document.getElementById(a.getAttribute('aria-describedby')!)?.textContent];
+    });
+    expect(described).toEqual(['Overdue, 12, view in Alerts', 'past ETA, not delivered']);
+    for (const r of [note, info, overdue]) expect(r!.ratio, r!.sel).toBeGreaterThanOrEqual(4.5);
+    await ctx.close();
+
+    ({ ctx, page } = await open(1024, '', { reducedMotion: 'reduce' }));
+    const [note1024, sep1024] = await read(page, ['.hero__note', '.hero__sep']);
+    expect(note1024!.display, '1024: the note takes its own line').toBe('block');
+    expect(sep1024!.display, '1024: without the dot').toBe('none');
+    await ctx.close();
+
+    ({ ctx, page } = await open(1440, 'alerts'));
+    const [alerts] = await read(page, ['.table-summary']);
+    expect(alerts!.text).toBe('67 alerts · 57 need attention · 10 info');
+    await ctx.close();
+
+    ({ ctx, page } = await open(1440, 'analytics'));
+    expect((await page.locator('.stage-figure', { hasText: 'On-time rate' }).locator('.stage-figure__detail').textContent())?.trim()).toBe(
+      '364 of 425 delivered on time · 8 not measurable · below the 90% target'
+    );
+    await ctx.close();
+
+    ({ ctx, page } = await open(1440, 'routes'));
+    const [routes] = await read(page, ['.routes__summary']);
+    expect(routes!.text).toBe('32 lanes · the map shows the top 25 · 7 lanes are not on the map');
+    await ctx.close();
+  }, 60_000);
+
   it('route colour class matches the delayed rate (<10% neutral, 10-19% warning, >=20% critical) on list and map', async () => {
     const { ctx, page } = await open(1440, 'routes');
     const rows: Array<{ t: string; cls: string }> = await page.locator('.route-map__list-button').evaluateAll((a: Element[]) => a.map((x) => ({ t: (x as HTMLElement).innerText.replace(/\s+/g, ' '), cls: x.className })));
@@ -1008,7 +1065,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     expect(before.cityLabels).toBe(0);
     expect(before.cityDots).toBeGreaterThan(0);
     expect(before.warehouseLabels).toBe(5);
-    await page.getByRole('button', { name: /^Show all lanes/ }).click();
+    await page.getByRole('button', { name: 'Show all 25 lanes on the map' }).click();
     expect((await read()).lanes).toBe(25);
     await ctx.close();
   });
@@ -1064,7 +1121,9 @@ describe('V1.6 redesign (real Chromium)', () => {
     for (const [count, href] of figures) {
       await page.goto(`${base}/${href}`);
       await page.waitForSelector('.table-summary');
-      expect(await page.locator('.table-summary').textContent(), href).toBe(`${count} alert${count === 1 ? '' : 's'}`);
+      // Phase 1 spec §8: a view holding both kinds of row adds " · N need attention · M info" after the count (the count
+      // itself is still the figure's number, as Inventory's "N items ·" above).
+      expect(await page.locator('.table-summary').textContent(), href).toMatch(new RegExp(`^${count} alerts?( · |$)`));
     }
     await ctx.close();
   });
