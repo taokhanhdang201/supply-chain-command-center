@@ -39,7 +39,7 @@ body {
 .drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(5, 8, 13, 0.6);
+  background: var(--color-drawer-backdrop);
   z-index: 40;
 }
 
@@ -106,10 +106,9 @@ body {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .topbar {
-    padding: 6px var(--space-4);
-    gap: 6px var(--space-3);
+    gap: var(--space-2) var(--space-3);
   }
 
   .topbar__sources {
@@ -131,7 +130,7 @@ body {
 
 /* The Dashboard's 8 KPI cards (used only there until the stage composition lands): a fixed column count at desktop
    widths instead of auto-fit, so they form two clean rows of 4 (R-14). */
-@media (min-width: 900px) {
+@media (min-width: 1024px) {
   .kpi-grid--dashboard {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -150,7 +149,7 @@ body {
   }
 }
 
-@media (min-width: 1340px) {
+@media (min-width: 1440px) {
   .chart-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -172,7 +171,7 @@ body {
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .filter-bar {
     display: grid;
     grid-template-columns: 1fr 1fr;

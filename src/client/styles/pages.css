@@ -22,7 +22,7 @@
   padding: var(--space-10) var(--gutter);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .page-stage,
   .page-stage--compact {
     padding: var(--space-8) var(--gutter);
@@ -34,7 +34,7 @@
   padding: var(--space-5) var(--gutter);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .page-stage.page-stage--slim {
     padding: var(--space-4) var(--gutter);
   }
@@ -59,7 +59,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
   color: var(--stage-text);
@@ -75,16 +75,15 @@
 .page-stage__display {
   margin: var(--space-6) 0 0;
   font-family: var(--font-display);
-  font-size: clamp(2.125rem, 5.5vw, 5.5rem);
-  font-size: clamp(2.125rem, 6.4cqi, 5.5rem);
-  font-weight: 700;
+  font-size: var(--text-display);
+  font-weight: 600;
   font-stretch: 112%;
   line-height: 0.95;
   letter-spacing: -0.015em;
   color: var(--stage-text);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .page-stage__display {
     font-stretch: 104%;
   }
@@ -130,7 +129,7 @@
 }
 
 .section-label {
-  font: 600 var(--font-size-xs) / 1.2 var(--font-sans);
+  font: 600 var(--text-xs) / 1.2 var(--font-sans);
   letter-spacing: var(--tracking-label);
   color: var(--color-text);
 }
@@ -144,7 +143,7 @@
 .table-summary {
   margin: 0 0 var(--space-3);
   font-family: var(--font-display);
-  font-size: 1.375rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   font-stretch: 106%;
   line-height: 1.2;
@@ -158,22 +157,22 @@
 .code-tag {
   display: inline-block;
   white-space: nowrap;
-  padding: 1px 6px;
+  padding: 0 var(--space-1);
   border: 1px solid var(--color-border-subtle);
   border-radius: 2px;
-  font: 600 0.6875rem / 1.5 var(--font-sans);
+  font: 600 var(--text-xs) / 1.5 var(--font-sans);
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
 }
 
 .code-cell {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
 }
 
 .text-link {
   display: inline-flex;
-  gap: 6px;
+  gap: var(--space-1);
   align-items: center;
   font-weight: 500;
   color: var(--color-accent);
@@ -312,7 +311,7 @@
   border-block: 1px solid var(--color-border-subtle);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .control-rail {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -335,14 +334,14 @@
   margin-bottom: var(--space-3);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .route-detail__grid {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 .route-detail__grid dt {
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
   color: var(--color-text-subtle);
@@ -351,7 +350,7 @@
 .route-detail__grid dd {
   margin-left: 0;
   font-family: var(--font-display);
-  font-size: 1.75rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   font-stretch: 106%;
   line-height: 1.05;
@@ -359,7 +358,7 @@
 }
 
 .route-detail p {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -379,7 +378,7 @@
 }
 
 .analytics-figure__value {
-  font: 600 clamp(2rem, 1vw + 1.5rem, 2.75rem) / 1.1 var(--font-display);
+  font: 600 var(--text-xl) / 1.1 var(--font-display);
   font-variant-numeric: tabular-nums lining-nums;
 }
 
@@ -388,7 +387,7 @@
 }
 
 .analytics-figure__detail {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -449,7 +448,7 @@
 
 .analytics-panel__title {
   margin: 0 0 var(--space-3);
-  font: 600 var(--font-size-md) / 1.4 var(--font-sans);
+  font: 600 var(--text-md) / 1.4 var(--font-sans);
 }
 
 .analytics-formulas {
@@ -599,7 +598,7 @@
 .import-reference .data-table--stack .data-table__phone-label {
   display: inline;
   margin-right: var(--space-1);
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   color: var(--color-text-muted);
 }
@@ -657,7 +656,7 @@
 
 .ingest-state__main {
   margin: 0;
-  font: 600 var(--font-size-xl) / 1.3 var(--font-display);
+  font: 600 var(--text-lg) / 1.3 var(--font-display);
   overflow-wrap: anywhere;
 }
 
@@ -708,7 +707,7 @@
   border: 0;
   background: none;
   color: var(--color-accent);
-  font: 500 var(--font-size-sm) / 1.5 var(--font-sans);
+  font: 500 var(--text-sm) / 1.5 var(--font-sans);
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
@@ -765,7 +764,7 @@
 }
 
 .ingest-more__templates {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -780,14 +779,14 @@
   }
 
   .ingest-state__main {
-    font-size: var(--font-size-lg);
+    font-size: var(--text-md);
   }
 }
 
 /* Preview: the one-line answer, then the details. */
 .ingest-headline {
   margin: var(--space-2) 0 0;
-  font: 600 var(--font-size-lg) / 1.4 var(--font-sans);
+  font: 600 var(--text-md) / 1.4 var(--font-sans);
   font-variant-numeric: tabular-nums;
 }
 
@@ -805,7 +804,7 @@
 }
 
 .ingest-error-groups__hint {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -829,7 +828,7 @@
 }
 
 .ingest-record__fields dt {
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   color: var(--color-text-muted);
 }
@@ -886,7 +885,7 @@
   .ingest-card .ingest-table--records tbody td::before {
     content: attr(data-label) / '';
     display: block;
-    font-size: var(--font-size-xs);
+    font-size: var(--text-xs);
     letter-spacing: var(--tracking-label);
     color: var(--color-text-muted);
   }
@@ -905,7 +904,7 @@
 }
 
 .column-guide__summary {
-  font: 600 var(--font-size-md) / 1.4 var(--font-sans);
+  font: 600 var(--text-md) / 1.4 var(--font-sans);
   cursor: pointer;
 }
 
@@ -946,7 +945,7 @@
 
 .restore-note {
   margin: 0 0 var(--space-3);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -958,7 +957,7 @@
 
 .sheet .data-table th,
 .sheet .data-table td {
-  padding-inline: 6px;
+  padding-inline: var(--space-1);
 }
 
 .sheet .data-table th {
@@ -973,16 +972,16 @@
 
 .sheet .data-table .badge {
   letter-spacing: 0.04em;
-  padding-inline: 6px;
-  gap: 5px;
+  padding-inline: var(--space-1);
+  gap: var(--space-1);
 }
 
 .page-floor .table-scroll {
   background:
     linear-gradient(to right, var(--color-surface) 30%, transparent) left center / 28px 100% no-repeat local,
     linear-gradient(to left, var(--color-surface) 30%, transparent) right center / 28px 100% no-repeat local,
-    linear-gradient(to right, rgba(17, 22, 29, 0.16), transparent) left center / 10px 100% no-repeat scroll,
-    linear-gradient(to left, rgba(17, 22, 29, 0.16), transparent) right center / 10px 100% no-repeat scroll;
+    linear-gradient(to right, var(--color-scroll-shadow), transparent) left center / 10px 100% no-repeat scroll,
+    linear-gradient(to left, var(--color-scroll-shadow), transparent) right center / 10px 100% no-repeat scroll;
 }
 
 /* ---------- Shipments: a triaged ledger ---------- */
@@ -996,7 +995,7 @@
 
 .figure-stage__label {
   margin: 0 0 var(--space-3);
-  font: 500 var(--font-size-sm) / 1.4 var(--font-sans);
+  font: 500 var(--text-sm) / 1.4 var(--font-sans);
   letter-spacing: var(--tracking-label);
   color: var(--stage-text-2);
 }
@@ -1022,7 +1021,7 @@
 }
 
 .stage-figure__label {
-  font-size: var(--font-size-md);
+  font-size: var(--text-md);
   font-weight: 500;
   text-decoration: underline transparent;
   text-underline-offset: 4px;
@@ -1052,7 +1051,7 @@ a.stage-figure:focus-visible .stage-figure__label::after {
 }
 
 .stage-figure__detail {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--stage-text-2);
 }
 
@@ -1107,11 +1106,7 @@ a.stage-figure:focus-visible .stage-figure__label::after {
 /* 1280-1439px: nine columns do not fit, so the carrier moves under the route. Its own column stays in the table and
    the accessibility tree (visually hidden, never display: none). */
 @media (min-width: 1280px) and (max-width: 1439px) {
-  /* Tighter cells and a narrower route column so nine columns fit without scrolling sideways. */
-  .shipments-ledger .data-table :is(th, td) {
-    padding-inline: var(--space-2);
-  }
-
+  /* A narrower route column so nine columns fit without scrolling sideways. */
   .shipments-ledger .data-table td.data-table__col--route {
     min-width: 0;
     max-width: 180px;
@@ -1119,7 +1114,7 @@ a.stage-figure:focus-visible .stage-figure__label::after {
 
   .shipments-route__carrier {
     display: block;
-    font-size: var(--font-size-sm);
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
   }
 
@@ -1213,19 +1208,16 @@ a.stage-figure:focus-visible .stage-figure__label::after {
 
 /* ---------- Inventory: the same ledger ---------- */
 
-/* The category copy under the product exists only for 1280-1599px, below. */
+/* The category copy under the product exists only from 1280px, below. */
 .inventory-product__category {
   display: none;
 }
 
-/* 1280-1599px: eleven columns do not fit, so the category moves under the product and the cells tighten. The Category
-   column stays in the table and the accessibility tree (visually hidden, never display: none). Measured with 14px table
-   text: merged, the table still scrolled sideways up to ~1250px, so Inventory stacks up to 1279px (below), as Alerts does. */
-@media (min-width: 1280px) and (max-width: 1599px) {
-  .inventory-ledger .data-table :is(th, td) {
-    padding-inline: var(--space-2);
-  }
-
+/* From 1280px: eleven columns do not fit, so the category moves under the product. The Category column stays in the
+   table and the accessibility tree (visually hidden, never display: none). Measured with 14px table text: merged, the
+   table still scrolled sideways up to ~1250px, so Inventory stacks up to 1279px (below), as Alerts does; unmerged it
+   needs ~1150px, more than a 1440px screen leaves it, and no listed breakpoint lies above 1440px. */
+@media (min-width: 1280px) {
   .inventory-ledger .data-table td.data-table__col--product {
     white-space: normal;
     max-width: 180px;
@@ -1233,7 +1225,7 @@ a.stage-figure:focus-visible .stage-figure__label::after {
 
   .inventory-product__category {
     display: block;
-    font-size: var(--font-size-sm);
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
   }
 
@@ -1286,7 +1278,7 @@ a.stage-figure:focus-visible .stage-figure__label::after {
   :is(.shipments-ledger, .inventory-ledger) .data-table--stack .data-table__phone-label {
     display: inline;
     margin-right: var(--space-1);
-    font-size: var(--font-size-xs);
+    font-size: var(--text-xs);
     letter-spacing: var(--tracking-label);
     color: var(--color-text-muted);
   }
@@ -1382,7 +1374,7 @@ a.stage-figure:focus-visible .stage-figure__label::after {
 
 .routes__summary {
   margin: 0 0 var(--space-3);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--stage-text-2);
   font-variant-numeric: tabular-nums;
 }
@@ -1394,7 +1386,7 @@ a.stage-figure:focus-visible .stage-figure__label::after {
 
 .routes-ledger__title {
   margin: 0;
-  font: 600 var(--font-size-lg) / 1.3 var(--font-display);
+  font: 600 var(--text-md) / 1.3 var(--font-display);
 }
 
 .routes-ledger__note {
@@ -1435,7 +1427,7 @@ a.stage-figure:focus-visible .stage-figure__label::after {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .sheet {
     padding: var(--space-4);
   }

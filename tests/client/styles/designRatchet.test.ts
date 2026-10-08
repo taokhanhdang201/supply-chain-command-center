@@ -140,7 +140,7 @@ function durations(model: Model): Array<{ decl: Decl; ms: number[] }> {
 const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Model) => Counted }> = [
   {
     name: 'font sizes off the six-step scale',
-    limit: 6,
+    limit: 0,
     target: 0,
     count: (m) => {
       const sized = fontSizes(m);
@@ -149,7 +149,7 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'distinct font sizes',
-    limit: 12,
+    limit: 6,
     target: 6,
     count: (m) => {
       const sized = fontSizes(m);
@@ -159,7 +159,7 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'SVG text sizes not 12 or 14',
-    limit: 1,
+    limit: 0,
     target: 0,
     count: (m) => {
       const found = SVG_CONSTANTS.map(({ file, name }) => ({ label: `${file} ${name}`, px: Number(new RegExp(`\\b${name} = ([\\d.]+)`).exec(m.ts[file] ?? '')?.[1]) }));
@@ -168,11 +168,11 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'margin/padding/gap off the 4/8 scale',
-    limit: 12,
+    limit: 5,
     target: 2,
     count: (m) => {
-      // var() is not followed, so a spacing held in a custom property is NOT checked here (atlas.css --dash-margin: 56px,
-      // tokens.css --gutter: clamp(16px, 3.2vw, 48px)): the token and atlas commits must check those themselves.
+      // var() is not followed, so a spacing held in a custom property is NOT checked here: tokens.test.ts pins those
+      // (the gutter and grid-gap steps, the 96/128 steps and the Dashboard's aliases).
       const spacing = m.decls.filter((d) => SPACING_PROP.test(d.prop) && !(d.prop === 'margin' && d.value === '-1px'));
       const off = (d: Decl): boolean => [...d.value.replace(/var\([^()]*\)/g, ' ').matchAll(/(-?\d*\.?\d+)px\b/g)].some((n) => !SPACE_SCALE.has(Math.abs(Number(n[1]))));
       return { scanned: spacing.length, offenders: spacing.filter(off).map(offender) };
@@ -180,19 +180,19 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
   },
   {
     name: 'raw colours outside custom properties',
-    limit: 10,
+    limit: 7,
     target: 0,
     count: (m) => ({ scanned: m.decls.length, offenders: m.decls.flatMap((d) => (d.value.match(RAW_COLOUR) ?? []).map((c) => `${offender(d)} -> ${c}`)) })
   },
   {
     name: '@media widths off the breakpoint list',
-    limit: 11,
+    limit: 0,
     target: 0,
     count: (m) => ({ scanned: m.widths.length, offenders: m.widths.filter((w) => !BREAKPOINTS.has(w.px)).map((w) => `${w.where} -> ${w.px}px`) })
   },
   {
     name: 'durations other than 120/200/800ms',
-    limit: 8,
+    limit: 5,
     target: 1,
     count: (m) => {
       // Under 1ms is "off" (reduced motion); skeleton loops and delays are not transitions and are not counted as delays.

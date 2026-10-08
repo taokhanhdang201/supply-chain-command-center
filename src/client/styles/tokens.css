@@ -29,6 +29,7 @@
   --color-border: #8a9099;
   --color-border-subtle: #e2e0d9;
   --color-line-strong: #c9c6bd;
+  --color-scroll-shadow: rgba(17, 22, 29, 0.16);
 
   /* Text */
   --color-text: #11161d;
@@ -46,6 +47,7 @@
   --color-sidebar-badge-bg: rgba(242, 100, 90, 0.18);
   --color-sidebar-badge-text: #ffb4ac;
   --color-sidebar-badge-border: rgba(242, 100, 90, 0.4);
+  --color-drawer-backdrop: rgba(5, 8, 13, 0.6);
 
   /* The single operational blue */
   --color-accent: #2552c4;
@@ -147,12 +149,7 @@
   --type-figure: 600 var(--text-xl) / var(--leading-xl) var(--font-display);
   --type-display: 600 var(--text-display) / var(--leading-display) var(--font-display);
 
-  /* Aliases: older names, kept until no rule reads them (Phase 1 spec section 0b). */
-  --font-size-xs: var(--text-xs);
-  --font-size-sm: var(--text-sm);
-  --font-size-md: var(--text-md);
-  --font-size-lg: var(--text-md);
-  --font-size-xl: var(--text-lg);
+  /* Alias (Phase 1 spec section 0b): the stage figures' size is the xl step of the scale. */
   --stage-figure-size: var(--text-xl);
 
   /* Motion */
@@ -160,7 +157,6 @@
   --dur-1: 120ms;
   --dur-2: 200ms;
   --dur-draw: 800ms; /* drawing data only (lanes, bars, gauges); reduced motion turns it off */
-  --dur-3: 420ms; /* not for UI transitions any more (Phase 1 spec section 9) */
 }
 
 @media (min-width: 768px) {

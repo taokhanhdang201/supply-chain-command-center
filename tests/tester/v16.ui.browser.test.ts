@@ -624,7 +624,7 @@ describe('V1.6 redesign (real Chromium)', () => {
     expect(m.valueLabel).not.toBe('none');
   });
 
-  // Stacked below 1280px (with 14px table text, merged, it still scrolled up to ~1250px); 1280-1599px the category sits under the product.
+  // Stacked below 1280px (with 14px table text, merged, it still scrolled up to ~1250px); from 1280px the category sits under the product (unmerged it needs ~1150px).
   it('inventory: the ledger never scrolls sideways, from phone to wide desktop', async () => {
     for (const w of [390, 768, 1024, 1100, 1180, 1199, 1200, 1280, 1366, 1440, 1600]) {
       const { ctx, page } = await open(w, 'inventory?stock=low_or_out', { reducedMotion: 'reduce' });

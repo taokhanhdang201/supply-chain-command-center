@@ -63,12 +63,9 @@ describe('tokens.css', () => {
     expect(values(atlas, '--fs-display')).toEqual(['var(--text-display)']);
   });
 
-  it('older size names are aliases of the scale and the stage figure size is declared once', () => {
-    expect(values(tokens, '--font-size-xs')).toEqual(['var(--text-xs)']);
-    expect(values(tokens, '--font-size-sm')).toEqual(['var(--text-sm)']);
-    expect(values(tokens, '--font-size-md')).toEqual(['var(--text-md)']);
-    expect(values(tokens, '--font-size-lg')).toEqual(['var(--text-md)']);
-    expect(values(tokens, '--font-size-xl')).toEqual(['var(--text-lg)']);
+  it('the older size names are gone and the stage figure size is declared once', () => {
+    for (const step of ['xs', 'sm', 'md', 'lg', 'xl']) expect(values(all, `--font-size-${step}`), step).toEqual([]);
+    expect(all).not.toContain('var(--font-size-');
     expect(values(all, '--stage-figure-size')).toEqual(['var(--text-xl)']);
   });
 });

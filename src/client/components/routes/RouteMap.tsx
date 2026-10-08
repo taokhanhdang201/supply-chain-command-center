@@ -28,7 +28,7 @@ const VIEW_HEIGHT = 600;
 const MARKER_SIZE = 10;
 /** Smallest label size (px on screen) the map aims for; the SVG is scaled to fit its card, so the font in viewBox
  * units is counter-scaled to keep this size when the map is shown narrower than the viewBox. */
-const MIN_LABEL_PX = 11.5;
+const MIN_LABEL_PX = 12;
 const MIN_LABEL_FONT_UNITS = 12;
 
 // Lane tones match the page's figures: gray when on track, amber (solid) from 10% delayed, and dashed red (never

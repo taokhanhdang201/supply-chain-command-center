@@ -20,7 +20,7 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: var(--font-size-md);
+  font-size: var(--text-md);
   color: var(--color-text);
   background: var(--color-bg);
   font-variant-numeric: tabular-nums;
@@ -142,15 +142,15 @@ main[tabindex='-1']:focus {
 
 @media (prefers-reduced-motion: no-preference) {
   .page-stage__display {
-    animation: scc-rise var(--dur-3) var(--ease-out) both;
+    animation: scc-rise var(--dur-2) var(--ease-out) both;
   }
 
   .page-stage__body {
-    animation: scc-rise var(--dur-3) var(--ease-out) 80ms both;
+    animation: scc-rise var(--dur-2) var(--ease-out) 80ms both;
   }
 
   .chart {
-    animation: scc-fade 300ms var(--ease-out) both;
+    animation: scc-fade var(--dur-2) var(--ease-out) both;
   }
 }
 
