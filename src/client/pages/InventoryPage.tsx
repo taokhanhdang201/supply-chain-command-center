@@ -17,7 +17,7 @@ import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { Badge, type BadgeTone } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IdText } from '../components/ui/IdText';
-import { Figure } from '../components/ui/Figure';
+import { Figure, type FigureTone } from '../components/ui/Figure';
 
 const STOCK_FILTER_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'All' },
@@ -88,12 +88,12 @@ const SORT_OPTIONS: SelectOption[] = [
 ];
 
 /** The attention row: one figure per filter, never a combined total (an item can be both low and high risk). Only an
- * empty shelf is red; the rest are warnings. */
-const ATTENTION_FIGURES: ReadonlyArray<{ param: 'stock' | 'risk'; value: string; label: string; tone: 'critical' | 'warning' }> = [
+ * empty shelf is red; low stock and a high stockout risk are warnings; an unknown risk is neutral, never a warning. */
+const ATTENTION_FIGURES: ReadonlyArray<{ param: 'stock' | 'risk'; value: string; label: string; tone: FigureTone }> = [
   { param: 'stock', value: 'out_of_stock', label: 'Out of stock', tone: 'critical' },
   { param: 'stock', value: 'low_stock', label: 'Low stock', tone: 'warning' },
   { param: 'risk', value: 'high', label: 'High stockout risk', tone: 'warning' },
-  { param: 'risk', value: 'unknown', label: 'Unknown risk', tone: 'warning' }
+  { param: 'risk', value: 'unknown', label: 'Unknown risk', tone: 'neutral' }
 ];
 
 /** The Inventory page (plan §8.6): search + warehouse/category/stock/risk filters over the enriched inventory. */

@@ -137,12 +137,13 @@ describe('InventoryPage: a triaged ledger', () => {
     expect(within(group).queryByText(/total/i)).toBeNull();
   });
 
-  it('keeps red for Out of stock only; the other attention figures are amber', async () => {
+  // Phase 1 spec §2 and DESIGN.md "Neutral": an unknown risk is neutral, never a warning (amber until commit 9b).
+  it('keeps red for Out of stock only and amber for Low stock and High stockout risk; Unknown risk is plain ink', async () => {
     await renderWithData(<InventoryPage />, { snapshot: triage() });
     expect(screen.getByRole('link', { name: /^1 Out of stock/ })).toHaveClass('stage-figure--critical');
     expect(screen.getByRole('link', { name: /^1 Low stock/ })).toHaveClass('stage-figure--warning');
     expect(screen.getByRole('link', { name: /^3 High stockout risk/ })).toHaveClass('stage-figure--warning');
-    expect(screen.getByRole('link', { name: /^1 Unknown risk/ })).toHaveClass('stage-figure--warning');
+    expect(screen.getByRole('link', { name: /^1 Unknown risk/ }).className).toBe('stage-figure');
   });
 
   it('colours the Stockout risk badge: Low green, Medium neutral, High amber (red stays for Out of stock)', async () => {
