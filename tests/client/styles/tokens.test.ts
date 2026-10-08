@@ -99,10 +99,26 @@ describe('tokens.css', () => {
     expect(values(tokens, '--critical')).toHaveLength(2);
     expect(values(tokens, '--critical').at(-1)).toBe('#f2645a');
     expect(all.toLowerCase()).not.toContain('#ef5b4e');
-    // `.route-map` keeps its lane grey and its halo, and nothing else.
+    // `.route-map` keeps only its halo; its lane grey is the one --route of tokens.css.
     const routeMap = /(?:^|\n)\.route-map\s*\{([^}]*)\}/.exec(all);
     expect(routeMap, 'the .route-map rule').not.toBeNull();
-    expect([...(routeMap![1] as string).matchAll(/(--[a-z-]+)\s*:/g)].map((m) => m[1])).toEqual(['--route', '--route-halo']);
+    expect([...(routeMap![1] as string).matchAll(/(--[a-z-]+)\s*:/g)].map((m) => m[1])).toEqual(['--route-halo']);
+    expect(values(all, '--route')).toEqual(['#5b6b80']);
+  });
+
+  // A role token (font: var(--type-*)) would reset font-variant-numeric and drop tabular figures, so there are none: a rule
+  // sets its size step and, beside it, its line height in rem or unitless (DESIGN.md "Type roles").
+  it('sets type by property: no role tokens, here or in DESIGN.md, and six line heights in rem or unitless', () => {
+    expect(all).not.toMatch(/--type-[a-z]/);
+    expect(fs.readFileSync(path.resolve('DESIGN.md'), 'utf8')).not.toContain('--type-');
+    expect(['xs', 'sm', 'md', 'lg', 'xl', 'display'].map((step) => values(tokens, `--leading-${step}`))).toEqual([
+      ['1rem'],
+      ['1.25rem'],
+      ['1.5rem'],
+      ['2rem'],
+      ['2.5rem'],
+      ['0.9']
+    ]);
   });
 });
 

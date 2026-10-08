@@ -144,7 +144,7 @@ Each page has one dark band at the top (`PageStage`):
 
 
 
-\- the h1 (`--type-title`), the only visible title of the page
+\- the h1 (`--text-lg` at 600 on a 1.25 line, `--tracking-title`, display face), the only visible title of the page
 
 \- at most one context line
 
@@ -628,7 +628,7 @@ Do not randomly introduce additional fonts.
 
 
 
-Six sizes, in rem so a larger default font still scales them. Do not add a seventh.
+Six sizes, in rem so a larger default font still scales them. Do not add a seventh. Line heights are rem or unitless too, never px, so a larger default font grows each line with its text (the design ratchet counts px line heights: 0).
 
 
 
@@ -654,25 +654,31 @@ Weights are 400, 500 and 600 only.
 
 
 
-A component sets its text with a role (`font: var(--type-label)`), not with a size of its own. The shorthand also resets font-stretch to 100% and font-variant-numeric, so a role on numbers is followed by `font-variant-numeric: tabular-nums`.
+There are no role tokens. A rule sets its size with a `--text-*` step and, beside it, its line height (a `--leading-*` token, a rem value or a unitless number), its weight (400, 500 or 600) and, on titles and labels, a `--tracking-*` token. A `font` shorthand is fine, but it also resets font-stretch to 100% and font-variant-numeric, so numbers set with one add `font-variant-numeric: tabular-nums` after it. The roles as the stylesheets set them (#/_design shows the same table, checked against the rules):
 
 
 
-\- `--type-label`: 500, xs, sans
+\- label (field labels, table headers): `--text-xs`, 600, line 1.2, `--tracking-label`
 
-\- `--type-control`: 500, sm, sans
+\- control (buttons): `--text-sm`, 500, in a 36px box (a small button: `--text-xs` at 600, 32px)
 
-\- `--type-body`: 400, md, sans
+\- body: `--text-md`, 400
 
-\- `--type-title`: 600, lg, display
+\- table cell: `--text-sm`, 400, line 1.4; a detail line: `--text-sm`, 400
 
-\- `--type-figure`: 600, xl, display
+\- section title on paper (h2): `--text-lg`, 500, line 1.25, `--tracking-title`, display face
 
-\- `--type-display`: 600, display size, display
+\- page title (h1): `--text-lg`, 600, line 1.25, `--tracking-title`, display face
+
+\- figure: `--text-xl`, 600, line 1.1, display face, tabular figures
+
+\- the Top alerts title: `--text-xl`, 600, line 1.15
+
+\- display (the Dashboard's on-time rate): `--text-display`, 600, line 0.86, tracking -0.045em, display face
 
 
 
-The page h1 is `--type-title` (24px, 600) in `--stage-text`. In the page band it sits on a 30px line. The Dashboard has no page band: its h1 heads the map scene, on the same 30px line from 1100px (32px below), so from 1100px the h1 sits on one baseline on every page but the slim band's. A section h2 on paper is lg at 500: it differs from the h1 by weight and place; the line over a table and an empty state's title use the same type. The Top alerts title is the one larger heading (36px, 600). Figures use `--type-figure` (36px).
+The page h1 is `--text-lg` at 600 (24px) in `--stage-text`. In the page band it sits on a 30px line. The Dashboard has no page band: its h1 heads the map scene, on the same 30px line from 1100px (32px below), so from 1100px the h1 sits on one baseline on every page but the slim band's. A section h2 on paper is lg at 500: it differs from the h1 by weight and place; the line over a table and an empty state's title use the same type. The Top alerts title is the one larger heading (36px, 600). Figures are `--text-xl` (36px).
 
 
 

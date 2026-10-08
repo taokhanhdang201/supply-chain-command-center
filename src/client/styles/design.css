@@ -1,10 +1,18 @@
-/* The design reference (#/_design, Phase 1 spec §10): development builds only. DesignPage.tsx imports this sheet, so it is
-   loaded with the page and never reaches the production bundle. Tokens only: no size, colour or space of its own, and no
-   custom property (tokens.css declares them all). */
+/* The design reference (#/_design): development builds only. DesignPage.tsx imports this sheet, so it is loaded with the
+   page and never reaches the production bundle. Tokens only: no size, colour or space of its own, and no custom property
+   (tokens.css declares them all). */
 
+/* One column that never grows past the page. An auto column grows to its widest child (a filter bar, a table), and the app
+   shell clips what passes the screen (overflow-x: clip), so at 390px every block lost its right edge. */
 .design-sheet {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-12);
+}
+
+/* One space between the parts of a block; the h2's larger space above the first part collapses with it. */
+.design-sheet__block > * + * {
+  margin-top: var(--space-4);
 }
 
 .design-sheet__row {
@@ -12,15 +20,11 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  margin-top: var(--space-4);
 }
 
 .design-sheet__list {
   display: grid;
   gap: var(--space-3);
-  margin: var(--space-4) 0 0;
-  padding: 0;
-  list-style: none;
 }
 
 .design-sheet__list > li {
@@ -42,6 +46,23 @@
   border-radius: var(--radius-sm);
 }
 
+/* A small swatch beside a name or a ratio in a table cell. */
+.design-sheet__dot {
+  display: inline-block;
+  width: var(--space-4);
+  height: var(--space-4);
+  margin-right: var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  vertical-align: middle;
+}
+
+/* A ratio on the band: a piece of the dark band inside a cell (.surface-stage gives the tokens their dark values). */
+.design-sheet__on-band {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  background: var(--stage-bg);
+}
+
 .design-sheet__bar {
   height: var(--space-4);
   background: var(--color-text-muted);
@@ -51,7 +72,6 @@
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--grid-gap);
-  margin-top: var(--space-4);
 }
 
 .design-sheet__cell {
@@ -62,9 +82,81 @@
   text-align: center;
 }
 
-/* A dark block for the parts that live on the stage (figures, chips): .surface-stage turns the tokens dark. */
+/* A dark block for the parts that live on the stage (figures, chips, the Dashboard link): .surface-stage turns the tokens
+   dark. */
 .design-sheet__stage {
-  margin-top: var(--space-4);
   padding: var(--space-6);
   background: var(--stage-bg);
+}
+
+/* Static copies of the interactive states, so one screenshot shows them: a sample with data-state="hover", "active" or "focus"
+   wears what the live rule gives on hover, on a press or on keyboard focus (components.css, base.css, atlas.css). The same
+   declarations in the same order; a pressed control is hovered too, so the hover copies also match "active".
+   DesignPage.test.tsx compares each copy with its live rule. */
+.button:is([data-state='hover'], [data-state='active']) {
+  border-color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-text) 4%, var(--color-field));
+}
+
+.button--primary:is([data-state='hover'], [data-state='active']) {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.button--ghost:is([data-state='hover'], [data-state='active']) {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
+  color: var(--color-text);
+}
+
+.button--danger:is([data-state='hover'], [data-state='active']) {
+  background: var(--critical);
+  border-color: var(--critical);
+  filter: brightness(0.9);
+}
+
+.button--link:is([data-state='hover'], [data-state='active']) {
+  background: none;
+  color: var(--color-accent-hover);
+}
+
+.button[data-state='active'] {
+  background: color-mix(in srgb, var(--color-text) 8%, var(--color-field));
+}
+
+.button--primary[data-state='active'] {
+  background: color-mix(in srgb, var(--color-accent-hover) 85%, var(--color-text));
+  border-color: color-mix(in srgb, var(--color-accent-hover) 85%, var(--color-text));
+}
+
+.button--ghost[data-state='active'] {
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
+.button--danger[data-state='active'] {
+  background: var(--critical);
+  filter: brightness(0.8);
+}
+
+.button--link[data-state='active'] {
+  background: none;
+}
+
+.select-field__control:is([data-state='hover'], [data-state='active']) {
+  border-color: var(--color-text-muted);
+}
+
+[data-state='focus'] {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Inside a scroll box the live ring sits inside the control (base.css, ".table-scroll :focus-visible"); so does the
+   copy. */
+.table-scroll [data-state='focus'] {
+  outline-offset: -2px;
+}
+
+.atlas-page .dash-link:is([data-state='hover'], [data-state='active']) {
+  text-decoration-color: currentColor;
 }

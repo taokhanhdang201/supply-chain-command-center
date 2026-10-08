@@ -838,15 +838,16 @@ a.kpi-card:focus-visible .kpi-card__label::after {
   background: var(--color-accent);
 }
 
+/* 16px line + 1px borders = 18px at the default size; a larger default font grows the line and the badge with it. */
 .sidebar__badge {
   margin-left: auto;
   min-width: 22px;
-  height: 18px;
+  min-height: 18px;
   padding: 0 var(--space-1);
   border-radius: 2px;
   font-size: var(--text-xs);
   font-weight: 600;
-  line-height: 16px;
+  line-height: var(--leading-xs);
   text-align: center;
   background: var(--color-sidebar-badge-bg);
   color: var(--color-sidebar-badge-text);
@@ -1078,10 +1079,9 @@ a.kpi-card:focus-visible .kpi-card__label::after {
 
 /* Route map (Routes page). The map field is always dark (a lit instrument); the list and legend follow the surface
    they sit on, so they read correctly on the floor now and on the stage later. */
-/* Lane tones match the stage figures: gray on track, the stage's --warning amber from 10% delayed, dashed in the stage's
-   --critical red from 20% (the map has no red of its own). */
+/* Lane tones match the stage figures: gray on track (--route, tokens.css), the stage's --warning amber from 10% delayed,
+   dashed in the stage's --critical red from 20% (the map has no red of its own). */
 .route-map {
-  --route: #5b6b80;
   --route-halo: rgba(110, 151, 255, 0.38);
 }
 

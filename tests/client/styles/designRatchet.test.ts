@@ -1,5 +1,5 @@
-// Design ratchet (Phase 1 spec section 0d): eight counts of how far the stylesheets are from the design system (type scale,
-// weights, spacing scale, tokens, breakpoints, durations). Each `limit` is today's count and may only go DOWN: the commit that
+// Design ratchet: nine counts of how far the stylesheets are from the design system (type scale, weights, line heights,
+// spacing scale, tokens, breakpoints, durations). Each `limit` is today's count and may only go DOWN: the commit that
 // removes violations lowers its limit in the same commit; a commit that adds one fails here. `target` is where Phase 1 ends.
 // The counters are pure functions of the sources, so a sample stylesheet below proves they see a violation.
 import fs from 'node:fs';
@@ -60,6 +60,12 @@ function beforeSlash(token: string): string {
     else if (ch === '/' && depth === 0) return token.slice(0, i);
   }
   return token;
+}
+
+/** What follows the first `/` outside parentheses (a `font` shorthand's line height and family), or '' without one. */
+function afterSlash(value: string): string {
+  const head = beforeSlash(value);
+  return head.length === value.length ? '' : value.slice(head.length + 1);
 }
 
 /** A lone `var(--x)` becomes every value `--x` is given anywhere (its fallback if it is never given); anything else stays. */
@@ -131,6 +137,23 @@ function fontWeights(model: Model): Array<{ decl: Decl; weights: string[] }> {
         return (size < 0 ? tokens : tokens.slice(0, size)).filter((t) => /^(\d+|bold|bolder|lighter)$/.test(t));
       });
       out.push({ decl, weights });
+    }
+  }
+  return out;
+}
+
+/** Every declaration that sets a line height, with the values it can resolve to (in a `font` shorthand, the token after the
+ *  slash; a shorthand without one sets none). */
+function lineHeights(model: Model): Array<{ decl: Decl; values: string[] }> {
+  const out: Array<{ decl: Decl; values: string[] }> = [];
+  for (const decl of model.decls) {
+    if (decl.prop === 'line-height') out.push({ decl, values: resolve(decl.value, model.custom) });
+    else if (decl.prop === 'font') {
+      const values = resolve(decl.value, model.custom).flatMap((s) => {
+        const line = splitTop(afterSlash(s), ' ')[0];
+        return line === undefined ? [] : resolve(line, model.custom);
+      });
+      out.push({ decl, values });
     }
   }
   return out;
@@ -227,6 +250,17 @@ const GROUPS: Array<{ name: string; limit: number; target: number; count: (m: Mo
       const weighted = fontWeights(m);
       return { scanned: weighted.length, offenders: weighted.filter((w) => w.weights.some((v) => !WEIGHTS.has(v))).map((w) => offender(w.decl)) };
     }
+  },
+  {
+    name: 'line heights in px',
+    limit: 0,
+    target: 0,
+    count: (m) => {
+      // A px line height stays put while rem text grows with a larger default font, so wrapped lines overlap (WCAG 1.4.4); a
+      // rem value or a unitless number grows with the text. var() is followed (the Dashboard's --sit-title-line).
+      const lines = lineHeights(m);
+      return { scanned: lines.length, offenders: lines.filter((l) => l.values.some((v) => /^-?\d*\.?\d+px$/.test(norm(v)))).map((l) => offender(l.decl)) };
+    }
   }
 ];
 
@@ -271,6 +305,7 @@ describe('design ratchet', () => {
             @media (max-width: 640px) and (min-width: 1024px) { .narrow { margin: 0; } }
             .motion { transition: opacity var(--dur-odd) ease; animation: spin 1.8s linear 300ms; transition-delay: 3s; }
             .heavy { font-weight: 700; } .heavier { font-weight: bold; } .heavy-short { font: 700 0.875rem/1 sans-serif; } .light-short { font: 400 0.875rem/1 sans-serif; }
+            .line-px { line-height: 20px; } .line-short { font: 400 0.875rem/20px sans-serif; } .line-ok { line-height: 1.25rem; }
             .still { transition: color 120ms ease, opacity 200ms ease; animation-duration: 0s; }`
         }
       ],
@@ -285,14 +320,16 @@ describe('design ratchet', () => {
             .a { font: 500 var(--fs-body)/1.4 sans-serif; font-size: 0.875rem; margin: 8px 16px; gap: var(--space-2); }
             .b { color: var(--ink); transition: opacity var(--dur-fast) ease; }
             .w { font-weight: 600; } .w2 { font: 400 1rem/1 sans-serif; }
+            .lines { line-height: var(--leading-sm); }
             @media (max-width: 767px) { .a { margin: 0; } }`
         }
       ],
       svg('const AXIS_FONT_SIZE = 12;', 'const LABEL_PX = 14;', 'const MIN_LABEL_PX = 12;')
     );
     // Order of GROUPS: sizes off scale, distinct sizes (13px, 1.0625rem, .875rem), SVG, spacing, colours, @media, durations,
-    // weights (700, bold, a 700 shorthand; a unitless line height after the size is not a weight).
-    expect(GROUPS.map((g) => g.count(dirty).offenders.length)).toEqual([2, 3, 3, 2, 3, 1, 2, 3]);
-    expect(GROUPS.map((g) => g.count(clean).offenders.length)).toEqual([0, 2, 0, 0, 0, 0, 0, 0]);
+    // weights (700, bold, a 700 shorthand; a unitless line height after the size is not a weight),
+    // line heights (20px written out and in a shorthand; rem, unitless and var() are not).
+    expect(GROUPS.map((g) => g.count(dirty).offenders.length)).toEqual([2, 3, 3, 2, 3, 1, 2, 3, 2]);
+    expect(GROUPS.map((g) => g.count(clean).offenders.length)).toEqual([0, 2, 0, 0, 0, 0, 0, 0, 0]);
   });
 });

@@ -1,3 +1,4 @@
+// unused: no page renders KpiCard any more (the page bands use Figure); kept until the owner decides to delete it.
 // Reference component (plan §12): function components, named exports, a `XxxProps` interface directly above
 // the component, no default exports, no `React.FC`, BEM-lite class names (`kpi-card`, `kpi-card__value`, ...).
 

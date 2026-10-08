@@ -3,6 +3,7 @@
 // the sort buttons of a hidden header row leave the Tab order (2.4.7); field borders and a danger button on the band meet
 // their contrast (1.4.11, 1.4.3); an unavailable button keeps the focus (2.4.3); the skip link's ring shows on the dark
 // frame; link buttons, the Dashboard's links and its "How these are counted" answer a 24px target (2.5.8).
+// With the default font at 200% (text zoom, not page zoom), every line height grows with its text (1.4.4).
 // OPT-IN (`*.browser.test.ts`). Run: npm run build && SCC_PW_DIR=<dir with playwright> npm run test:browser
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
@@ -341,4 +342,38 @@ describe('Lô 9 accessibility of the foundation (real Chromium)', () => {
       expect(m.misses, `#/${hash}`).toEqual([]);
     }
   });
+
+  // WCAG 1.4.4 with a larger default font (text zoom, not page zoom): every line height grows with its text, so a wrapped
+  // line never runs into the next. A px line height stays put while the rem text doubles (the Dashboard drew its 72px
+  // figures on 44px lines; the sidebar badge kept a 16px line). Each text element's line height over its font size is read
+  // at the default size and with the root font at 200%; the two must match ("normal" grows by itself and is skipped).
+  it('with the default font at 200% every line height grows with its text, on all eight pages (1280)', async () => {
+    const off: string[] = [];
+    for (const hash of ['', 'inventory', 'shipments', 'routes', 'analytics', 'alerts', 'import', 'nope']) {
+      const { ctx, page } = await open(1280, hash);
+      off.push(
+        ...(await page.evaluate((h: string) => {
+          const texts = [...document.querySelectorAll('.app-shell *')].filter(
+            (e) => !e.closest('svg') && [...e.childNodes].some((n) => n.nodeType === 3 && (n.textContent ?? '').trim() !== '') && e.checkVisibility()
+          );
+          const ratio = (e: Element): number | null => {
+            const s = getComputedStyle(e);
+            return s.lineHeight === 'normal' ? null : parseFloat(s.lineHeight) / parseFloat(s.fontSize);
+          };
+          const before = texts.map(ratio);
+          document.documentElement.style.fontSize = '200%';
+          const after = texts.map(ratio);
+          return texts.flatMap((e, i) => {
+            const a = before[i];
+            const b = after[i];
+            return a === null || a === undefined || b === null || b === undefined || Math.abs(a - b) <= 0.01
+              ? []
+              : [`#/${h} ${e.tagName.toLowerCase()}.${String(e.className).split(' ')[0]} ${a.toFixed(2)} -> ${b.toFixed(2)}`];
+          });
+        }, hash))
+      );
+      await ctx.close();
+    }
+    expect(off).toEqual([]);
+  }, 120_000);
 });

@@ -147,16 +147,6 @@
   --tracking-figure: -0.02em;
   --tracking-display: -0.03em;
 
-  /* Type roles: a component sets its text with one of these (font: var(--type-label)). The shorthand also resets
-     font-stretch and font-variant-numeric. Weights are written out (the design ratchet reads the size from the
-     shorthand). */
-  --type-label: 500 var(--text-xs) / var(--leading-xs) var(--font-sans);
-  --type-control: 500 var(--text-sm) / var(--leading-sm) var(--font-sans);
-  --type-body: 400 var(--text-md) / var(--leading-md) var(--font-sans);
-  --type-title: 600 var(--text-lg) / var(--leading-lg) var(--font-display);
-  --type-figure: 600 var(--text-xl) / var(--leading-xl) var(--font-display);
-  --type-display: 600 var(--text-display) / var(--leading-display) var(--font-display);
-
   /* Alias (Phase 1 spec section 0b): the stage figures' size is the xl step of the scale. */
   --stage-figure-size: var(--text-xl);
 

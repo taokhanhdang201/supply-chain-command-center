@@ -1,3 +1,4 @@
+// unused: no page renders DonutChart any more (its tests still cover it); kept until the owner decides to delete it.
 // A donut chart with an accessible legend showing label, value and percentage (plan §8.5).
 
 import { useState } from 'react';
