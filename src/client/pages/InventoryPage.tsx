@@ -17,6 +17,7 @@ import { SearchInput } from '../components/ui/SearchInput';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { Badge, type BadgeTone } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ResultCount } from '../components/ui/ResultCount';
 import { IdText } from '../components/ui/IdText';
 import { Figure, type FigureTone } from '../components/ui/Figure';
 
@@ -283,6 +284,7 @@ export function InventoryPage() {
               )}
             </div>
 
+            <ResultCount count={filtered.length} />
             {filtered.length === 0 ? (
               <EmptyState
                 title="No results match your filters"

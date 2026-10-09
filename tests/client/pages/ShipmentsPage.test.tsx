@@ -170,3 +170,22 @@ describe('ShipmentsPage: a triaged ledger', () => {
     expect(screen.queryByText('Every load.')).toBeNull();
   });
 });
+
+// See InventoryPage.test.tsx. The count is one node that stays mounted when the table gives way to the empty state.
+describe('ShipmentsPage: the filtered count is read by one always-present polite region', () => {
+  const counts = () => [...document.querySelectorAll('.visually-hidden[aria-live="polite"]')];
+
+  it('says how many shipments match, one, and none, in the same node before and after the filter leaves nothing', async () => {
+    const shipments = [makeShipmentRecord({ shipmentId: 'SHP-100001', carrier: 'Summit Logistics' }), makeShipmentRecord({ shipmentId: 'SHP-100002', carrier: 'Northstar Freight' })];
+    const user = userEvent.setup();
+    await renderWithData(<ShipmentsPage />, { snapshot: makeSnapshot([], shipments, { today: TODAY }) });
+    expect(counts().map((n) => n.textContent)).toEqual(['2 items match']);
+    const node = counts()[0];
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'SHP-100001');
+    expect(await screen.findByText('1 item matches')).toBe(node);
+    await user.clear(screen.getByRole('searchbox', { name: 'Search' }));
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'nomatch');
+    expect(await screen.findByText('No items match these filters')).toBe(node);
+    expect(counts()).toHaveLength(1);
+  });
+});

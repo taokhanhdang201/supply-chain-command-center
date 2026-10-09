@@ -228,3 +228,21 @@ describe('AlertsPage: the Dashboard kinds (kind=)', () => {
     expect(await screen.findByText('1 alert')).toBeInTheDocument();
   });
 });
+
+// See InventoryPage.test.tsx. The count is one node that stays mounted when the table gives way to the empty state.
+describe('AlertsPage: the filtered count is read by one always-present polite region', () => {
+  const counts = () => [...document.querySelectorAll('.visually-hidden[aria-live="polite"]')];
+
+  it('says how many alerts match, one, and none, in the same node before and after the filter leaves nothing', async () => {
+    const inventory = [makeInventoryRecord({ sku: 'ELC-0001', quantity: 0 }), makeInventoryRecord({ sku: 'ELC-0002', quantity: 5, reorderPoint: 10 })];
+    const user = userEvent.setup();
+    await renderWithData(<AlertsPage />, { snapshot: makeSnapshot(inventory, [], { today: TODAY }) });
+    expect(counts().map((n) => n.textContent)).toEqual(['2 items match']);
+    const node = counts()[0];
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Severity' }), 'Warning');
+    expect(await screen.findByText('1 item matches')).toBe(node);
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'nomatch');
+    expect(await screen.findByText('No items match these filters')).toBe(node);
+    expect(counts()).toHaveLength(1);
+  });
+});

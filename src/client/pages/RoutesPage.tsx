@@ -18,6 +18,7 @@ import { PageStage } from '../components/layout/PageStage';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { DataTable, type Column } from '../components/ui/DataTable';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ResultCount } from '../components/ui/ResultCount';
 import { Figure } from '../components/ui/Figure';
 import { RouteMap } from '../components/routes/RouteMap';
 
@@ -196,6 +197,7 @@ export function RoutesPage() {
           )}
         </div>
 
+        <ResultCount count={allRoutes.length} />
         {allRoutes.length === 0 ? (
           <EmptyState title="No routes match your filters" />
         ) : (

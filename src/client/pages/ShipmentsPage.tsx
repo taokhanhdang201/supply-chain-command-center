@@ -17,6 +17,7 @@ import { SearchInput } from '../components/ui/SearchInput';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { Badge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ResultCount } from '../components/ui/ResultCount';
 import { IdText } from '../components/ui/IdText';
 import { Figure } from '../components/ui/Figure';
 import { STATUS_TONE } from '../components/charts/statusTones';
@@ -279,6 +280,7 @@ export function ShipmentsPage() {
               )}
             </div>
 
+            <ResultCount count={filtered.length} />
             {filtered.length === 0 ? (
               <EmptyState
                 title="No results match your filters"

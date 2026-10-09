@@ -250,3 +250,24 @@ describe('InventoryPage: a triaged ledger', () => {
     expect(screen.queryByText('What’s in')).toBeNull();
   });
 });
+
+// One polite region reads how many rows the filters leave. It is the same node while the list swaps for the empty state,
+// so a screen reader that watches it hears the change (a region inserted with its words is not read by every one).
+describe('InventoryPage: the filtered count is read by one always-present polite region', () => {
+  const counts = () => [...document.querySelectorAll('.visually-hidden[aria-live="polite"]')];
+
+  it('says how many rows match, one, and none, in the same node before and after the filter leaves nothing', async () => {
+    const inventory = [makeInventoryRecord({ sku: 'ELC-0001', productName: 'Wireless Scanner' }), makeInventoryRecord({ sku: 'PKG-0002', productName: 'Corrugated Box' })];
+    const user = userEvent.setup();
+    await renderWithData(<InventoryPage />, { snapshot: makeSnapshot(inventory, [], { today: TODAY }) });
+    expect(counts().map((n) => n.textContent)).toEqual(['2 items match']);
+    const node = counts()[0];
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'scanner');
+    expect(await screen.findByText('1 item matches')).toBe(node);
+    await user.clear(screen.getByRole('searchbox', { name: 'Search' }));
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'nomatch');
+    expect(await screen.findByText('No items match these filters')).toBe(node);
+    expect(counts()).toHaveLength(1);
+    expect(screen.getByText('No results match your filters')).toBeInTheDocument();
+  });
+});

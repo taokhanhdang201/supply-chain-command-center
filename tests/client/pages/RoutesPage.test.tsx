@@ -122,3 +122,21 @@ describe('RoutesPage: lane figures and URL filters', () => {
     expect(document.querySelector('.page-stage')).toHaveClass('page-stage--compact');
   });
 });
+
+// See InventoryPage.test.tsx. Routes counts every lane its filters leave (before "Show top" cuts the list).
+describe('RoutesPage: the filtered count is read by one always-present polite region', () => {
+  const counts = () => [...document.querySelectorAll('.visually-hidden[aria-live="polite"]')];
+
+  it('says how many lanes match, one, and none, in the same node before and after the filter leaves nothing', async () => {
+    const user = userEvent.setup();
+    await renderWithData(<RoutesPage />, { snapshot: lanes() });
+    expect(counts().map((n) => n.textContent)).toEqual(['4 items match']);
+    const node = counts()[0];
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Lane' }), 'critical');
+    expect(await screen.findByText('1 item matches')).toBe(node);
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Status' }), 'open'); // every fixture shipment is delivered
+    expect(await screen.findByText('No items match these filters')).toBe(node);
+    expect(counts()).toHaveLength(1);
+    expect(screen.getByText('No routes match your filters')).toBeInTheDocument();
+  });
+});
