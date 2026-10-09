@@ -119,6 +119,7 @@
   font: 500 var(--text-lg) / 1.25 var(--font-display);
   letter-spacing: var(--tracking-title);
   color: var(--color-text);
+  text-wrap: balance;
 }
 
 .sheet--quiet {
@@ -127,11 +128,12 @@
 }
 
 /* The count over a table, in the type of a section h2 on paper (lg, 500, the display face, no wider stretch): the floor has
-   one heading style. */
+   one heading style. When it wraps (Alerts on a phone), its last line keeps more than one word ("10 info" stays whole). */
 .table-summary {
   margin: 0 0 var(--space-3);
   font: 500 var(--text-lg) / 1.25 var(--font-display);
   letter-spacing: var(--tracking-title);
+  text-wrap: pretty;
 }
 
 /* IDs (SHP-100138, APP-0005, WH-ORD) never break at their hyphen. */
@@ -163,9 +165,16 @@
   color: var(--color-accent);
 }
 
+/* A route's arrow is not a link: muted ink on every page, on paper and on the band (DESIGN.md §3). Each place keeps its line
+   while it fits ("Las Vegas, NV", "Kansas City, MO"), so a long route breaks at the arrow; a place longer than its line still
+   wraps inside its box. */
 .route-arrow {
-  color: var(--color-accent);
-  font-weight: 600;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.route-label__place {
+  display: inline-block;
 }
 
 /* ---------- Alerts: a read-only ledger ---------- */
@@ -175,11 +184,6 @@
   .figure-stage__figures.figure-stage__figures--five {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-}
-
-.alerts-ledger {
-  border-top: 1px solid var(--color-text);
-  padding-top: var(--space-6);
 }
 
 .alerts-ledger__clear {
@@ -497,6 +501,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The last part's line would sit just over the chart's own closing hairline. */
+.share-bar__item:last-child {
+  border-bottom: 0;
+}
+
 .share-bar__swatch {
   width: 10px;
   height: 10px;
@@ -511,15 +520,14 @@
   color: var(--color-text-muted);
 }
 
-/* The floor's import cards sit open on the paper under a hairline, like the other ledgers; nested panels keep their
-   own surfaces. */
+/* The floor's import card sits open on the paper with no rule over it: the band's edge already ends the band (DESIGN.md §5).
+   Nested panels keep their own surfaces. */
 .import-floor > .card {
   background: transparent;
   border: 0;
-  border-top: 1px solid var(--color-text);
   border-radius: 0;
   box-shadow: none;
-  padding: var(--space-6) 0 0;
+  padding: 0;
 }
 
 /* Column reference: a short lookup list, so each column is a stacked record at every width (name and required, then
@@ -1063,13 +1071,6 @@ a.stage-figure:focus-visible .stage-figure__label::after {
   }
 }
 
-/* Ledger: on the paper floor, no card; hairline rows as in the Dashboard's activity ledger. */
-.shipments-ledger,
-.inventory-ledger {
-  border-top: 1px solid var(--color-text);
-  padding-top: var(--space-6);
-}
-
 .shipments-ledger__clear,
 .inventory-ledger__clear {
   align-self: flex-end;
@@ -1425,14 +1426,26 @@ a.stage-figure:focus-visible .stage-figure__label::after {
   }
 }
 
-/* Analytics chart sections: charts sit directly on the floor under a hairline rule instead of each in a boxed
-   card, so the section reads as an editorial spread rather than six identical white cards. */
+/* Analytics chart sections: charts sit directly on the floor, each closed by a hairline under it (the section header's rule
+   opens the section, so no chart draws one over it), instead of each in a boxed card, so the section reads as an editorial
+   spread rather than six identical white cards. */
 .page-section .chart-grid > .card {
   background: transparent;
   border: 0;
-  border-top: 1px solid var(--color-line-strong);
+  border-bottom: 1px solid var(--color-line-strong);
   border-radius: 0;
-  padding: var(--space-4) 0 0;
+  padding: 0 0 var(--space-4);
+}
+
+/* The cards of one row share their title row (subgrid), so a title on two lines moves every chart of its row alike and the
+   charts start on one line. */
+@media (min-width: 768px) {
+  .page-section .chart-grid > .card {
+    display: grid;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
 }
 
 /* Column-reference tables (Data Import cards) wrap their text cells so the Example column stays in view; column

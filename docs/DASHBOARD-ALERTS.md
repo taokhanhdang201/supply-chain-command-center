@@ -214,8 +214,9 @@ C, the block on paper. The owner chose C, because dark is the situation and pape
   risk."
 - **The kinds as a list.** One row each, label left in sentence case agreeing with the count ("Unusual costs", "Unusual
   cost" for one), the count right in one tabular column, ink like the label (severity is the five rows' job), no dots;
-  21 rem wide so the eye's trip from label to count stays short. Each row is the Alerts page filtered to its kind
-  (`kind=`), the whole row a link, 40 px tall (44 px on phones), named "Out of stock, 6, view in Alerts".
+  21 rem wide so the eye's trip from label to count stays short (Phase 1 review, 2026-10-08: below 768 px the list takes
+  the whole column, so the total's rule ends where the five rows' rules end). Each row is the Alerts page filtered to its
+  kind (`kind=`), the whole row a link, 40 px tall (44 px on phones), named "Out of stock, 6, view in Alerts".
 - **The total row** under a rule, in 600: "Need attention 57 →". It replaces "View all alerts (57 need attention)" and is
   named "57 need attention, view in Alerts"; 57 is the sum of the kind rows (tested). First drafted as "All alerts 57",
   renamed before shipping: the KPI tile right above says "67 total · 10 info", so "All alerts 57" said the wrong thing.

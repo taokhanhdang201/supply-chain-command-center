@@ -224,8 +224,9 @@ describe('V1.6 redesign (real Chromium)', () => {
   });
 
   // The Top alerts head (docs/DASHBOARD-ALERTS.md §10): the title a step above the other section titles (600, one line
-  // on a phone); the kinds as one column of whole-row links, 40px tall (44px on a phone), within 22rem, the counts in one
-  // right-aligned tabular column; the total row's rule never level with a rule of the five rows beside it.
+  // on a phone); the kinds as one column of whole-row links, 40px tall (44px on a phone), within 22rem (the whole column on a
+  // phone), the counts in one right-aligned tabular column; the total row's rule never level with a rule of the five rows
+  // beside it.
   it('atlas dashboard: Top alerts kinds are one column of tall rows, counts aligned, title a step up', async () => {
     // 1100 and 1280 too: with a four-column head, "Incomplete or wrong records" wrapped below 1440 (the demo video caught it)
     for (const w of [1440, 1280, 1100, 390]) {
@@ -259,7 +260,7 @@ describe('V1.6 redesign (real Chromium)', () => {
       for (const h of m.heights) expect(h, `${w}: row height`).toBeGreaterThanOrEqual(w < 768 ? 44 : 40);
       for (const l of m.labelLines) expect(l, `${w}: each kind label on one line`).toBe(1);
       expect(new Set(m.xs).size, `${w}: one column`).toBe(1);
-      expect(m.listWidth).toBeLessThanOrEqual(22 * m.rem);
+      expect(m.listWidth, `${w}: 21rem, the whole column on a phone`).toBeLessThanOrEqual(w < 768 ? w - 32 : 22 * m.rem);
       expect(new Set(m.countRights).size, `${w}: counts share one right edge`).toBe(1);
       expect(m.numeric).toContain('tabular-nums');
       if (w === 1440) for (const y of m.queueRules) expect(Math.abs(y - m.totalRule), 'total rule level with a queue rule').toBeGreaterThan(8);

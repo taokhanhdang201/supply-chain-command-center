@@ -20,4 +20,10 @@ describe('RouteLabel', () => {
     expect(two.container.textContent).toBe('A → B → C');
     expect(two.container.querySelector('.route-arrow')).toBeNull();
   });
+
+  it('puts each place in its own box, so "City, ST" keeps its line and a long label breaks at the arrow', () => {
+    const { container } = render(<RouteLabel label="Los Angeles DC → Las Vegas, NV" />);
+    expect([...container.querySelectorAll('.route-label__place')].map((p) => p.textContent)).toEqual(['Los Angeles DC', 'Las Vegas, NV']);
+    expect(container.textContent).toBe('Los Angeles DC → Las Vegas, NV');
+  });
 });

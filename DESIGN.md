@@ -298,7 +298,7 @@ Use semantic colors only for semantic meaning.
 
 
 
-`--info`: interaction and information (the accent).
+`--info`: interaction and information (the accent). Only what acts or leads somewhere is blue: a route's arrow (→) is muted ink.
 
 
 
@@ -447,6 +447,14 @@ Avoid:
 
 
 Use existing tokens instead of hard-coding new border colors.
+
+
+
+One rule per boundary. A section on paper opens with its section header: the h2 over one 1px ink rule. Nothing under it draws a rule at its top (a chart, a formula, an empty or error state, the pagination): items inside a section each close with a hairline under them, and a table's last row closes the table. No rule stands alone under the page band, whose edge already ends it, and two rules never sit within 32px of each other.
+
+
+
+The Dashboard keeps its own cut: its scenes are set apart by their surface (dark and paper), and where two paper scenes meet (Top alerts, then Flow) by one rule between them, so its scene titles carry no rule.
 
 
 
@@ -1184,7 +1192,7 @@ Existing motion tokens:
 
 
 
-UI transitions use 120ms or 200ms only. A meter that moves to a new value (the Analytics warehouse utilization bars) is feedback, not drawing: it uses `--dur-2`. The loading skeleton (a 1.8s loop) is the one exception, and reduced motion stops it.
+UI transitions use 120ms or 200ms only. A meter that moves to a new value (the Analytics warehouse utilization bars) is feedback, not drawing: it uses `--dur-2`. The loading skeleton (a 1.8s loop) is the one exception, and reduced motion stops it: each block is then one flat --color-border-subtle (the loop's first stop is the paper itself).
 
 
 

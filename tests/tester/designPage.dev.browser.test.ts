@@ -2,7 +2,8 @@
 // (1440) nothing on the sheet reaches past it: the app shell clips sideways overflow (overflow-x: clip), so the page never
 // scrolls sideways and a check of the document's width cannot see a block cut at the screen's edge; every element is
 // measured instead (a table scrolls inside its own frame and is left out). The page has one h1. Each static state sample
-// looks like the live control in that state: the live control is hovered, pressed and focused, and both are read.
+// looks like the live control in that state: the live control is hovered, pressed and focused, and both are read. Under
+// reduced motion each loading skeleton block is one flat colour.
 // The production build has no design page (designPage.browser.test.ts). This file serves the sources through Vite's
 // development middleware in the test process, wired as `npm run dev` wires it (src/server/devVite.ts), so it needs no build.
 // OPT-IN (`*.browser.test.ts`). Run: SCC_PW_DIR=<dir with playwright> npm run test:browser
@@ -128,5 +129,20 @@ describe('#/_design in a development build (real Chromium)', () => {
     await dash.nth(0).hover();
     expect(await look(dash.nth(0)), '.dash-link: hover').toEqual(await look(dash.nth(1)));
     await ctx.close();
+  }, 120_000);
+
+  // Reduced motion ran the shimmer once, to its last frame, where the left half of each block was --neutral-bg: the paper itself,
+  // so half of every block vanished. Each block is now one flat --color-border-subtle.
+  it('under reduced motion each skeleton block is one flat colour, not the paper', async () => {
+    const { ctx, page } = await open(1440);
+    const blocks: Array<{ image: string; animation: string; color: string }> = await page.locator('.skeleton').evaluateAll((els: Element[]) =>
+      els.map((e) => {
+        const s = getComputedStyle(e);
+        return { image: s.backgroundImage, animation: s.animationName, color: s.backgroundColor };
+      })
+    );
+    await ctx.close();
+    expect(blocks.length).toBeGreaterThan(0);
+    for (const b of blocks) expect(b).toEqual({ image: 'none', animation: 'none', color: 'rgb(226, 224, 217)' });
   }, 120_000);
 });

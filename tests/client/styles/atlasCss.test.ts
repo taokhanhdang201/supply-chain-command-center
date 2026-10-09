@@ -83,14 +83,14 @@ describe('atlas.css', () => {
     expect(css).toMatch(/\.status-list__link\s*\{[^}]*min-height:\s*44px/);
   });
 
-  it('draws the status block after the figures at every width: a label, one inline row from 1100px, a 2 x 2 block below', () => {
+  it('draws the status block after the figures at every width: a label over the counts, the counts under the four figures from 1100px, a 2 x 2 block below', () => {
     expect(css).toMatch(/\.status-label\s*\{[^}]*margin-top:\s*24px/);
     // Tablet: label on its own row, list on the row after it.
     expect(css).toMatch(/\.status-label\s*\{\s*grid-column:\s*1 \/ -1;\s*grid-row:\s*2/);
     expect(css).toMatch(/\.status-list\s*\{\s*grid-column:\s*1 \/ span 6;\s*grid-row:\s*3/);
-    // Desktop: label and list share one row, the list on columns 4-11 in four equal cells.
-    expect(css).toMatch(/\.status-label\s*\{[^}]*grid-column:\s*1 \/ span 3;[^}]*grid-row:\s*2/);
-    expect(css).toMatch(/\.status-list\s*\{\s*grid-column:\s*4 \/ span 8;\s*grid-row:\s*2;\s*grid-template-columns:\s*repeat\(4/);
+    // Desktop: the same rows; the list across the twelve columns in four cells, each under one of the four figures.
+    expect(css).toMatch(/\.status-list\s*\{\s*grid-column:\s*1 \/ -1;\s*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+    expect(css).not.toMatch(/\.status-list\s*\{\s*grid-column:\s*4 \/ span 8/);
     // No leftover placement under the first figure.
     expect(css).not.toMatch(/\.status-list\s*\{[^}]*grid-column:\s*1 \/ span 3/);
   });
