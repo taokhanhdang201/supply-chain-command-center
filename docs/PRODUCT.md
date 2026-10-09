@@ -13,13 +13,13 @@ Two audiences, one product:
 - **Supply-chain operators** (inventory planners, transport coordinators) who check the app daily to see what is late, short, or anomalous and decide what to handle first. SCC is designed as a real tool for them.
 - **Recruiters and technical reviewers** who meet SCC as a portfolio project through the live demo, the public repository, or a LinkedIn post, and judge it in a few minutes.
 
-Design for the operator's job; the reviewer is convinced by seeing that job done well.
+The design serves the operator's job.
 
 ## Product Purpose
 
 SCC monitors inventory, shipments, routes, and supply-chain KPIs in one place. The server is the single source of truth: it generates deterministic sample data, accepts imports, derives every business flag (stock status, delivery state, cost anomalies, alerts), and serves a snapshot the React SPA renders.
 
-Success means an operator can open SCC and answer quickly: what needs attention, where, and what to do first, and a reviewer can see that answer on the first screen.
+Success means an operator can open SCC and answer quickly: what needs attention, where, and what to do first.
 
 ## Positioning
 
