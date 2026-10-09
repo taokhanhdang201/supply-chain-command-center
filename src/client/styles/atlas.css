@@ -492,7 +492,8 @@
 @media (min-width: 1100px) {
   /* The first screen is budgeted: the map takes what is left of the viewport after the parts above and below it, so the
      four figures (value and label) stay on the first screen. Each part's height is its own variable; the rules below
-     use the same variables, so the budget cannot drift from the layout. */
+     use the same variables, so the budget cannot drift from the layout. The imported-data banner above the page counts
+     too (--data-banner-h, layout.css). */
   .atlas-page .situation {
     --sit-pad-top: 40px;
     /* The h1's line is the page band's 30px; with the 18px gap under it the title row is the 48px it always was, so the
@@ -514,9 +515,9 @@
     --sit-map-h: clamp(
       var(--sit-map-min),
       calc(
-        100svh - var(--topbar-height) - var(--sit-pad-top) - var(--sit-title-line) - var(--sit-title-gap) - var(--sit-hero) -
-          var(--sit-caption-gap) - var(--sit-caption-lines) * var(--leading-sm) - var(--sit-signals-gap) - var(--sit-figures) -
-          var(--sit-safety)
+        100svh - var(--topbar-height) - var(--data-banner-h, 0px) - var(--sit-pad-top) - var(--sit-title-line) -
+          var(--sit-title-gap) - var(--sit-hero) - var(--sit-caption-gap) - var(--sit-caption-lines) * var(--leading-sm) -
+          var(--sit-signals-gap) - var(--sit-figures) - var(--sit-safety)
       ),
       var(--sit-map-max)
     );

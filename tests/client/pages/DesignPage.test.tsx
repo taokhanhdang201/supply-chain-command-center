@@ -86,11 +86,11 @@ const LIVE_STATES: ReadonlyArray<readonly [file: string, selector: string]> = [
   ['components.css', '.button--ghost:hover:not(:disabled)'],
   ['components.css', '.button--danger:hover:not(:disabled)'],
   ['components.css', '.button--link:hover:not(:disabled)'],
-  ['components.css', '.button:active:not(:disabled)'],
-  ['components.css', '.button--primary:active:not(:disabled)'],
-  ['components.css', '.button--ghost:active:not(:disabled)'],
-  ['components.css', '.button--danger:active:not(:disabled)'],
-  ['components.css', '.button--link:active:not(:disabled)'],
+  ['components.css', ".button:active:not(:disabled):not([aria-disabled='true'])"],
+  ['components.css', ".button--primary:active:not(:disabled):not([aria-disabled='true'])"],
+  ['components.css', ".button--ghost:active:not(:disabled):not([aria-disabled='true'])"],
+  ['components.css', ".button--danger:active:not(:disabled):not([aria-disabled='true'])"],
+  ['components.css', ".button--link:active:not(:disabled):not([aria-disabled='true'])"],
   ['components.css', '.select-field__control:hover:not(:disabled)'],
   ['base.css', ':focus-visible'],
   ['atlas.css', '.atlas-page .dash-link:hover']
@@ -100,7 +100,7 @@ const HOVER = ":is([data-state='hover'], [data-state='active'])";
 const toStatic = (selector: string): string =>
   selector
     .replace(':hover:not(:disabled)', HOVER)
-    .replace(':active:not(:disabled)', "[data-state='active']")
+    .replace(":active:not(:disabled):not([aria-disabled='true'])", "[data-state='active']")
     .replace(/:hover$/, HOVER)
     .replace(/^:focus-visible$/, "[data-state='focus']");
 
@@ -281,7 +281,7 @@ describe('DesignPage', () => {
     );
     expect(block('Page band').querySelectorAll('.page-stage--slim')).toHaveLength(1);
     expect(block('Page band').querySelector('.page-stage--slim .page-stage__title')?.tagName).toBe('P');
-    expect([...block('Chip').querySelectorAll('.topbar__chip')].map((c) => c.textContent)).toEqual(['Sample data', 'Inventory: carrier-export.csv']);
+    expect([...block('Chip').querySelectorAll('.topbar__chip')].map((c) => c.textContent)).toEqual(['Sample data', 'Imported data']);
     expect(document.querySelector('.topbar__chip--sample')).toBeNull(); // the anchor name belongs to the real top bar
   });
 

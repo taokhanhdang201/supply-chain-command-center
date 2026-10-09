@@ -58,12 +58,12 @@ describe('ImportPage: presentation', () => {
     expect(within(guide).getByLabelText('Choose shipments CSV file')).toBeInTheDocument();
   });
 
-  it('shows a sample data source as "Sample data (seed 7)" in the top bar', () => {
+  it('shows a sample data source as "Sample data (seed 7)" in the note of the top bar', () => {
     const snapshot = makeSnapshot([makeInventoryRecord()], [], { today: TODAY });
     snapshot.dataSources.shipments = { kind: 'import', label: 'sample-shipments-seed-7.csv', loadedAt: '2026-06-15T00:00:00.000Z', rowCount: 480 };
     render(<Topbar today={TODAY} dataSources={snapshot.dataSources} refreshing={false} onRefresh={vi.fn()} drawerOpen={false} onMenuClick={vi.fn()} menuButtonRef={{ current: null }} />);
-    expect(screen.getByText('Shipments: Sample data (seed 7)')).toBeInTheDocument();
-    expect(screen.getByText(`Inventory: ${snapshot.dataSources.inventory.label}`)).toBeInTheDocument(); // any other label is shown as is
+    // One "Imported data" chip; its note names each source (any other label is shown as is).
+    expect(document.getElementById('topbar-imported-note')?.textContent).toBe(`Inventory: ${snapshot.dataSources.inventory.label}. Shipments: Sample data (seed 7).`);
   });
 
   it('lists each column reference as a stacked table with explicit roles and labelled values', async () => {

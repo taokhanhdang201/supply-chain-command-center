@@ -116,7 +116,9 @@ describe('demo import (real Chromium, real server)', () => {
     await heading(page, 'Done. Dashboard updated.');
 
     for (const p of [...SHIPMENT_PAGES, 'inventory']) expect(await lead(page, p), `#/${p} after the imports`).not.toBe(before[p]);
-    expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Inventory: Sample data (seed 7)', 'Shipments: carrier-export.csv']);
+    // One "Imported data" chip at every width; its note names each source.
+    expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Imported data']);
+    expect(await page.locator('.topbar__note').textContent()).toBe('Inventory: Sample data (seed 7). Shipments: carrier-export.csv.');
     await ctx.close();
   });
 
@@ -181,17 +183,26 @@ describe('demo import (real Chromium, real server)', () => {
     await ctx.close();
   });
 
+  // The case imports the carrier export itself, so it does not lean on the cases before it. The banner on every page has a
+  // "Restore sample data" button too: this one is the Import page's, in its "Restore sample data" card.
   it('"Restore sample data" asks first, then brings both datasets back to seed 42', async () => {
     const { ctx, page } = await open(1440, 'import');
+    await tryOne(page);
+    await page.getByRole('button', { name: 'Use this data' }).click();
+    await heading(page, 'Done. Dashboard updated.');
     await openMore(page);
-    await page.getByRole('button', { name: 'Restore sample data' }).click();
-    expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Inventory: Sample data (seed 7)', 'Shipments: carrier-export.csv']); // nothing changed yet
-    await page.getByRole('button', { name: 'Replace data' }).click();
+    const card = page.locator('section.card', { has: page.getByRole('heading', { name: 'Restore sample data', exact: true }) });
+    const imported = await page.locator('.topbar__note').textContent();
+    expect(imported).toContain('Shipments: carrier-export.csv');
+    await card.getByRole('button', { name: 'Restore sample data' }).click();
+    expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Imported data']); // nothing changed yet
+    expect(await page.locator('.topbar__note').textContent()).toBe(imported);
+    await card.getByRole('button', { name: 'Replace data' }).click();
     await page.getByText('Sample data restored.').waitFor();
     // Both sources are the generated sample again: one chip, its note naming seed 42.
-    await page.waitForFunction(() => document.querySelectorAll('.topbar__chip').length === 1);
+    await page.waitForFunction(() => document.querySelector('.topbar__chip')?.textContent === 'Sample data');
     expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Sample data']);
-    expect(await page.locator('.topbar__note').textContent()).toContain('(seed 42)');
+    expect(await page.locator('.topbar__note').textContent()).toContain('seed 42');
     await ctx.close();
   });
 });

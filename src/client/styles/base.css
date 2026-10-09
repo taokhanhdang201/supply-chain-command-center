@@ -10,16 +10,9 @@ html {
   height: 100%;
   color-scheme: light;
   background: var(--color-bg);
-  /* WCAG 2.4.11: the sticky top bar (56px) never covers the control that takes the focus; the browser scrolls it at least
-     8px clear of the bar. */
+  /* WCAG 2.4.11: the sticky top bar (56px at every width, one row) never covers the control that takes the focus; the
+     browser scrolls it at least 8px clear of the bar. */
   scroll-padding-top: calc(var(--topbar-height) + var(--space-2));
-}
-
-/* Below 768px the source chips take a second row of the top bar (at most 90px): 96px. */
-@media (max-width: 767px) {
-  html {
-    scroll-padding-top: calc(var(--topbar-height) + var(--space-8) + var(--space-2));
-  }
 }
 
 body,

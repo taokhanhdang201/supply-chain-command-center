@@ -94,7 +94,7 @@ describe('accessibility of the foundation (real Chromium)', () => {
     return { ctx, page };
   };
 
-  // WCAG 2.4.11: the top bar is sticky (56px; up to 90px on a phone, where the source chips take a second row). The field is
+  // WCAG 2.4.11: the top bar is sticky (56px, one row at every width). The field is
   // put 16px above the bar's bottom edge (under the bar, inside the viewport) and reached with Shift+Tab from the control
   // after it. Without html scroll-padding-top Chromium leaves a control that is inside the viewport where it is.
   it('Shift+Tab to a field under the sticky top bar scrolls it clear of the bar (1440 Shipments, 390 Inventory)', async () => {
@@ -179,7 +179,7 @@ describe('accessibility of the foundation (real Chromium)', () => {
       expect(w.sidebar || w.body, `Tab ${i + 1}`).toBe(true);
       if (w.href !== null) links.add(w.href);
     }
-    expect(links.size, 'Tab reached every link of the drawer').toBe(7);
+    expect(links.size, 'Tab reached every link of the drawer (7 pages, LinkedIn and GitHub)').toBe(9);
     for (let i = 0; i < 9; i += 1) {
       await page.keyboard.press('Shift+Tab');
       const w = await where();
@@ -195,7 +195,7 @@ describe('accessibility of the foundation (real Chromium)', () => {
     expect(await closed(), 'Escape').toEqual({ open: false, inert: false, menu: true });
     await menu.click();
     await page.waitForSelector('#sidebar.is-open');
-    await page.mouse.click(370, 600); // the backdrop, right of the 240px drawer
+    await page.mouse.click(370, 600); // the backdrop, right of the 288px drawer
     expect(await closed(), 'the backdrop').toEqual({ open: false, inert: false, menu: true });
     await page.setViewportSize({ width: 800, height: 900 });
     await menu.click();

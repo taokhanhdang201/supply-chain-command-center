@@ -60,7 +60,11 @@ body {
   padding: var(--space-2) var(--gutter);
   background: var(--stage-bg);
   border-bottom: 1px solid var(--stage-line);
-  flex-wrap: wrap;
+}
+
+/* One row at every width: the menu button, the date and the actions keep their size, the source chips give way. */
+.topbar > :not(.topbar__sources) {
+  flex-shrink: 0;
 }
 
 /* The page stage is full-bleed, so the main column carries no padding of its own; each page sets its gutters. */
@@ -74,6 +78,19 @@ body {
 
 .main > .banner {
   margin: var(--space-4) var(--gutter) 0;
+}
+
+/* The imported-data banner, in the flow of main (not sticky, so the 64px scroll padding still clears the bar): a piece of
+   the dark band between the top bar and the page's band. */
+.data-banner {
+  padding: var(--space-4) var(--gutter) 0;
+  background: var(--stage-bg);
+}
+
+/* Its height from 768px (components.css: one row, 8px above and below its words, at most two 20px lines beside the 36px
+   button, a 1px border each side), for the Dashboard's first-screen budget (atlas.css), which keeps its four figures there. */
+.main:has(> .data-banner) {
+  --data-banner-h: calc(var(--space-4) + 2 * var(--space-2) + 2 * var(--leading-sm) + 2px);
 }
 
 .main > .loading-state,
@@ -104,16 +121,17 @@ body {
   .app-shell__content {
     margin-left: 0;
   }
+
+  /* The drawer is 48px wider than the fixed sidebar: its brand row also holds the 36px Close navigation button, and
+     "Command Center" keeps the one line it has from 1024px. A strip of the page stays visible beside it. */
+  .sidebar {
+    width: min(calc(var(--sidebar-width) + var(--space-12)), calc(100vw - var(--space-12)));
+  }
 }
 
 @media (max-width: 767px) {
   .topbar {
     gap: var(--space-2) var(--space-3);
-  }
-
-  .topbar__sources {
-    order: 3;
-    flex-basis: 100%;
   }
 }
 

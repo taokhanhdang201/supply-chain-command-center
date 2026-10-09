@@ -602,11 +602,12 @@ export function DesignPage() {
           <Block id="design-chip" title="Chip">
             <div className="surface-stage design-sheet__stage design-sheet__row">
               <span className="topbar__chip">Sample data</span>
-              <span className="topbar__chip">Inventory: carrier-export.csv</span>
+              <span className="topbar__chip">Imported data</span>
             </div>
             <p className="design-sheet__note">
-              While both sources are the generated sample, the top bar shows one Sample data chip that opens a note (this page&apos;s top bar
-              has it). Once a file is imported, each source keeps its own chip.
+              The top bar shows one chip at every width, a button that opens a note. While both sources are the generated sample it
+              reads Sample data (this page&apos;s top bar has it); once a file is imported it reads Imported data, and its note names
+              each source.
             </p>
           </Block>
         </div>

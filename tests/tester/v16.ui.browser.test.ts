@@ -364,7 +364,7 @@ describe('V1.6 redesign (real Chromium)', () => {
       // Both sources are the generated sample, so one chip, and its note names the seed.
       if (hash === 'import') {
         expect(await page.locator('.topbar__chip').allTextContents()).toEqual(['Sample data']);
-        expect(await page.locator('.topbar__note').textContent()).toContain('(seed 42)');
+        expect(await page.locator('.topbar__note').textContent()).toContain('seed 42');
       }
       await ctx.close();
     }
@@ -379,14 +379,14 @@ describe('V1.6 redesign (real Chromium)', () => {
 
   // While both sources are the generated sample, the top bar has one chip, "Sample
   // data", a button that opens a native popover. Enter opens the note, Esc closes it and focus stays on the chip. The note
-  // hangs under the chip (where the browser anchors it: right edges level, left edges on a phone), inside the screen, at
-  // AA, without the date. One chip row instead of two: the phone top bar was 118.4-119px, 86px measured with one.
+  // hangs under the chip (where the browser anchors it: right edges level, a phone too), inside the screen, at AA, without
+  // the date. One row at every width: the phone top bar was 118.4-119px, then 86px with the chip on a row of its own, now 56px.
   it('top bar: one "Sample data" chip opens its note from the keyboard, under the chip, inside the screen, at AA', async () => {
     for (const w of [390, 1440]) {
       const { ctx, page } = await open(w, 'import', { reducedMotion: 'reduce' });
       expect(await page.locator('.topbar__chip').allTextContents(), `${w}: chips`).toEqual(['Sample data']);
       const height: number = await page.evaluate(() => (document.querySelector('.topbar') as HTMLElement).getBoundingClientRect().height);
-      expect(height, `${w}: top bar height`).toBeLessThanOrEqual(w < 768 ? 90 : 56);
+      expect(height, `${w}: top bar height`).toBeLessThanOrEqual(56);
       await page.locator('.topbar__chip').focus();
       await page.keyboard.press('Enter');
       const m = await page.evaluate(() => {
@@ -415,11 +415,11 @@ describe('V1.6 redesign (real Chromium)', () => {
       expect(m.noteRight, `${w}: note right edge`).toBeLessThanOrEqual(m.width);
       expect(m.noteTop, `${w}: note under the chip`).toBeGreaterThanOrEqual(m.chipBottom);
       if (m.anchored) {
-        const gap = w < 768 ? m.noteLeft - m.chipLeft : m.noteRight - m.chipRight;
+        const gap = m.noteRight - m.chipRight;
         expect(Math.abs(gap), `${w}: note edge level with the chip's`).toBeLessThanOrEqual(1);
       }
       expect(m.sideways, `${w}: no sideways scroll`).toBeLessThanOrEqual(0);
-      expect(m.text).toBe('Generated sample (seed 42). The live demo rebuilds it each day until a file is imported.');
+      expect(m.text).toBe('Generated sample, seed 42. Rebuilt every day until someone imports a file.');
       expect(m.chipRatio, `${w}: chip text`).toBeGreaterThanOrEqual(4.5);
       expect(m.noteRatio, `${w}: note text`).toBeGreaterThanOrEqual(4.5);
       await page.keyboard.press('Escape');
@@ -599,18 +599,18 @@ describe('V1.6 redesign (real Chromium)', () => {
 
   it('every nav link works and focus lands on the h1 after a route change', async () => {
     const { ctx, page } = await open(1440, '');
-    const n = await page.locator('nav a').count();
+    const n = await page.locator('#sidebar .sidebar__nav a').count();
     expect(n).toBe(7);
     for (const i of [1, 2, 3, 4, 5, 6]) {
-      await page.locator('nav a').nth(i).click();
+      await page.locator('#sidebar .sidebar__nav a').nth(i).click();
       await page.waitForTimeout(200);
       expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('H1');
     }
     await ctx.close();
   });
 
-  // Pagination: a nav named Pagination whose Previous and Next are 36px, level with the 36px page-size select
-  // (same bottom edge while they share a row), and which holds no link, so the main navigation keeps its 7.
+  // Pagination: a nav named Pagination whose Previous and Next are 36px, level with the 36px page-size select (same bottom
+  // edge while they share a row), and which holds no link: the main navigation keeps its 7 page links (its foot adds LinkedIn and GitHub).
   it('pagination: a named nav with 36px Previous and Next level with the page-size select, and no link of its own', async () => {
     for (const [w, hash] of [[1440, 'inventory'], [1440, 'shipments'], [1440, 'alerts'], [390, 'inventory']] as const) {
       const { ctx, page } = await open(w, hash, { reducedMotion: 'reduce' });
@@ -623,7 +623,7 @@ describe('V1.6 redesign (real Chromium)', () => {
           buttons: nav ? [...nav.querySelectorAll('button')].map(box) : [],
           select: nav ? box(nav.querySelector('select')) : null,
           links: nav ? nav.querySelectorAll('a').length : -1,
-          allNavLinks: document.querySelectorAll('nav a').length
+          allNavLinks: document.querySelectorAll('nav a:not(.sidebar__credit-link)').length
         };
       });
       await ctx.close();

@@ -9,6 +9,7 @@ import { useData } from '../../state/DataContext';
 import { ROUTES, useHashRoute, type RouteId } from '../../router';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
+import { ImportedDataBanner, isSampleData } from './ImportedDataBanner';
 import { LoadingState } from '../ui/LoadingState';
 import { ErrorState } from '../ui/ErrorState';
 import { Banner } from '../ui/Banner';
@@ -47,13 +48,28 @@ export function AppLayout() {
   const route = useHashRoute();
   const { state, refresh } = useData();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  /** What the top bar's polite region reads once a restore from the data banner has brought the sample back. */
+  const [status, setStatus] = useState('');
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mainRef = useRef<HTMLElement>(null);
+  /** The route changed (Back, Forward) while the drawer was open: its h1 takes the focus once the shell is no longer inert. */
+  const focusHeadingOnClose = useRef(false);
+  /** The server reset the data from the banner; the reload that follows says whether the sample is back. */
+  const restorePending = useRef(false);
+
+  function focusHeading(): void {
+    mainRef.current?.querySelector<HTMLElement>('h1')?.focus();
+  }
 
   useEffect(() => {
     document.title = `${titleFor(route.id)} · Supply Chain Command Center`;
-    const heading = mainRef.current?.querySelector<HTMLElement>('h1');
-    heading?.focus();
+    // An inert element cannot take the focus: an open drawer closes first, and its effect below focuses the h1.
+    if (drawerOpen) {
+      focusHeadingOnClose.current = true;
+      setDrawerOpen(false);
+    } else {
+      focusHeading();
+    }
     if (typeof window.scrollTo === 'function') {
       try {
         window.scrollTo(0, 0);
@@ -64,9 +80,15 @@ export function AppLayout() {
   }, [route.id]);
 
   // The open drawer (below 1024px) is all that Tab reaches: the skip link and the rest of the shell, which it covers, are
-  // inert (below). Escape, the backdrop or a link closes it.
+  // inert (below). Escape, the backdrop, its Close navigation button, a link or a route change closes it.
   useEffect(() => {
-    if (!drawerOpen) return undefined;
+    if (!drawerOpen) {
+      if (focusHeadingOnClose.current) {
+        focusHeadingOnClose.current = false;
+        focusHeading();
+      }
+      return undefined;
+    }
     const firstLink = document.querySelector<HTMLElement>('#sidebar a');
     firstLink?.focus();
 
@@ -99,8 +121,16 @@ export function AppLayout() {
     else setDrawerOpen(true);
   }
 
-  function handleNavigate(): void {
-    setDrawerOpen(false);
+  /** A link closes the drawer. The current page's link changes no route, so no h1 takes the focus: it goes back to the menu
+   *  button rather than stay on a link the closed drawer hides. From 1024px there is no drawer and the focus stays put. */
+  function handleNavigate(routeId: RouteId): void {
+    if (!drawerOpen) return;
+    if (routeId === route.id) closeDrawer();
+    else setDrawerOpen(false);
+  }
+
+  function handleRestored(): void {
+    restorePending.current = true;
   }
 
   function handleBackdropClick(): void {
@@ -124,6 +154,21 @@ export function AppLayout() {
   const today = state.status === 'ready' ? state.snapshot.today : null;
   const dataSources = state.status === 'ready' ? state.snapshot.dataSources : null;
   const refreshing = state.status === 'ready' ? state.refreshing : false;
+
+  // A reload clears the last word, so it is not read again after "Refreshing…". Once the reload after a restore from the
+  // banner ends, the sample back says "Sample data restored." and the page's h1 takes the focus from the banner's button,
+  // which is gone; a failed reload keeps the banner, "Could not refresh data" says why, and the focus stays.
+  useEffect(() => {
+    if (refreshing) {
+      setStatus('');
+      return;
+    }
+    if (!restorePending.current) return;
+    restorePending.current = false;
+    if (dataSources === null || !isSampleData(dataSources)) return;
+    setStatus('Sample data restored.');
+    focusHeading();
+  }, [refreshing, dataSources]);
 
   let body: ReactNode;
   if (state.status === 'loading') {
@@ -157,6 +202,7 @@ export function AppLayout() {
             {state.refreshError.message}
           </Banner>
         )}
+        <ImportedDataBanner dataSources={state.snapshot.dataSources} onRestored={handleRestored} />
         <ErrorBoundary key={route.id}>{page}</ErrorBoundary>
       </>
     );
@@ -167,13 +213,14 @@ export function AppLayout() {
       <a href="#main" className="skip-link" onClick={handleSkipLinkClick} inert={drawerOpen}>
         Skip to main content
       </a>
-      <Sidebar activeRouteId={route.id} alertCount={alertCount} open={drawerOpen} onNavigate={handleNavigate} />
+      <Sidebar activeRouteId={route.id} alertCount={alertCount} open={drawerOpen} onNavigate={handleNavigate} onClose={closeDrawer} />
       {drawerOpen && <div className="drawer-backdrop" onClick={handleBackdropClick} />}
       <div className="app-shell__content" inert={drawerOpen}>
         <Topbar
           today={today}
           dataSources={dataSources}
           refreshing={refreshing}
+          status={status}
           onRefresh={refresh}
           drawerOpen={drawerOpen}
           onMenuClick={handleMenuClick}

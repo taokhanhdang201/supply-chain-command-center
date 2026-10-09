@@ -44,25 +44,25 @@ describe('Topbar', () => {
     expect(note.id).not.toBe('');
     expect(chip).toHaveAttribute('popovertarget', note.id);
     expect(note).toHaveAttribute('popover', 'auto');
-    expect(note.textContent).toBe('Generated sample (seed 42). The live demo rebuilds it each day until a file is imported.');
+    expect(note.textContent).toBe('Generated sample, seed 42. Rebuilt every day until someone imports a file.');
   });
 
   it('reads the seed from the sample label, and leaves it out when the label names none', () => {
     const { dataSources } = makeSnapshot([], [], { today: TODAY });
     const labelled = (label: string): Sources => ({ inventory: { ...dataSources.inventory, label }, shipments: { ...dataSources.shipments, label } });
     const { container, unmount } = renderTopbar(labelled('Sample data (seed 7)'));
-    expect(container.querySelector('.topbar__note')).toHaveTextContent(/^Generated sample \(seed 7\)\. The live demo/);
+    expect(container.querySelector('.topbar__note')).toHaveTextContent(/^Generated sample, seed 7\. Rebuilt every day/);
     unmount();
     const again = renderTopbar(labelled('Sample data'));
-    expect(again.container.querySelector('.topbar__note')).toHaveTextContent(/^Generated sample\. The live demo/);
+    expect(again.container.querySelector('.topbar__note')).toHaveTextContent(/^Generated sample\. Rebuilt every day/);
   });
 
-  it('keeps one chip per source, and no note, once a file is imported', () => {
+  it('shows one "Imported data" chip, and no sample note, once a file is imported', () => {
     const { dataSources } = makeSnapshot([], [], { today: TODAY });
     const imported: Sources = { ...dataSources, shipments: { kind: 'import', label: 'carrier-export.csv', loadedAt: '2026-06-15T00:00:00.000Z', rowCount: 480 } };
     const { container } = renderTopbar(imported);
-    expect(chips(container)).toEqual(['Inventory: Sample data (seed 42)', 'Shipments: carrier-export.csv']);
-    expect(container.querySelector('.topbar__note')).toBeNull();
+    expect(chips(container)).toEqual(['Imported data']);
+    expect(container.querySelector('#topbar-sample-note')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Sample data' })).toBeNull();
   });
 
@@ -190,5 +190,76 @@ describe('Topbar: a mouse hover opens the sample note', () => {
     expect(wrapper.contains(screen.getByRole('button', { name: 'Sample data' }))).toBe(true);
     expect(wrapper.contains(note)).toBe(true);
     expect(note.closest('span'), 'a <p> is flow content: a <span> may not hold it').toBeNull();
+  });
+});
+
+// ---- One top bar row: the "Imported data" chip at every width, the long file name, and the status word ----
+describe('Topbar: imported data and the status word', () => {
+  const importedSources = (shipments = 'carrier-export.csv', inventory?: string): Sources => {
+    const { dataSources } = makeSnapshot([], [], { today: TODAY });
+    return {
+      inventory: inventory === undefined ? dataSources.inventory : { kind: 'import', label: inventory, loadedAt: '2026-06-15T00:00:00.000Z', rowCount: 3 },
+      shipments: { kind: 'import', label: shipments, loadedAt: '2026-06-15T00:00:00.000Z', rowCount: 480 }
+    };
+  };
+  const polite = (container: HTMLElement) => container.querySelector('.topbar__actions [aria-live="polite"]') as HTMLElement;
+
+  it('shows one "Imported data" chip, a button that opens a note naming both sources', () => {
+    const { container } = renderTopbar(importedSources());
+    const button = screen.getByRole('button', { name: 'Imported data' });
+    const note = container.querySelector('#topbar-imported-note') as HTMLElement;
+    expect(button).toHaveClass('topbar__chip');
+    expect(button).toHaveClass('topbar__chip--imported');
+    expect(button).toHaveAttribute('popovertarget', 'topbar-imported-note');
+    expect(button).toHaveAttribute('popovertargetaction', 'show');
+    expect(button).toHaveAttribute('aria-describedby', 'topbar-imported-note');
+    expect(note).toHaveAttribute('popover', 'auto');
+    expect(note.textContent).toBe('Inventory: Sample data (seed 42). Shipments: carrier-export.csv.');
+    expect(chips(container)).toEqual(['Imported data']); // one chip, as at every width
+  });
+
+  it('names a sample file as "Sample data (seed N)" in the note', () => {
+    const { container } = renderTopbar(importedSources('carrier-export.csv', 'sample-inventory-seed-7.csv'));
+    expect(chips(container)).toEqual(['Imported data']);
+    expect(container.querySelector('#topbar-imported-note')).toHaveTextContent('Inventory: Sample data (seed 7). Shipments: carrier-export.csv.');
+  });
+
+  it('has no "Imported data" button, and no imported note, while both sources are the sample', () => {
+    const { container } = renderTopbar(makeSnapshot([], [], { today: TODAY }).dataSources);
+    expect(screen.queryByRole('button', { name: 'Imported data' })).toBeNull();
+    expect(container.querySelector('#topbar-imported-note')).toBeNull();
+    expect(chips(container)).toEqual(['Sample data']);
+  });
+
+  // A long file name: the chip says "Imported data", so the name is only in the note, whole (it breaks inside the note).
+  it('keeps a long file name whole in the note, and out of the chip', () => {
+    const name = `${'q'.repeat(56)}.csv`;
+    expect(name).toHaveLength(60);
+    const { container } = renderTopbar(importedSources(name));
+    expect(chips(container)).toEqual(['Imported data']);
+    expect(container.querySelector('#topbar-imported-note')?.textContent).toContain(name);
+  });
+
+  it('wraps the word Refresh in its own label, which still names the button', () => {
+    const { container } = renderTopbar(makeSnapshot([], [], { today: TODAY }).dataSources);
+    expect(container.querySelector('.topbar__refresh-label')).toHaveTextContent('Refresh');
+    expect(screen.getByRole('button', { name: 'Refresh' })).toContainElement(container.querySelector('.topbar__refresh-label') as HTMLElement);
+  });
+
+  it('reads the status prop in the polite region when no reload is running, and "Refreshing…" over it while one is', () => {
+    const sources = makeSnapshot([], [], { today: TODAY }).dataSources;
+    const { container, rerender } = render(
+      <Topbar today={TODAY} dataSources={sources} refreshing={false} status="Sample data restored." onRefresh={vi.fn()} drawerOpen={false} onMenuClick={vi.fn()} menuButtonRef={{ current: null }} />
+    );
+    expect(polite(container).textContent).toBe('Sample data restored.');
+    const node = polite(container);
+    rerender(<Topbar today={TODAY} dataSources={sources} refreshing status="Sample data restored." onRefresh={vi.fn()} drawerOpen={false} onMenuClick={vi.fn()} menuButtonRef={{ current: null }} />);
+    expect(polite(container)).toBe(node); // the same region, so its change is read
+    expect(node.textContent).toBe('Refreshing…');
+  });
+
+  it('reads nothing when there is no status', () => {
+    const { container } = renderTopbar(makeSnapshot([], [], { today: TODAY }).dataSources);
+    expect(polite(container).textContent).toBe('');
   });
 });

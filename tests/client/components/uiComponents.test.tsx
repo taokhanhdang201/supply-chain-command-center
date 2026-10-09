@@ -319,21 +319,21 @@ describe('control states in components.css', () => {
 
   it('places the link rules after the .button rules they undo, and keeps the link without a background', () => {
     const hover = '.button--link:hover:not(:disabled)';
-    const active = '.button--link:active:not(:disabled)';
+    const active = ".button--link:active:not(:disabled):not([aria-disabled='true'])";
     expect(indexOf('.button:hover:not(:disabled)')).toBeGreaterThanOrEqual(0);
     expect(indexOf(hover)).toBeGreaterThan(indexOf('.button:hover:not(:disabled)'));
-    expect(indexOf(active)).toBeGreaterThan(indexOf('.button:active:not(:disabled)'));
+    expect(indexOf(active)).toBeGreaterThan(indexOf(".button:active:not(:disabled):not([aria-disabled='true'])"));
     expect(bodyOf(hover)).toMatch(/background:\s*none/);
     expect(bodyOf(active)).toMatch(/background:\s*none/);
   });
 
   it('gives every variant a pressed step that changes colour and never shifts the button', () => {
     const selectors = [
-      '.button:active:not(:disabled)',
-      '.button--primary:active:not(:disabled)',
-      '.button--ghost:active:not(:disabled)',
-      '.button--danger:active:not(:disabled)',
-      '.button--link:active:not(:disabled)'
+      ".button:active:not(:disabled):not([aria-disabled='true'])",
+      ".button--primary:active:not(:disabled):not([aria-disabled='true'])",
+      ".button--ghost:active:not(:disabled):not([aria-disabled='true'])",
+      ".button--danger:active:not(:disabled):not([aria-disabled='true'])",
+      ".button--link:active:not(:disabled):not([aria-disabled='true'])"
     ];
     for (const selector of selectors) expect(indexOf(selector), selector).toBeGreaterThanOrEqual(0);
     const pressed = rules.filter((r) => r.selector.includes(':active'));
