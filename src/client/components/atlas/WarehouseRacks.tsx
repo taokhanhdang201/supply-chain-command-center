@@ -1,13 +1,15 @@
 // The Nodes chapter: each warehouse as one identical bay of a single rack system. Every bay has the same width and
 // height; the only thing that differs is the fill level, which is the existing utilization figure (units / capacity,
 // the same number Analytics shows). Under each bay, in this order only: code, percent, inventory value. Capacity and
-// units stay in the accessible name and the tooltip. Each bay is one link to that warehouse's filtered Inventory.
+// units stay in the accessible name and the tooltip. Each bay is one link to that warehouse's filtered Inventory. From 90% full
+// the percent turns amber, as on Analytics (DESIGN.md "Target tone"); over capacity the whole bay is red (rack--over).
 
 import type { CSSProperties } from 'react';
 import type { WarehouseUtilization } from '../../../shared/types';
 import { formatNumber, formatPercent } from '../../../shared/format';
 import { buildHash } from '../../router';
 import { displayMoneySummary } from '../../lib/displayMoney';
+import { utilizationTone } from '../../lib/targets';
 
 export interface WarehouseRacksProps {
   warehouses: readonly WarehouseUtilization[];
@@ -35,7 +37,7 @@ export function WarehouseRacks({ warehouses }: WarehouseRacksProps) {
               <span className="rack__code" aria-hidden="true">
                 {w.code}
               </span>
-              <span className="rack__pct" aria-hidden="true">
+              <span className={utilizationTone(w.utilization) === 'warning' ? 'rack__pct rack__pct--warning' : 'rack__pct'} aria-hidden="true">
                 {formatPercent(w.utilization)}
               </span>
               <span className="rack__value" aria-hidden="true">

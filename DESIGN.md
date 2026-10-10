@@ -314,7 +314,39 @@ Use semantic colors only for semantic meaning.
 
 
 
-One table gives each shipment status its tone (`src/client/components/charts/statusTones.ts`), and every page that draws a status reads it: the badge on Shipments, the mark beside a status in the Dashboard's recent activity and the status bar on Analytics. Pending and in transit are neutral (normal, in progress), and so is cancelled (ended, nothing left to do); delivered is good (done). Late is a flag, not a status: the Delayed badge is critical. The server's statuses do not change; only their tone is chosen here, and #/_design shows the table.
+One table gives each shipment status its tone (`src/client/components/charts/statusTones.ts`), and every page that draws a status reads it: the badge on Shipments, the mark beside a status in the Dashboard's recent activity and the status bar on Analytics. Pending and in transit are neutral (normal, in progress), and so is cancelled (ended, nothing left to do); delivered is good (done). Late is a flag, not a status: the Delayed badge is critical. The server's statuses do not change; only their tone is chosen here, and #/_design shows the table. The three neutral statuses differ by the form of their mark (`STATUS_MARK`, same file): pending hatched (not moving yet), in transit solid, cancelled hollow (ended); delivered is solid in its own tone. The badge, the Dashboard's activity mark and both the part and the legend square of the Analytics status bar take that form.
+
+
+
+## Target tone
+
+
+
+A number measured against a target takes one of three looks (`targetFigureTone`, `utilizationTone` in `src/client/lib/targets.ts`), the same on every page:
+
+
+
+\- on target: the number in its usual ink (good is not painted green);
+
+
+
+\- below the target: `--warning`, on the number only (the on-time rate under 90%, warehouse utilization from 90% full);
+
+
+
+\- below the floor: `--critical`, on the number only (the on-time rate under 80%, utilization over 100%).
+
+
+
+The label, the detail line, a meter bar and the gauge keep their colours; being below target is also said in words ("below the 90% target"). The gauge under the on-time rate is a 2px track (`--stage-line-strong`), the share in ink (`--stage-text`) and a 2 x 8px `--warning` tick at the target. With nothing to rate the number is "—" in its usual ink and there is no gauge.
+
+
+
+## Marks
+
+
+
+One mark for a status or a severity: an 8px square with a 1px radius, in its tone. The word beside it tells the levels apart; colour never does it alone. Where states share a tone, the form of the square tells them apart: solid, hatched (2px stripes of the tone) or hollow (a 1px edge). There are no circles and no triangles: the Dashboard's alert and status marks, the badges, chart legends and the status bar all use the square.
 
 
 
@@ -730,6 +762,14 @@ Running text keeps the font's proportional figures: no rule sets tabular-nums fo
 
 
 
+A date column keeps proportional figures in every table, the Dashboard's recent activity included: a date is read, not compared down a column.
+
+
+
+A measured percent has one decimal everywhere, in a share column and an accessible description too (`90.2%`, `2.9%`); a target or a threshold is written whole (`the 90% target`, `20% or more`).
+
+
+
 Important numeric values should have strong hierarchy.
 
 
@@ -760,6 +800,46 @@ Large numbers are reserved for important hierarchy.
 
 
 
+## Number formats
+
+
+
+One way to write each kind of number (#/_design "Number formats" draws each with the function the pages call):
+
+
+
+\- Money, a summary: `$32.6M`, `$600.1K` (see Money).
+
+
+
+\- Money in a table: `$765,167`.
+
+
+
+\- A price (one unit, one shipment's cost, the average per shipment): `$617.07`, `avg $1,285.04 per shipment`.
+
+
+
+\- A percent: `90.2%` measured, `90%` for a target.
+
+
+
+\- A duration: `3.1 days`.
+
+
+
+\- A date: `Oct 7, 2026`.
+
+
+
+\- No value: `—` in `--color-text-subtle`; a screen reader hears "No value" (visually hidden text: an aria-label on a plain span is not read).
+
+
+
+\- The month to date: `Oct*` on a chart axis, the note "Oct* is month to date (Oct 1–7)." under the chart ("(Oct 1)" on the first day), `Oct 2026*` in a data table and "Oct 2026, month to date" in a tooltip (`src/client/lib/monthLabels.ts`). A range without the current month has no asterisk and no note.
+
+
+
 ## Money
 
 
@@ -768,17 +848,17 @@ Every money string of the client comes from one module, `src/client/lib/displayM
 
 
 
-\- Summary (a figure and its detail line, the line over a table, money at risk in Top alerts, the labels and tooltips of the Dashboard cost chart): compact with one decimal from $10,000 (`$32.6M`, `$165.4K`, the `$8.0M` rack), whole dollars below (`avg $1,285 per shipment`). $9,999.50 is below the threshold and reads `$10,000`.
+\- Summary (a figure and its detail line, the line over a table, money at risk in Top alerts, the labels and tooltips of the Dashboard cost chart): compact with one decimal from $10,000 (`$32.6M`, `$165.4K`, the `$8.0M` rack), whole dollars below. $9,999.50 is below the threshold and reads `$10,000`.
 
 \- Amount in a table (a value, a total, every chart data table, the Analytics chart tooltips): whole dollars (`$1,403,217`).
 
-\- Price in a table (one unit, one shipment, or an average of those): to the cent (`$617.07`, `$545.08`, `$1,996.73`). What one shipment was billed above typical, in Top alerts, is a price too under $10,000 (`$517.07`): the Alerts page gives its cost and the typical cost to the cent. A sum over several shipments, or $10,000 and more, is a summary.
+\- Price (one unit, one shipment, or an average of those), in a table and on a figure: to the cent (`$617.07`, `$545.08`, `$1,996.73`, `avg $1,285.04 per shipment`). The cost of one shipment is a price, so the Cost column of a shipment table keeps its cents. What one shipment was billed above typical, in Top alerts, is a price too under $10,000 (`$517.07`): the Alerts page gives its cost and the typical cost to the cent. A sum over several shipments, or $10,000 and more, is a summary.
 
 \- Chart axes keep their short format (`formatCentsAxis` in `src/shared/format.ts`). A value that rounds to zero reads `$0`, never `-$0`.
 
 
 
-Two places differ on purpose. The Dashboard cost chart labels a month as a summary (`$105.0K`) while its data table gives that month as an amount (`$105,031`). The average cost per shipment is a summary on the figures (`avg $1,285`), while a lane's average cost is a price in the lane list and the route detail (`avg $1,996.73`).
+One place differs on purpose: the Dashboard cost chart labels a month as a summary (`$105.0K`) while its data table gives that month as an amount (`$105,031`). An average per shipment is a price wherever it is shown: `avg $1,285.04 per shipment` on the Dashboard and Analytics figures, `avg $1,996.73` for a lane.
 
 
 
@@ -938,6 +1018,38 @@ On mobile, tables should use the existing responsive strategies rather than simp
 
 
 
+## Table variants
+
+
+
+`DataTable` has one look and three uses:
+
+
+
+\- Default: a table to work in. Sortable columns say their direction (aria-sort) and a row lights up under the pointer.
+
+
+
+\- Static (`variant="static"`): a table to read, such as the Dashboard's recent activity. No sort button, even on a sortable column, and no row hover.
+
+
+
+\- Compact (`density="compact"`): 32px rows, cells 4px above and below and 8px beside, for a short list inside a card.
+
+
+
+An ID is a link (accent, underlined on hover) only where it opens a detail. SCC has no detail pages yet, so an ID is text kept on one line (`IdText`), in every table.
+
+
+
+## Stacked rows
+
+
+
+Below 768px a table with `stackedRows` becomes records: the first cell alone on the first line at 14/600; then each label (its column header, 12/600, `--color-text-muted`) beside its value (14, tabular for numbers), 12px between the pairs; 16px and a 1px `--color-border-subtle` rule between the records. From 768px it is the table. The header row stays for assistive tech (explicit ARIA roles), and the visible labels are not read twice. An empty cell reads `—` and "No value". Pages adopt it in place of their own stacked layouts.
+
+
+
 ---
 
 
@@ -998,6 +1110,14 @@ Do not add icons merely to fill empty space.
 
 
 
+## Figures with a link
+
+
+
+A figure that links to the filter it counts shows it at rest: its label carries a 1px underline in `--stage-line-strong`, 3px under the text, that turns to the label's ink (`--stage-text`) on hover and keyboard focus, with the pointer cursor. A figure without a link has no underline.
+
+
+
 ---
 
 
@@ -1044,6 +1164,22 @@ Hierarchy should communicate importance.
 
 
 
+## Fields on the band
+
+
+
+On the dark band (the Range on Analytics, the Routes filters, Refresh, "Show all 25 lanes") a select, a search and a secondary button keep their shape: the `--stage-field` fill, the band's field edge (`--color-border` there, 3.6:1 or more), 36px tall (32px for a small button). Their hover, focus and unavailable looks are the paper ones with the band's inks; #/_design shows all four.
+
+
+
+## Filter bar
+
+
+
+A filter bar sits on the 12-column grid (`.filter-bar--grid`): each field fills the columns of its cell (`.filter-bar__select`, `.filter-bar__search`) and has no width of its own. A select spans 2 columns and a search 4 from 1100px, 3 and 6 from 768px, 6 and the whole row below 768px.
+
+
+
 ---
 
 
@@ -1076,7 +1212,11 @@ Existing statuses:
 
 
 
-Status indicators may use the small square marker already defined by the component system.
+Status indicators use the one mark (see Marks): the 8px square, solid, hatched or hollow (`mark`).
+
+
+
+A badge has a `title` only where its words are cut short or are a term ("MTD"); a badge that says it all has none.
 
 
 
@@ -1163,6 +1303,18 @@ Chart geometry and data logic must remain separate from visual styling.
 
 
 Do not change chart data/geometry merely to make a chart look prettier.
+
+
+
+## Chart card
+
+
+
+A chart card (`ChartFrame`) has a one-line header: the title (16/600) takes the room, and the toggle, the one word "Table" with aria-pressed, keeps its width and never pushes the title onto a second line. One subtitle line is kept whether or not there is a subtitle, so the charts of a row start level; a subtitle says what the range means ("Last 180 days").
+
+
+
+Axis text is 12px `--color-text-muted`; the axis is a 1px `--color-line-strong` line; gridlines are horizontal only, 1px dotted `--color-border-subtle`. Bars are one ink (`--chart-1`); colour appears only where it means something (red is late, the status tones). Up to three series are named on the chart at the end of each series; from four, one legend row of 8px squares sits above the plot. Statuses that share the neutral tone keep their mark forms; `--chart-6` is a third neutral tint, so no colour has two names.
 
 
 
@@ -1347,6 +1499,66 @@ Avoid creating:
 \- duplicate spacing systems
 
 \- duplicate colors
+
+
+
+## Section header
+
+
+
+`SectionHeader` is the one section heading on paper: the h2 at 24/500 over a 1px `--color-text` rule, 12px above it and 24px before the content; actions at the right end of the rule; at most one subtitle (`subtitle`), under the rule and before the content, 14px `--color-text-muted`, at most 72ch. A results title over a table (`.table-summary`, "360 items · $32.6M") says what the table holds in the type of the h2.
+
+
+
+## Explanation line and terms
+
+
+
+When a number differs from the same name on another page, one line under it says why: 14px `--color-text-muted`, starting "Differs from {Page}:" ("Differs from Shipments: last 180 days only, cancelled excluded."). When the reason does not fit one clause: "{Page} shows {X} because it {reason}."
+
+
+
+A term (`Term`) is an abbreviation (`<abbr>`) with a 1px dotted `--color-text-subtle` underline, in the Tab order. Its meaning opens in a tooltip (at most 280px, 14px) on hover and on keyboard focus; the pointer can move onto it without closing it, and Escape closes it. Each meaning stays under 120 characters:
+
+
+
+\- DIO: "Days inventory outstanding: how many days today's stock lasts at the recorded usage rate (365 ÷ turnover)."
+
+
+
+\- ETA: "Estimated arrival date. Delivered after it counts as late; still open after it counts as overdue."
+
+
+
+\- MTD: "Month to date: {Mon} 1–{d} only, so it isn't comparable with full months."
+
+
+
+## Display names
+
+
+
+One name for each thing, from one map in the client (`src/client/lib/displayNames.ts`); the data's codes do not change.
+
+
+
+\- A warehouse: its full name in a list or a table from 768px ("Dallas-Fort Worth DC"); its code on a chart axis and at phone width ("DFW", with the full name as its title). Never "WH-DFW" on screen.
+
+
+
+\- A route: "ATL → BOS" everywhere; the full label ("Atlanta DC → Boston, MA") only in a tooltip or an accessible name. An unmapped end keeps its place name.
+
+
+
+\- The KPIs: On-time rate, Shipping cost, Avg delivery time, Shipments, Inventory turnover, Days inventory outstanding (DIO).
+
+
+
+## Frame
+
+
+
+The frame around every page: the sidebar (a link at rest in `--color-sidebar-text`, hovered on a faint fill, current with a 2px accent line at its left and 600), the top bar (the date, one chip, Refresh), the target gauge (see Target tone) and the disclosure ("How these are counted"): a `<details>` closed by default, its summary 14/500 with a chevron that turns a quarter on opening, its content indented 16px. The sidebar's foot (the author and two outside links) sits outside the Main navigation landmark. A banner keeps its role when its state changes; an error it reports goes to a live region that is there from the first render.
 
 
 

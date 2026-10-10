@@ -163,9 +163,13 @@
   margin-top: 8px;
   font: 500 var(--fs-lead) / var(--leading-md) var(--font-sans);
   color: var(--color-text);
-  text-decoration: underline transparent;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
+}
+
+/* A figure with a link shows it at rest (DESIGN.md "Figures"): a quiet 1px underline 3px under its label, in the ink of the
+   line (--stage-line-strong on the band), that turns to the label's ink on hover. A figure without a link has none. */
+.atlas-page a.figure .figure__label {
+  text-decoration: underline 1px var(--color-line-strong);
+  text-underline-offset: 3px;
   transition: text-decoration-color var(--t-hover) var(--ease);
 }
 
@@ -231,22 +235,35 @@
   color: var(--stage-text);
 }
 
+/* Below its target only the number turns amber, red below the floor (DESIGN.md "Target tone"). */
+.atlas-page .hero__value--warning {
+  color: var(--warning);
+}
+
+.atlas-page .hero__value--critical {
+  color: var(--signal);
+}
+
+/* The gauge (DESIGN.md "Frame"): the delivered share in ink on a neutral track, and a 2 x 8px amber tick at the target
+   (--target). It keeps these colours at every tone: the number says the tone. */
 .atlas-page .hero__gauge {
+  position: relative;
   display: block;
   width: 100%;
   height: 2px;
   /* 12px under the digits' baseline: the line box sits 0.0987em below it (measured for Archivo 600 at line-height .86). */
   margin-top: calc(12px - 0.0987 * var(--fs-display));
-  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--stage-text-3) var(--rate) 100%);
+  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--stage-line-strong) var(--rate) 100%);
 }
 
-/* The remainder carries the tone: amber below the on-time target, red only below the floor (red means critical). */
-.atlas-page .hero__gauge--warning {
-  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--warning) var(--rate) 100%);
-}
-
-.atlas-page .hero__gauge--critical {
-  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--signal) var(--rate) 100%);
+.atlas-page .hero__gauge::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: calc(var(--target) - 1px);
+  width: 2px;
+  height: 8px;
+  background: var(--warning);
 }
 
 .atlas-page .hero__label {
@@ -1256,6 +1273,11 @@
   transition: text-decoration-color var(--t-hover) var(--ease);
 }
 
+/* From 90% full the percent turns amber, as on Analytics; over capacity the bay is red. */
+.atlas-page .rack__pct--warning {
+  color: var(--warning);
+}
+
 .atlas-page .rack--over .rack__pct {
   color: var(--signal);
 }
@@ -1545,11 +1567,11 @@
   }
 }
 
+/* The one mark (DESIGN.md "Marks"): an 8px square in the severity's tone; the hidden word tells the levels apart. */
 .atlas-page .alert-glyph {
   width: 8px;
   height: 8px;
   margin-top: var(--space-2);
-  overflow: visible;
 }
 
 .atlas-page .alert-glyph--critical {
@@ -1561,9 +1583,7 @@
 }
 
 .atlas-page .alert-glyph--info {
-  fill: none;
-  stroke: var(--color-text-muted);
-  stroke-width: 1.5;
+  fill: var(--color-text-muted);
 }
 
 .atlas-page .attention__empty {
@@ -1685,8 +1705,9 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* A date is read, not compared down a column: proportional figures, as in every table (DESIGN.md §9). */
 .atlas-page .activity__date {
-  font-variant-numeric: tabular-nums lining-nums;
+  font-variant-numeric: lining-nums;
 }
 
 .atlas-page .activity__status {
@@ -1699,19 +1720,28 @@
   color: var(--color-text);
 }
 
-/* The mark takes its status's tone as its colour (statusTones.ts, set on the mark); its shape tells the four apart. */
+/* The mark takes its status's tone as its colour (statusTones.ts, set on the mark); its form, solid, hatched or hollow, tells
+   apart the statuses that share a tone (STATUS_MARK). A hollow square is a 1px edge: half of a 2px stroke, the rest clipped. */
 .atlas-page .status-mark {
   flex: none;
   width: 8px;
   height: 8px;
-  overflow: visible;
+  overflow: hidden;
   fill: currentColor;
 }
 
-.atlas-page .status-mark--pending {
+.atlas-page .status-mark--hollow {
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.5;
+  stroke-width: 2;
+}
+
+/* The hatch pattern's own drawing: no box in the layout. */
+.atlas-page .mark-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
 /* Phone and tablet: a three-line record per shipment. The header row stays in the accessibility tree. */

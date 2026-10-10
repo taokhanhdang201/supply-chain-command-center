@@ -27,14 +27,25 @@
   gap: var(--space-3);
 }
 
+/* A sample and its note share their line at every width: the sample keeps its size, the note wraps beside it. */
 .design-sheet__list > li {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-4);
 }
 
+.design-sheet__list > li > :first-child {
+  flex: none;
+  white-space: nowrap;
+}
+
+.design-sheet__list > li > .design-sheet__note {
+  min-width: 0;
+}
+
+/* A note reads at 14px and stops at 72 characters. */
 .design-sheet__note {
+  max-width: 72ch;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
@@ -87,6 +98,50 @@
 .design-sheet__stage {
   padding: var(--space-6);
   background: var(--stage-bg);
+}
+
+/* A search on the band's table fills its cell: the page's 300px least width is for a filter bar. */
+.design-sheet__stage .search-input__field {
+  min-width: 0;
+  width: 100%;
+}
+
+/* The Frame sample: the sidebar links at the sidebar's width, the top bar row and the gauge, one under the other. */
+.design-sheet__frame {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.design-sheet__frame .sidebar__link {
+  width: var(--sidebar-width);
+  max-width: 100%;
+}
+
+/* The slim band sample starts at the content's edge, as Data Import's title does (the sheet already sits in the gutter). */
+.design-sheet .page-stage.page-stage--slim {
+  padding-inline: 0;
+}
+
+/* The 12 columns behind the filter bar sample. */
+.design-sheet__overlay-host {
+  position: relative;
+}
+
+.design-sheet__overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--grid-gap);
+  pointer-events: none;
+}
+
+.design-sheet__overlay > span {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.design-sheet__overlay-host > .filter-bar {
+  position: relative;
 }
 
 /* Static copies of the interactive states, so one screenshot shows them: a sample with data-state="hover", "active" or "focus"
@@ -159,4 +214,26 @@
 
 .atlas-page .dash-link:is([data-state='hover'], [data-state='active']) {
   text-decoration-color: currentColor;
+}
+
+/* The Frame sample's sidebar link, hovered and current (components.css). */
+.sidebar__link:is([data-state='hover'], [data-state='active']) {
+  background: var(--color-sidebar-bg-hover);
+  color: var(--color-sidebar-text-active);
+}
+
+.sidebar__link[data-state='current'] {
+  background: var(--color-sidebar-bg-active);
+  color: var(--color-sidebar-text-active);
+  font-weight: 600;
+}
+
+.sidebar__link[data-state='current']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--color-accent);
 }

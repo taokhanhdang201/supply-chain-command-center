@@ -122,6 +122,18 @@
   text-wrap: balance;
 }
 
+/* A section's one subtitle sits under its rule, before the content: 14px muted, at most 72ch. */
+.section-bar--with-subtitle {
+  margin-bottom: var(--space-2);
+}
+
+.section-bar__subtitle {
+  margin: 0 0 var(--space-6);
+  max-width: 72ch;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
 .sheet--quiet {
   background: transparent;
   border-style: dashed;
@@ -420,22 +432,25 @@
   justify-self: stretch;
 }
 
-/* The on-time gauge, as on the Dashboard hero: the delivered share in ink, the remainder carrying the tone (dim when
-   on target, amber below the target, red below the floor). */
+/* The on-time gauge, as on the Dashboard hero (DESIGN.md "Target tone"): the delivered share in ink on a neutral track, and a
+   2 x 8px amber tick at the target (--target). Below the target only the number turns amber; the gauge keeps its colours. */
 .stage-gauge {
+  position: relative;
   display: block;
   width: min(100%, 220px);
   height: 2px;
   margin: var(--space-2) 0 var(--space-1);
-  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--stage-text-3) var(--rate) 100%);
+  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--stage-line-strong) var(--rate) 100%);
 }
 
-.stage-gauge--warning {
-  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--warning) var(--rate) 100%);
-}
-
-.stage-gauge--critical {
-  background: linear-gradient(to right, var(--stage-text) 0 var(--rate), var(--critical) var(--rate) 100%);
+.stage-gauge::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - var(--space-1));
+  left: calc(var(--target) - 1px);
+  width: 2px;
+  height: var(--space-2);
+  background: var(--warning);
 }
 
 /* The on-time figure draws its gauge between its value and its label; every figure of the range keeps that row (the
@@ -476,12 +491,33 @@
 }
 
 .share-bar__segment {
+  position: relative;
   display: block;
+  box-sizing: border-box;
   height: 100%;
 }
 
+/* 2px of the sheet between two parts. */
 .share-bar__track > .share-bar__segment + .share-bar__segment {
-  box-shadow: inset 2px 0 0 var(--color-surface);
+  border-left: 2px solid var(--color-surface);
+}
+
+/* The forms of the one mark (DESIGN.md "Marks"), drawn over the part's tone so the tone stays its colour: hatched lays 2px
+   stripes of the sheet over it, hollow covers all but a 1px edge. Pending, in transit and cancelled share the neutral tone. */
+:is(.share-bar__segment, .share-bar__swatch).share-bar__segment--hatched::after,
+:is(.share-bar__segment, .share-bar__swatch).share-bar__segment--hollow::after {
+  content: '';
+  position: absolute;
+}
+
+:is(.share-bar__segment, .share-bar__swatch).share-bar__segment--hatched::after {
+  inset: 0;
+  background: repeating-linear-gradient(45deg, transparent 0 2px, var(--color-surface) 2px 4px);
+}
+
+:is(.share-bar__segment, .share-bar__swatch).share-bar__segment--hollow::after {
+  inset: 1px;
+  background: var(--color-surface);
 }
 
 .share-bar__legend {
@@ -493,7 +529,7 @@
 
 .share-bar__item {
   display: grid;
-  grid-template-columns: 10px minmax(0, 1fr) auto 3.5em;
+  grid-template-columns: 8px minmax(0, 1fr) auto 3.5em;
   gap: var(--space-3);
   align-items: center;
   padding: var(--space-2) 0;
@@ -506,9 +542,12 @@
   border-bottom: 0;
 }
 
+/* The legend's mark: the one 8px square, radius 1px. */
 .share-bar__swatch {
-  width: 10px;
-  height: 10px;
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
 }
 
 .share-bar__value {
@@ -1023,14 +1062,18 @@
 .stage-figure__label {
   font-size: var(--text-md);
   font-weight: 500;
-  text-decoration: underline transparent;
-  text-underline-offset: 4px;
+}
+
+/* A figure with a link (Figure href) shows it at rest: its label is underlined in a quiet 1px line, 3px under the text, that
+   turns to the label's ink and gains an arrow on hover and keyboard focus; focus keeps the global ring 4px away. A figure
+   without a link has no underline. The arrow is decoration: its empty alternative text keeps it out of the link's name,
+   which reads value, label, detail. */
+a.stage-figure .stage-figure__label {
+  text-decoration: underline 1px var(--color-line-strong);
+  text-underline-offset: 3px;
   transition: text-decoration-color var(--dur-1) var(--ease-out);
 }
 
-/* A figure with a link (Figure href): the label underlines and gains an arrow on hover and keyboard focus, and focus
-   keeps the global ring 4px away. The arrow is decoration: its empty alternative text keeps it out of the link's name,
-   which reads value, label, detail. */
 a.stage-figure:hover .stage-figure__label,
 a.stage-figure:focus-visible .stage-figure__label {
   text-decoration-color: currentColor;

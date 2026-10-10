@@ -5,15 +5,17 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button } from '../../../src/client/components/ui/Button';
 import { EmptyState } from '../../../src/client/components/ui/EmptyState';
 import { Figure } from '../../../src/client/components/ui/Figure';
 import { Pagination } from '../../../src/client/components/ui/Pagination';
 import { SearchInput } from '../../../src/client/components/ui/SearchInput';
+import { Badge } from '../../../src/client/components/ui/Badge';
 import { SectionHeader } from '../../../src/client/components/ui/SectionHeader';
 import { SelectField } from '../../../src/client/components/ui/SelectField';
+import { Term } from '../../../src/client/components/ui/Term';
 
 describe('Button', () => {
   it('is a real button of type button, wearing exactly .button, enabled and not busy', () => {
@@ -399,5 +401,137 @@ describe('Figure link states in pages.css', () => {
     expect(bodyOf(hover)).toMatch(/text-decoration-color:\s*currentColor/);
     expect(bodyOf(hover.replaceAll('__label', '__label::after'))).toMatch(/opacity:\s*1/);
     expect(bodyOf('.stage-figure:focus-visible')).toMatch(/outline-offset:\s*4px/);
+  });
+});
+
+describe('SectionHeader subtitle', () => {
+  it('puts one subtitle line under the rule, after the bar and before the content', () => {
+    const { container } = render(
+      <div>
+        <SectionHeader title="Inventory" subtitle="Stock by warehouse and category." />
+        <p>content</p>
+      </div>
+    );
+    const bar = container.querySelector('.section-bar') as HTMLElement;
+    expect(bar).toHaveClass('section-bar--with-subtitle');
+    const subtitle = screen.getByText('Stock by warehouse and category.');
+    expect(subtitle).toHaveClass('section-bar__subtitle');
+    expect(bar.nextElementSibling).toBe(subtitle);
+    expect(subtitle.nextElementSibling).toBe(screen.getByText('content'));
+  });
+
+  it('draws exactly the old bar when there is no subtitle', () => {
+    const { container } = render(<SectionHeader title="Charts" />);
+    expect(container.querySelector('.section-bar')?.className).toBe('section-bar');
+    expect(container.querySelector('.section-bar__subtitle')).toBeNull();
+  });
+});
+
+describe('Badge mark and title', () => {
+  it('wears only badge and its tone by default, with no title', () => {
+    render(<Badge tone="neutral">In transit</Badge>);
+    const badge = screen.getByText('In transit');
+    expect(badge.className).toBe('badge badge--neutral');
+    expect(badge).not.toHaveAttribute('title');
+  });
+
+  it.each([
+    ['hatched', 'badge badge--neutral badge--hatched'],
+    ['hollow', 'badge badge--neutral badge--hollow'],
+    ['solid', 'badge badge--neutral']
+  ] as const)('draws the %s form of the mark as "%s"', (mark, expected) => {
+    render(<Badge tone="neutral" mark={mark}>Status</Badge>);
+    expect(screen.getByText('Status').className).toBe(expected);
+  });
+
+  it('carries a title only when one is given (the words are cut short or are a term)', () => {
+    render(
+      <>
+        <Badge tone="warning" title="Month to date">
+          MTD
+        </Badge>
+        <Badge tone="good">Delivered</Badge>
+      </>
+    );
+    expect(screen.getByText('MTD')).toHaveAttribute('title', 'Month to date');
+    expect(screen.getByText('Delivered')).not.toHaveAttribute('title');
+  });
+});
+
+describe('Term', () => {
+  const tip = () => screen.getByRole('tooltip', { hidden: true });
+
+  it('is an abbreviation in the Tab order, described by a tooltip that starts closed', () => {
+    render(<Term abbr="DIO">How many days of stock the warehouses hold at the current rate of use.</Term>);
+    const abbr = screen.getByText('DIO');
+    expect(abbr.tagName).toBe('ABBR');
+    expect(abbr).toHaveAttribute('tabindex', '0');
+    expect(abbr.getAttribute('aria-describedby')).toBe(tip().id);
+    expect(tip()).toHaveTextContent('How many days of stock the warehouses hold at the current rate of use.');
+    expect(tip().hidden).toBe(true);
+  });
+
+  it('opens a term on hover and on focus and closes it with Escape', async () => {
+    const user = userEvent.setup();
+    render(<Term abbr="ETA">Estimated time of arrival.</Term>);
+    const abbr = screen.getByText('ETA');
+
+    await user.hover(abbr);
+    expect(tip().hidden).toBe(false);
+    await user.unhover(abbr);
+    expect(tip().hidden).toBe(true);
+
+    await user.tab();
+    expect(abbr).toHaveFocus();
+    expect(tip().hidden).toBe(false);
+    await user.keyboard('{Escape}');
+    expect(tip().hidden).toBe(true);
+    // Escape closes the tooltip and leaves the focus where it was (WCAG 1.4.13: dismissible).
+    expect(abbr).toHaveFocus();
+  });
+
+  it('keeps the tooltip open while the pointer moves from the term onto the tooltip, and closes it when the pointer leaves both', () => {
+    const { container } = render(<Term abbr="MTD">Month to date.</Term>);
+    const abbr = screen.getByText('MTD');
+    fireEvent.mouseOver(abbr, { relatedTarget: document.body });
+    expect(tip().hidden).toBe(false);
+    // From the term onto its tooltip (hoverable: WCAG 1.4.13).
+    fireEvent.mouseOut(abbr, { relatedTarget: tip() });
+    fireEvent.mouseOver(tip(), { relatedTarget: abbr });
+    expect(tip().hidden).toBe(false);
+    fireEvent.mouseOut(tip(), { relatedTarget: container });
+    expect(tip().hidden).toBe(true);
+  });
+
+  it('closes on blur', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Term abbr="DIO">Days of stock.</Term>
+        <button type="button">next</button>
+      </>
+    );
+    await user.tab();
+    expect(tip().hidden).toBe(false);
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'next' })).toHaveFocus();
+    expect(tip().hidden).toBe(true);
+  });
+
+  it('opens several terms independently, each tooltip tied to its own abbreviation', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Term abbr="DIO">First meaning.</Term>
+        <Term abbr="ETA">Second meaning.</Term>
+      </>
+    );
+    await user.hover(screen.getByText('ETA'));
+    const tips = screen.getAllByRole('tooltip', { hidden: true });
+    expect(tips).toHaveLength(2);
+    expect(tips[0]?.hidden).toBe(true);
+    expect(tips[1]?.hidden).toBe(false);
+    expect(screen.getByText('DIO').getAttribute('aria-describedby')).toBe(tips[0]?.id);
+    expect(screen.getByText('ETA').getAttribute('aria-describedby')).toBe(tips[1]?.id);
   });
 });

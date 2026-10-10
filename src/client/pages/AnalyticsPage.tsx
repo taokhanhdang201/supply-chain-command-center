@@ -17,12 +17,13 @@ import {
 } from '../../shared/domain/analytics';
 import { METRIC_DEFINITIONS } from '../../shared/formulas';
 import { computeKpis } from '../../shared/domain/metrics';
-import { formatCentsAxis, formatCompactNumber, formatDays, formatMonth, formatMonthWithMtd, formatPercent, monthAxisLabels, monthAxisNote, statusLabel } from '../../shared/format';
+import { formatCentsAxis, formatCompactNumber, formatDays, formatPercent, monthAxisLabels, statusLabel } from '../../shared/format';
 import type { ShipmentStatus, StockoutRisk } from '../../shared/types';
 import { useSnapshot } from '../state/DataContext';
 import { buildHash, navigate, useHashRoute } from '../router';
-import { notMeasurableNote, ON_TIME_TARGET, onTimeTone } from '../lib/targets';
+import { notMeasurableNote, ON_TIME_TARGET, onTimeTone, targetFigureTone, utilizationTone } from '../lib/targets';
 import { displayMoneySummary, displayMoneyTable } from '../lib/displayMoney';
+import { monthTableLabel, monthTooltipLabel, partialMonthNote } from '../lib/monthLabels';
 import { PageStage } from '../components/layout/PageStage';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { SectionHeader } from '../components/ui/SectionHeader';
@@ -30,7 +31,7 @@ import { Figure } from '../components/ui/Figure';
 import { ChartFrame } from '../components/charts/ChartFrame';
 import { BarChart } from '../components/charts/BarChart';
 import { ShareBar } from '../components/charts/ShareBar';
-import { STATUS_TONE } from '../components/charts/statusTones';
+import { STATUS_MARK, STATUS_TONE } from '../components/charts/statusTones';
 import { LineChart } from '../components/charts/LineChart';
 import { StackedBarChart } from '../components/charts/StackedBarChart';
 
@@ -43,17 +44,13 @@ const RANGE_OPTIONS: SelectOption[] = [
 ];
 
 /**
- * Labels of the shipping-cost axis: plain short month names ("Dec", "Jun"). With a year suffix or the month-to-date "*"
- * the narrow chart cut them ("De…", "Ju…"); three letters fit at every range. The full month and year stay in the
- * tooltip and the data table, and the note under the chart names the month to date.
+ * Labels of the shipping-cost axis: short month names ("Dec", "Jun"), the month to date marked "Oct*" when `today` is
+ * given, as on every month axis. With a year suffix the narrow chart cut them ("De…", "Ju…"); three letters and the "*" fit
+ * at every range. The full month and year stay in the tooltip and the data table, and the note under the chart names the
+ * month to date.
  */
-export function costAxisLabels(months: readonly string[]): string[] {
-  return monthAxisLabels(months).map((l) => l.replace(/ '\d\d/, ''));
-}
-
-/** "Jun 2026 is month to date (a partial month).": the axis carries no "*" to point at. */
-function costAxisNote(months: readonly string[], today: string): string | null {
-  return monthAxisNote(months, today)?.replace(/^\* /, '') ?? null;
+export function costAxisLabels(months: readonly string[], today?: string): string[] {
+  return monthAxisLabels(months, today === undefined ? null : today.slice(0, 7)).map((l) => l.replace(/ '\d\d/, ''));
 }
 
 const RANGE_VALUES = new Set(RANGE_OPTIONS.map((o) => o.value));
@@ -86,7 +83,7 @@ export function AnalyticsPage() {
   const valueByCategory = groupInventoryValue(snapshot.inventory, 'category', snapshot.locations);
   const statusCounts = countShipmentsByStatus(rangedShipments);
   const costByMonth = shippingCostByMonth(rangedShipments, snapshot.today);
-  const costMonthLabels = costAxisLabels(costByMonth.map((d) => d.month));
+  const costMonthLabels = costAxisLabels(costByMonth.map((d) => d.month), snapshot.today);
   const onTimeByMonth = onTimeVsDelayedByMonth(rangedShipments);
   const routes = topRoutes(rangedShipments, snapshot.locations, TOP_ROUTES_LIMIT, routeSortBy);
 
@@ -97,7 +94,8 @@ export function AnalyticsPage() {
   const rate = kpis.onTimeRate;
   const tone = onTimeTone(rate);
   const belowTarget = tone === 'warning' || tone === 'critical';
-  const gaugeStyle = { ['--rate' as string]: `${((rate ?? 0) * 100).toFixed(2)}%` } as CSSProperties;
+  // The gauge keeps its colours and marks the target; below it only the number turns amber (DESIGN.md "Target tone").
+  const gaugeStyle = { ['--rate' as string]: `${((rate ?? 0) * 100).toFixed(2)}%`, ['--target' as string]: `${ON_TIME_TARGET * 100}%` } as CSSProperties;
   // "8 not measurable": the range's delivered shipments the rate leaves out (the Dashboard says it too).
   const notMeasurable = notMeasurableNote(rangedShipments);
 
@@ -114,7 +112,7 @@ export function AnalyticsPage() {
               <Figure
                 value={formatPercent(rate)}
                 label="On-time rate"
-                tone={tone === 'good' ? 'neutral' : tone}
+                tone={targetFigureTone(tone)}
                 detail={`${kpis.onTimeCount} of ${kpis.onTimeCount + kpis.lateCount} delivered on time${notMeasurable === null ? '' : ` · ${notMeasurable}`}${belowTarget ? ` · below the ${formatPercent(ON_TIME_TARGET, 0)} target` : ''}`}
               >
                 {/* The gauge is decoration (aria-hidden); being under target is also said in words. */}
@@ -123,7 +121,7 @@ export function AnalyticsPage() {
               <Figure
                 value={displayMoneySummary(kpis.totalShippingCostCents)}
                 label="Shipping cost"
-                detail={kpis.averageShippingCostCents === null ? 'No shipments' : `avg ${displayMoneySummary(kpis.averageShippingCostCents)} per shipment`}
+                detail={kpis.averageShippingCostCents === null ? 'No shipments' : `avg ${displayMoneyTable(kpis.averageShippingCostCents, 'price')} per shipment`}
               />
               <Figure value={formatDays(kpis.averageDeliveryDays)} label="Avg delivery" detail="ship date to delivery" />
               <Figure value={kpis.totalShipments.toLocaleString('en-US')} label="Shipments in range" detail={`${kpis.deliveredShipments.toLocaleString('en-US')} delivered`} />
@@ -170,7 +168,13 @@ export function AnalyticsPage() {
               table={{ columns: ['Status', 'Count'], rows: statusCounts.map((d) => [statusLabel(d.status as ShipmentStatus), d.count]) }}
             >
               <ShareBar
-                data={statusCounts.map((d) => ({ key: d.status, label: statusLabel(d.status as ShipmentStatus), value: d.count, tone: STATUS_TONE[d.status as ShipmentStatus] }))}
+                data={statusCounts.map((d) => ({
+                  key: d.status,
+                  label: statusLabel(d.status as ShipmentStatus),
+                  value: d.count,
+                  tone: STATUS_TONE[d.status as ShipmentStatus],
+                  mark: STATUS_MARK[d.status as ShipmentStatus]
+                }))}
                 valueFormat={(n) => n.toLocaleString('en-US')}
                 ariaLabel="Shipments by status"
               />
@@ -179,11 +183,11 @@ export function AnalyticsPage() {
               title="Shipping cost over time"
               subtitle={`Range: ${RANGE_OPTIONS.find((o) => o.value === range)?.label}`}
               isEmpty={costByMonth.length === 0}
-              note={costAxisNote(costByMonth.map((d) => d.month), snapshot.today)}
-              table={{ columns: ['Month', 'Total cost', 'Shipments'], rows: costByMonth.map((d) => [formatMonthWithMtd(d.month, snapshot.today), displayMoneyTable(d.totalCents, 'amount'), d.count]) }}
+              note={partialMonthNote(costByMonth.map((d) => d.month), snapshot.today)}
+              table={{ columns: ['Month', 'Total cost', 'Shipments'], rows: costByMonth.map((d) => [monthTableLabel(d.month, snapshot.today), displayMoneyTable(d.totalCents, 'amount'), d.count]) }}
             >
               <LineChart
-                points={costByMonth.map((d, i) => ({ label: formatMonthWithMtd(d.month, snapshot.today), axisLabel: costMonthLabels[i], value: d.totalCents / 100 }))}
+                points={costByMonth.map((d, i) => ({ label: monthTooltipLabel(d.month, snapshot.today), axisLabel: costMonthLabels[i], value: d.totalCents / 100 }))}
                 valueFormat={(n) => displayMoneyTable(Math.round(n * 100), 'amount')}
                 tickFormat={(n) => formatCentsAxis(Math.round(n * 100))}
                 ariaLabel="Shipping cost by month"
@@ -193,11 +197,12 @@ export function AnalyticsPage() {
               title="On-time vs delayed by month"
               subtitle={`Range: ${RANGE_OPTIONS.find((o) => o.value === range)?.label}`}
               isEmpty={onTimeByMonth.length === 0}
-              table={{ columns: ['Month', 'On time', 'Delayed'], rows: onTimeByMonth.map((d) => [formatMonth(d.month), d.onTime, d.delayed]) }}
+              note={partialMonthNote(onTimeByMonth.map((d) => d.month), snapshot.today)}
+              table={{ columns: ['Month', 'On time', 'Delayed'], rows: onTimeByMonth.map((d) => [monthTableLabel(d.month, snapshot.today), d.onTime, d.delayed]) }}
             >
               <StackedBarChart
-                categories={onTimeByMonth.map((d) => formatMonth(d.month))}
-                axisLabels={monthAxisLabels(onTimeByMonth.map((d) => d.month))}
+                categories={onTimeByMonth.map((d) => monthTooltipLabel(d.month, snapshot.today))}
+                axisLabels={monthAxisLabels(onTimeByMonth.map((d) => d.month), snapshot.today.slice(0, 7))}
                 series={[
                   { name: 'On time', values: onTimeByMonth.map((d) => d.onTime), tone: 'neutral' }, // ink: on time is the norm
                   { name: 'Delayed', values: onTimeByMonth.map((d) => d.delayed), tone: 'critical' }
@@ -275,13 +280,13 @@ export function AnalyticsPage() {
                     );
                   }
                   const percent = w.utilization * 100;
-                  // Colour only from 90%: amber, then red over capacity; below that, ink gray.
-                  const tone = w.utilization > 1 ? 'critical' : w.utilization >= 0.9 ? 'warning' : 'neutral';
+                  // Only the number carries the tone, from 90%: amber, then red over capacity; the bar stays ink gray.
+                  const tone = utilizationTone(w.utilization);
                   return (
                     <li key={w.code} className="meter-list__item">
                       <span className="meter-list__label">{w.name}</span>
                       <span
-                        className={`meter meter--${tone}`}
+                        className="meter meter--neutral"
                         role="meter"
                         aria-valuenow={Math.round(percent * 10) / 10}
                         aria-valuemin={0}
@@ -290,7 +295,7 @@ export function AnalyticsPage() {
                       >
                         <span className="meter__bar" style={{ width: `${Math.min(percent, 100)}%` }} />
                       </span>
-                      <span className="meter-list__value">{formatPercent(w.utilization)}</span>
+                      <span className={tone === 'neutral' ? 'meter-list__value' : `meter-list__value meter-list__value--${tone}`}>{formatPercent(w.utilization)}</span>
                     </li>
                   );
                 })}

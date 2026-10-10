@@ -61,10 +61,10 @@ describe('displayMoneyTable', () => {
 
 describe('the money strings the tests changed are the same cents, rounded', () => {
   // [where, cents, the string before (shared/format.ts), the string now, how it is shown now]
-  const CHANGED: Array<[string, number, string, string, 'summary' | 'amount']> = [
+  const CHANGED: Array<[string, number, string, string, 'summary' | 'amount' | 'price']> = [
     ['v16 Dashboard: total inventory value', 3_264_337_148, '$32.64M', '$32.6M', 'summary'],
     ['v16 Dashboard: the WH-DFW rack', 795_923_314, '$7.96M', '$8.0M', 'summary'],
-    ['v16 Dashboard and Analytics: average shipping cost', 128_504, '$1,285.04', '$1,285', 'summary'],
+    ['v16 Dashboard and Analytics: average shipping cost (a price: to the cent)', 128_504, '$1,285.04', '$1,285.04', 'price'],
     ['v16 Inventory: 360 items', 3_264_337_148, '$32,643,371.48', '$32.6M', 'summary'],
     ['v16 Inventory: ELC-0015 value', 140_321_718, '$1,403,217.18', '$1,403,217', 'amount'],
     ['v16 Inventory: 20 items low or out of stock', 44_964_220, '$449,642.20', '$449.6K', 'summary'],
@@ -77,7 +77,7 @@ describe('the money strings the tests changed are the same cents, rounded', () =
   ];
   it.each(CHANGED)('%s: %i cents, %s → %s', (_where, cents, before, now, shown) => {
     expect([formatCents(cents), formatCentsCompact(cents)], 'the string before is these cents').toContain(before);
-    expect(shown === 'amount' ? displayMoneyTable(cents, 'amount') : displayMoneySummary(cents)).toBe(now);
+    expect(shown === 'summary' ? displayMoneySummary(cents) : displayMoneyTable(cents, shown)).toBe(now);
     const { dollars, slack } = read(now);
     expect(Math.abs(dollars * 100 - cents), 'within the rounding of the new string').toBeLessThanOrEqual(slack * 100 + 1e-6);
   });

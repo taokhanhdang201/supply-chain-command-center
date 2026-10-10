@@ -80,9 +80,10 @@ export function StackedBarChart({ categories, axisLabels, series, valueFormat, t
     });
   });
 
-  // Category centers are `bandWidth` apart, so that is the spacing labels budget against (see LineChart.tsx).
+  // Category centers are `bandWidth` apart, so that is the spacing labels budget against (see LineChart.tsx). Each label is
+  // centred under its bar: the first and last bars have half a band and the margin beside them ("Oct*" keeps its marker).
   const axisTexts = categories.map((c, i) => axisLabels?.[i] ?? c);
-  const categoryLabels = planCategoryLabels(axisTexts, bandWidth, AXIS_FONT_SIZE);
+  const categoryLabels = planCategoryLabels(axisTexts, bandWidth, AXIS_FONT_SIZE, true);
 
   const hoveredSegment = segments.find((s) => s.key === hovered) ?? null;
 
@@ -123,7 +124,6 @@ export function StackedBarChart({ categories, axisLabels, series, valueFormat, t
           ))}
         </g>
         {categories.map((category, i) => {
-          const textAnchor = i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle';
           const labelX = MARGIN.left + i * bandWidth + bandWidth / 2;
           const shown = categoryLabels[i];
           if (shown === null || shown === undefined) return null;
@@ -131,7 +131,7 @@ export function StackedBarChart({ categories, axisLabels, series, valueFormat, t
             // `<title>` is a sibling, not a child, of `<text>` here -- see LineChart.tsx for why.
             <g key={category}>
               {shown.text !== category && <title>{category}</title>}
-              <text x={labelX} y={MARGIN.top + PLOT_HEIGHT + 20} textAnchor={textAnchor} fontSize={AXIS_FONT_SIZE}>
+              <text x={labelX} y={MARGIN.top + PLOT_HEIGHT + 20} textAnchor="middle" fontSize={AXIS_FONT_SIZE}>
                 {shown.text}
               </text>
             </g>

@@ -38,10 +38,15 @@ describe('numerals', () => {
     ['atlas.css', '.atlas-page .rack__value'],
     ['atlas.css', '.atlas-page .kind-row__count'],
     ['atlas.css', '.atlas-page .queue-row__damage'],
-    ['atlas.css', '.atlas-page .activity__cost'],
-    ['atlas.css', '.atlas-page .activity__date']
+    ['atlas.css', '.atlas-page .activity__cost']
   ])('%s %s keeps tabular figures', (file, selector) => {
     expect(bodyOf(file, selector)).toMatch(/font-variant-numeric:\s*tabular-nums/);
+  });
+
+  it('reads a date as text: the Dashboard activity date has proportional figures, as the dates of every table', () => {
+    const body = bodyOf('atlas.css', '.atlas-page .activity__date');
+    expect(body).toMatch(/font-variant-numeric:\s*lining-nums/);
+    expect(body).not.toMatch(/tabular-nums/);
   });
 
   it('reads an ID as text: the Dashboard activity ID has proportional figures', () => {

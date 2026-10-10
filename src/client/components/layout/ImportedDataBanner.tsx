@@ -54,17 +54,16 @@ export function ImportedDataBanner({ dataSources, onRestored }: ImportedDataBann
     </Button>
   );
 
+  // One banner, the same region before and after a failed restore: only its tone changes, and the error is said in a live
+  // region that is there from the first render (one added together with its words may not be read).
   return (
     <div className="data-banner surface-stage">
-      {error === null ? (
-        <Banner tone="info" title="Someone imported a file." titleId={TITLE_ID} action={action}>
-          These figures come from that file, not the sample. Restoring resets it for everyone.
-        </Banner>
-      ) : (
-        <Banner tone="warning" title="Could not restore sample data" action={action}>
-          {error}
-        </Banner>
-      )}
+      <Banner tone={error === null ? 'info' : 'warning'} title="Someone imported a file." titleId={TITLE_ID} action={action}>
+        <p>These figures come from that file, not the sample. Restoring resets it for everyone.</p>
+        <p className="data-banner__error" aria-live="assertive">
+          {error === null ? '' : `Could not restore sample data. ${error}`}
+        </p>
+      </Banner>
     </div>
   );
 }

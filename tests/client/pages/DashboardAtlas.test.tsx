@@ -97,9 +97,9 @@ describe('Dashboard (Atlas): derived views trace back to existing data', () => {
     await renderWithData(<DashboardPage />, { snapshot: scenario() });
     // DFW → HOU: 6 non-cancelled shipments, 2 delayed (1 late + 1 overdue) = 33%, the same figure the Routes page shows.
     const atlas = screen.getByRole('group', { name: /^Network atlas\./ });
-    expect(atlas).toHaveAccessibleName(/Most delayed lane, Dallas-Fort Worth DC → Houston, TX: 2 of 6 shipments delayed \(33%\)\./);
+    expect(atlas).toHaveAccessibleName(/Most delayed lane, Dallas-Fort Worth DC → Houston, TX: 2 of 6 shipments delayed \(33\.3%\)\./);
     expect(screen.queryByText('Most delayed lane')).toBeNull();
-    expect(screen.queryByText('2 of 6 shipments delayed (33%)')).toBeNull();
+    expect(screen.queryByText('2 of 6 shipments delayed (33.3%)')).toBeNull();
     expect(document.querySelector('.situation__callout')).toBeNull();
   });
 

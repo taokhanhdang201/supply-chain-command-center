@@ -133,23 +133,22 @@ describe('atlas.css', () => {
     expect(outside).not.toMatch(/animation:/);
   });
 
-  it('colours the hero gauge remainder by tone: amber for warning, red only for critical, grey otherwise', () => {
-    const gauge = (tone: string) => rules().filter((r) => r.selector === `.atlas-page .hero__gauge--${tone}`);
-    const warning = gauge('warning');
-    const critical = gauge('critical');
-    expect(warning).toHaveLength(1);
-    expect(critical).toHaveLength(1);
-    expect(warning[0]!.body).toMatch(/var\(--warning\)/);
-    expect(warning[0]!.body).not.toMatch(/--signal|--critical/);
-    expect(critical[0]!.body).toMatch(/var\(--signal\)|var\(--critical\)/);
-    // the base gauge (good and neutral) uses no semantic colour at all (its other rule only animates it)
+  // Below its target only the number turns amber (red under the floor); the gauge keeps one look at every tone: the share in
+  // ink on a neutral track, and the amber target tick.
+  it('keeps the hero gauge neutral at every tone, with an amber target tick, and colours the number instead', () => {
+    expect(rules().filter((r) => /hero__gauge--/.test(r.selector))).toHaveLength(0);
     const base = rules().filter((r) => r.selector === '.atlas-page .hero__gauge' && /background/.test(r.body));
     expect(base).toHaveLength(1);
     expect(base[0]!.body).not.toMatch(/--signal|--critical|--warning/);
-    // and no other rule ever gives a gauge the red
-    for (const r of rules().filter((x) => /hero__gauge/.test(x.selector) && x.selector !== '.atlas-page .hero__gauge--critical')) {
-      expect(r.body, r.selector).not.toMatch(/--signal|--critical/);
-    }
+    const tick = rules().filter((r) => r.selector === '.atlas-page .hero__gauge::after');
+    expect(tick).toHaveLength(1);
+    expect(tick[0]!.body).toMatch(/left:\s*calc\(var\(--target\) - 1px\)/);
+    expect(tick[0]!.body).toMatch(/width:\s*2px/);
+    expect(tick[0]!.body).toMatch(/height:\s*8px/);
+    expect(tick[0]!.body).toMatch(/background:\s*var\(--warning\)/);
+    for (const r of rules().filter((x) => /hero__gauge/.test(x.selector))) expect(r.body, r.selector).not.toMatch(/--signal|--critical/);
+    expect(rules().find((r) => r.selector === '.atlas-page .hero__value--warning')?.body).toMatch(/color:\s*var\(--warning\)/);
+    expect(rules().find((r) => r.selector === '.atlas-page .hero__value--critical')?.body).toMatch(/color:\s*var\(--signal\)/);
   });
 
   it('late lanes fade in instead of drawing, because they are dashed and the draw is dash-based', () => {

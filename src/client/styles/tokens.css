@@ -87,7 +87,8 @@
   --chart-3: #1b6e44;
   --chart-4: #9a5200;
   --chart-5: #b42318;
-  --chart-6: #4a5360;
+  /* A third neutral tint, lighter than --chart-2, so no color has two names (--chart-1 is --neutral); 3.1:1 on the sheet. */
+  --chart-6: #868e99;
   --route: #5b6b80;
 
   /* Spacing (4px scale) */

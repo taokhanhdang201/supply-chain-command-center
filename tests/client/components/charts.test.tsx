@@ -6,6 +6,8 @@ import { BarChart } from '../../../src/client/components/charts/BarChart';
 import { LineChart } from '../../../src/client/components/charts/LineChart';
 import { DonutChart } from '../../../src/client/components/charts/DonutChart';
 import { ChartFrame } from '../../../src/client/components/charts/ChartFrame';
+import { ShareBar } from '../../../src/client/components/charts/ShareBar';
+import { STATUS_MARK, STATUS_TONE } from '../../../src/client/components/charts/statusTones';
 import { Card } from '../../../src/client/components/ui/Card';
 import { formatNumber } from '../../../src/shared/format';
 
@@ -66,10 +68,10 @@ describe('BarChart', () => {
         <BarChart data={barData} orientation="vertical" valueFormat={formatNumber} ariaLabel="Test" />
       </ChartFrame>
     );
-    const toggle = screen.getByRole('button', { name: 'Show data table' });
+    const toggle = screen.getByRole('button', { name: 'Table' });
     expect(toggle).toHaveAttribute('aria-pressed', 'false');
     await user.click(toggle);
-    expect(screen.getByRole('button', { name: 'Hide data table' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Table' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('columnheader', { name: 'Label' })).toBeInTheDocument();
     expect(screen.getByText('Alpha')).toBeInTheDocument();
     expect(screen.getByText('20')).toBeInTheDocument();
@@ -174,5 +176,125 @@ describe('DonutChart', () => {
     );
     expect(screen.getByText('No data')).toBeInTheDocument();
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
+  });
+});
+
+describe('ChartFrame header', () => {
+  const table = { columns: ['Label', 'Value'], rows: [['Alpha', 10]] };
+
+  it('keeps one fixed word on the toggle and flips only aria-pressed, there and back', async () => {
+    const user = userEvent.setup();
+    render(
+      <ChartFrame title="Inventory value by warehouse" isEmpty={false} table={table}>
+        <div>chart</div>
+      </ChartFrame>
+    );
+    const toggle = screen.getByRole('button', { name: 'Table' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await user.click(toggle);
+    expect(screen.getByRole('button', { name: 'Table' })).toHaveAttribute('aria-pressed', 'true');
+    await user.click(screen.getByRole('button', { name: 'Table' }));
+    expect(screen.getByRole('button', { name: 'Table' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByRole('columnheader', { name: 'Label' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /show data table|hide data table/i })).not.toBeInTheDocument();
+  });
+
+  it('puts the title (an h3) and the toggle in one header, in a card that wears chart-card', () => {
+    const { container } = render(
+      <ChartFrame title="On-time vs delayed by month" isEmpty={false} table={table}>
+        <div>chart</div>
+      </ChartFrame>
+    );
+    const header = container.querySelector('.card__header') as HTMLElement;
+    expect(header).toContainElement(screen.getByRole('heading', { level: 3, name: 'On-time vs delayed by month' }));
+    expect(header).toContainElement(screen.getByRole('button', { name: 'Table' }));
+    expect(container.querySelector('.chart-card')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Table' })).toHaveClass('chart-card__toggle');
+  });
+
+  it('draws no toggle when there is nothing to chart, and says so', () => {
+    render(
+      <ChartFrame title="Empty" isEmpty table={table}>
+        <div>chart</div>
+      </ChartFrame>
+    );
+    expect(screen.queryByRole('button', { name: 'Table' })).not.toBeInTheDocument();
+    expect(screen.getByText('No data for the selected range')).toBeInTheDocument();
+  });
+
+  it('puts a month-to-date note under the chart and leaves it out when the note is null', () => {
+    const withNote = render(
+      <ChartFrame title="Cost" isEmpty={false} table={table} note="Oct* is month to date (Oct 1–7).">
+        <div>chart</div>
+      </ChartFrame>
+    );
+    expect(screen.getByText('Oct* is month to date (Oct 1–7).')).toBeInTheDocument();
+    withNote.unmount();
+    render(
+      <ChartFrame title="Cost" isEmpty={false} table={table} note={null}>
+        <div>chart</div>
+      </ChartFrame>
+    );
+    expect(screen.queryByText(/month to date/)).not.toBeInTheDocument();
+  });
+});
+
+describe('ShareBar', () => {
+  const asText = (n: number) => String(n);
+  const STATUS = [
+    { key: 'pending', label: 'Pending', value: 29, tone: 'neutral', mark: 'hatched' },
+    { key: 'in_transit', label: 'In transit', value: 42, tone: 'neutral', mark: 'solid' },
+    { key: 'delivered', label: 'Delivered', value: 902, tone: 'good', mark: 'solid' },
+    { key: 'cancelled', label: 'Cancelled', value: 27, tone: 'neutral', mark: 'hollow' }
+  ] as const;
+
+  it('reads each share to one decimal in the legend and in the accessible summary', () => {
+    const { container } = render(<ShareBar data={STATUS} valueFormat={asText} ariaLabel="Shipments by status" />);
+    expect([...container.querySelectorAll('.share-bar__share')].map((s) => s.textContent)).toEqual(['2.9%', '4.2%', '90.2%', '2.7%']);
+    const label = screen.getByRole('img').getAttribute('aria-label') ?? '';
+    expect(label).toContain('Pending 29 (2.9%)');
+    expect(label).toContain('Delivered 902 (90.2%)');
+  });
+
+  it('draws a hatched, a solid and a hollow part, each part and swatch in the form of its mark', () => {
+    const { container } = render(<ShareBar data={STATUS} valueFormat={asText} ariaLabel="Shipments by status" />);
+    const segments = [...container.querySelectorAll('.share-bar__track .share-bar__segment')];
+    expect(segments).toHaveLength(4);
+    expect(segments[0]).toHaveClass('share-bar__segment--hatched');
+    expect(segments[1]).not.toHaveClass('share-bar__segment--hatched', 'share-bar__segment--hollow');
+    expect(segments[3]).toHaveClass('share-bar__segment--hollow');
+    const swatches = [...container.querySelectorAll('.share-bar__swatch')];
+    expect(swatches[0]).toHaveClass('share-bar__segment--hatched');
+    expect(swatches[3]).toHaveClass('share-bar__segment--hollow');
+  });
+
+  it('shows 0.0% for every part of an empty status bar and draws no segment', () => {
+    const empty = STATUS.map((d) => ({ ...d, value: 0 }));
+    const { container } = render(<ShareBar data={empty} valueFormat={asText} ariaLabel="Shipments by status" />);
+    expect([...container.querySelectorAll('.share-bar__share')].map((s) => s.textContent)).toEqual(['0.0%', '0.0%', '0.0%', '0.0%']);
+    expect(container.querySelectorAll('.share-bar__segment')).toHaveLength(0);
+    expect(screen.getByRole('img').getAttribute('aria-label')).not.toMatch(/NaN|Infinity/);
+  });
+
+  it('hides a part of 0 from the bar but keeps it in the legend', () => {
+    const data = STATUS.map((d) => (d.key === 'cancelled' ? { ...d, value: 0 } : d));
+    const { container } = render(<ShareBar data={data} valueFormat={asText} ariaLabel="Shipments by status" />);
+    expect(container.querySelectorAll('.share-bar__track .share-bar__segment')).toHaveLength(3);
+    const items = [...container.querySelectorAll('.share-bar__item')].map((li) => li.textContent);
+    expect(items).toHaveLength(4);
+    expect(items[3]).toBe('Cancelled00.0%');
+  });
+});
+
+describe('STATUS_MARK', () => {
+  it('draws pending hatched, cancelled hollow, and in transit and delivered solid', () => {
+    expect(STATUS_MARK).toEqual({ pending: 'hatched', in_transit: 'solid', delivered: 'solid', cancelled: 'hollow' });
+  });
+
+  it('gives the three neutral statuses three different forms, and delivered the good tone', () => {
+    const neutral = (Object.keys(STATUS_TONE) as Array<keyof typeof STATUS_TONE>).filter((s) => STATUS_TONE[s] === 'neutral');
+    expect(neutral.sort()).toEqual(['cancelled', 'in_transit', 'pending']);
+    expect(new Set(neutral.map((s) => STATUS_MARK[s])).size).toBe(3);
+    expect(STATUS_TONE.delivered).toBe('good');
   });
 });

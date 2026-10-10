@@ -34,6 +34,15 @@ export interface DataTableProps<T> {
    * column headers and cells then carry explicit ARIA roles, because CSS grid/block display can drop the native
    * table semantics in some browsers. Each cell also gets a `data-table__col--{key}` class for page layouts. */
   stackOnPhone?: boolean;
+  /** `static`: a table to read, not to work in (the Dashboard's recent activity): no sort buttons, even on a sortable
+   * column, and no row hover. */
+  variant?: 'default' | 'static';
+  /** `compact`: 32px rows with 4px / 8px cells. */
+  density?: 'regular' | 'compact';
+  /** The shared stacked rows (DESIGN.md "Stacked rows"): under 768px each row is a record, its first cell on its own line
+   * and every other cell a label beside its value; from 768px it is the table. Explicit ARIA roles, as with `stackOnPhone`;
+   * an empty cell reads a dash, and "No value" to a screen reader. */
+  stackedRows?: boolean;
 }
 
 function ariaSortFor(column: string, sort: SortState | undefined): 'ascending' | 'descending' | 'none' {
@@ -41,10 +50,48 @@ function ariaSortFor(column: string, sort: SortState | undefined): 'ascending' |
   return sort.direction === 'asc' ? 'ascending' : 'descending';
 }
 
+function isEmptyCell(value: ReactNode): boolean {
+  return value === null || value === undefined || value === false || value === '';
+}
+
+/** Nothing to show: a dash for the eye, "No value" for a screen reader (an aria-label on a plain span is not read). */
+const NO_VALUE = (
+  <>
+    <span className="data-table__no-value" aria-hidden="true">
+      —
+    </span>
+    <span className="visually-hidden">No value</span>
+  </>
+);
+
 /** A sortable, accessible data table over server-derived rows. */
-export function DataTable<T>({ caption, columns, rows, rowKey, sort, onSortChange, emptyState, rowClassName, stackOnPhone = false }: DataTableProps<T>) {
-  // Explicit roles only for the stacking variant; the plain table keeps its native semantics untouched.
-  const role = (r: 'table' | 'rowgroup' | 'row' | 'columnheader' | 'cell') => (stackOnPhone ? r : undefined);
+export function DataTable<T>({
+  caption,
+  columns,
+  rows,
+  rowKey,
+  sort,
+  onSortChange,
+  emptyState,
+  rowClassName,
+  stackOnPhone = false,
+  variant = 'default',
+  density = 'regular',
+  stackedRows = false
+}: DataTableProps<T>) {
+  // Explicit roles only for the stacking variants; the plain table keeps its native semantics untouched.
+  const explicit = stackOnPhone || stackedRows;
+  const role = (r: 'table' | 'rowgroup' | 'row' | 'columnheader' | 'cell') => (explicit ? r : undefined);
+  const isStatic = variant === 'static';
+  const tableClass = [
+    'data-table',
+    stackOnPhone ? 'data-table--stack' : '',
+    stackedRows ? 'data-table--stacked' : '',
+    isStatic ? 'data-table--static' : '',
+    density === 'compact' ? 'data-table--compact' : ''
+  ]
+    .filter(Boolean)
+    .join(' ');
   function handleSortClick(column: Column<T>): void {
     if (!onSortChange) return;
     if (sort && sort.key === column.key) {
@@ -57,7 +104,7 @@ export function DataTable<T>({ caption, columns, rows, rowKey, sort, onSortChang
 
   return (
     <div className="table-scroll">
-      <table className={stackOnPhone ? 'data-table data-table--stack' : 'data-table'} role={role('table')}>
+      <table className={tableClass} role={role('table')}>
         <caption className="visually-hidden">{caption}</caption>
         <thead role={role('rowgroup')}>
           <tr role={role('row')}>
@@ -66,7 +113,7 @@ export function DataTable<T>({ caption, columns, rows, rowKey, sort, onSortChang
               const wrapClass = column.wrap ? 'data-table__cell--wrap' : '';
               const colClass = stackOnPhone ? `data-table__col--${column.key}` : '';
               const className = [alignClass, wrapClass, colClass].filter(Boolean).join(' ') || undefined;
-              if (!column.sortable) {
+              if (!column.sortable || isStatic) {
                 return (
                   <th key={column.key} className={className} scope="col" role={role('columnheader')}>
                     {column.header}
@@ -82,7 +129,7 @@ export function DataTable<T>({ caption, columns, rows, rowKey, sort, onSortChang
                   </button>
                   {/* Where a stacking table hides its header row, the button leaves the Tab order (components.css, pages.css) and
                       this plain copy names the column. */}
-                  {stackOnPhone && <span className="data-table__sort-label">{column.header}</span>}
+                  {explicit && <span className="data-table__sort-label">{column.header}</span>}
                 </th>
               );
             })}
@@ -104,14 +151,17 @@ export function DataTable<T>({ caption, columns, rows, rowKey, sort, onSortChang
                   const strongClass = column.emphasis ? 'data-table__cell--strong' : '';
                   const colClass = stackOnPhone ? `data-table__col--${column.key}` : '';
                   const className = [alignClass, wrapClass, strongClass, colClass].filter(Boolean).join(' ') || undefined;
+                  const value = column.render(row);
                   return (
-                    <td key={column.key} className={className} role={role('cell')}>
+                    <td key={column.key} className={className} role={role('cell')} data-label={stackedRows ? column.header : undefined}>
                       {stackOnPhone && column.phoneLabel !== undefined && (
                         <span className="data-table__phone-label" aria-hidden="true">
                           {column.phoneLabel}
                         </span>
                       )}
-                      {column.render(row)}
+                      {/* A stacked record shows its label (data-label, the column header) from CSS, under 768px only: it is not
+                          in the cell's text, and the column header still names the cell. */}
+                      {stackedRows ? <span className="data-table__stack-value">{isEmptyCell(value) ? NO_VALUE : value}</span> : value}
                     </td>
                   );
                 })}

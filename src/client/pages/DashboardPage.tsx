@@ -14,16 +14,7 @@ import { useMemo, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { DateRange, RouteSummary } from '../../shared/domain/analytics';
 import { filterShipmentsByRange, recentActivity, shippingCostByMonth, onTimeVsDelayedByMonth, summarizeRoutes } from '../../shared/domain/analytics';
-import {
-  formatDay,
-  formatDays,
-  formatMonth,
-  formatMonthWithMtd,
-  formatPercent,
-  monthAxisLabels,
-  monthAxisNote,
-  statusLabel
-} from '../../shared/format';
+import { formatDay, formatDays, formatPercent, monthAxisLabels, statusLabel } from '../../shared/format';
 import type { ShipmentStatus } from '../../shared/types';
 import { useSnapshot } from '../state/DataContext';
 import { buildHash } from '../router';
@@ -32,12 +23,13 @@ import { AtlasCaption, AtlasScene } from '../components/atlas/AtlasScene';
 import { buildTransitDots, laneTone } from '../components/atlas/atlasGeometry';
 import { CostChart, FlowFigure, ReliabilityChart } from '../components/atlas/FlowCharts';
 import { WarehouseRacks } from '../components/atlas/WarehouseRacks';
-import { STATUS_TONE } from '../components/charts/statusTones';
+import { STATUS_MARK, STATUS_TONE } from '../components/charts/statusTones';
 import { RouteLabel } from '../components/ui/RouteLabel';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
-import { notMeasurableNote, ON_TIME_FLOOR, ON_TIME_TARGET, onTimeTone, type TargetTone } from '../lib/targets';
+import { notMeasurableNote, ON_TIME_FLOOR, ON_TIME_TARGET, onTimeTone, targetFigureTone, type TargetTone } from '../lib/targets';
 import { buildQueue, KIND_NOTES, kindCounts } from '../lib/attention';
 import { displayMoneySummary, displayMoneyTable } from '../lib/displayMoney';
+import { monthTableLabel, monthTooltipLabel, partialMonthNote } from '../lib/monthLabels';
 
 const RANGE_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'All' },
@@ -64,11 +56,27 @@ function mostDelayedLane(routes: readonly RouteSummary[]): RouteSummary | null {
 
 const capitalise = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** An 8px severity marker: filled circle = critical, triangle = warning, hollow circle = info. The word is visually hidden text. */
+/** The one mark (DESIGN.md "Marks"): an 8px square with a 1px radius, in the severity's tone. The word is visually hidden
+ *  text: the colour alone does not tell the levels apart. */
 function SeverityGlyph({ severity }: { severity: string }) {
   return (
     <svg className={`alert-glyph alert-glyph--${severity}`} viewBox="0 0 8 8" aria-hidden="true" focusable="false">
-      {severity === 'warning' ? <polygon points="4,0 8,8 0,8" /> : <circle cx="4" cy="4" r={severity === 'info' ? 3.25 : 4} />}
+      <rect width="8" height="8" rx="1" />
+    </svg>
+  );
+}
+
+/** The stripes of a hatched mark, defined once for the status marks below and drawn in the pending tone. */
+const HATCH_ID = 'status-mark-hatch';
+
+function MarkDefs() {
+  return (
+    <svg className="mark-defs" width="0" height="0" aria-hidden="true" focusable="false" style={{ color: `var(--${STATUS_TONE.pending})` }}>
+      <defs>
+        <pattern id={HATCH_ID} width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="2" height="4" fill="currentColor" />
+        </pattern>
+      </defs>
     </svg>
   );
 }
@@ -85,12 +93,13 @@ function Separator({ className }: { className: string }) {
   );
 }
 
-/** An 8px status marker in a fixed slot, so the status words align: filled circle, hollow circle or a dash, in the status's
- *  tone (statusTones.ts, as the Shipments badge and the Analytics status bar). The word is the text. */
+/** An 8px status mark in a fixed slot, so the status words align: the one square, solid, hatched or hollow by the status's
+ *  form, in its tone (statusTones.ts, as the Shipments badge and the Analytics status bar). The word is the text. */
 function StatusMark({ status }: { status: ShipmentStatus }) {
+  const mark = STATUS_MARK[status];
   return (
-    <svg className={`status-mark status-mark--${status}`} style={{ color: `var(--${STATUS_TONE[status]})` }} viewBox="0 0 8 8" aria-hidden="true" focusable="false">
-      {status === 'cancelled' ? <rect x="0" y="3.25" width="8" height="1.5" /> : <circle cx="4" cy="4" r={status === 'pending' ? 3.25 : 4} />}
+    <svg className={`status-mark status-mark--${status} status-mark--${mark}`} style={{ color: `var(--${STATUS_TONE[status]})` }} viewBox="0 0 8 8" aria-hidden="true" focusable="false">
+      <rect width="8" height="8" rx="1" fill={mark === 'hatched' ? `url(#${HATCH_ID})` : undefined} />
     </svg>
   );
 }
@@ -165,10 +174,12 @@ export function DashboardPage() {
     count: snapshot.shipments.filter((s) => s.status === status).length
   }));
 
-  const costByMonth = shippingCostByMonth(rangedShipments, snapshot.today);
-  const costMonthLabels = monthAxisLabels(costByMonth.map((d) => d.month), snapshot.today.slice(0, 7));
+  // The month to date reads "Oct*" on both axes, explained under each chart (DESIGN.md "Number formats").
+  const today = snapshot.today;
+  const costByMonth = shippingCostByMonth(rangedShipments, today);
+  const costMonthLabels = monthAxisLabels(costByMonth.map((d) => d.month), today.slice(0, 7));
   const onTimeByMonth = onTimeVsDelayedByMonth(rangedShipments);
-  const onTimeMonthLabels = monthAxisLabels(onTimeByMonth.map((d) => d.month));
+  const onTimeMonthLabels = monthAxisLabels(onTimeByMonth.map((d) => d.month), today.slice(0, 7));
   const rangeLabel = RANGE_OPTIONS.find((o) => o.value === range)?.label;
 
   const activity = recentActivity(snapshot.shipments, snapshot.today, 10);
@@ -182,6 +193,9 @@ export function DashboardPage() {
 
   const rate = kpis.onTimeRate;
   const tone = onTimeTone(rate);
+  // Below its target only the number turns amber (red below the floor); the gauge keeps its colours and marks the target.
+  const valueTone = targetFigureTone(tone);
+  const gaugeStyle = { ['--rate' as string]: `${((rate ?? 0) * 100).toFixed(2)}%`, ['--target' as string]: `${ON_TIME_TARGET * 100}%` } as CSSProperties;
   // "8 not measurable" beside the rate's label, not in the detail line: inside the map (from 1280px) a longer detail line
   // widened or deepened the figure onto Texas or WH-LAX (the figure keeps the box the map leaves it).
   const notMeasurable = notMeasurableNote(snapshot.shipments);
@@ -207,11 +221,11 @@ export function DashboardPage() {
             </p>
             <div className="hero__figure">
               <div className="hero__num">
-                <p className="hero__value">{formatPercent(rate)}</p>
-                {rate !== null && <span className={`hero__gauge hero__gauge--${tone}`} style={{ ['--rate' as string]: `${(rate * 100).toFixed(2)}%` } as CSSProperties} aria-hidden="true" />}
+                <p className={valueTone === 'neutral' ? 'hero__value' : `hero__value hero__value--${valueTone}`}>{formatPercent(rate)}</p>
+                {rate !== null && <span className={`hero__gauge hero__gauge--${tone}`} style={gaugeStyle} aria-hidden="true" />}
               </div>
             </div>
-            {/* The gauge's colour is decoration (aria-hidden); being under target is also said in words. */}
+            {/* The number's colour and the gauge are decoration; being under target is also said in words. */}
             <p className="hero__detail">{`${kpis.onTimeCount} of ${kpis.onTimeCount + kpis.lateCount} delivered on time${tone === 'warning' || tone === 'critical' ? ` · below the ${formatPercent(ON_TIME_TARGET, 0)} target` : ''}`}</p>
           </div>
 
@@ -389,10 +403,11 @@ export function DashboardPage() {
             title="On-time vs delayed by month"
             subtitle="By estimated-delivery month. Delayed means delivered late or still overdue."
             isEmpty={onTimeByMonth.length === 0}
-            table={{ columns: ['Month', 'On time', 'Delayed'], rows: onTimeByMonth.map((d) => [formatMonth(d.month), d.onTime, d.delayed]) }}
+            note={partialMonthNote(onTimeByMonth.map((d) => d.month), today)}
+            table={{ columns: ['Month', 'On time', 'Delayed'], rows: onTimeByMonth.map((d) => [monthTableLabel(d.month, today), d.onTime, d.delayed]) }}
           >
             <ReliabilityChart
-              data={onTimeByMonth.map((d, i) => ({ label: formatMonth(d.month), axisLabel: onTimeMonthLabels[i] as string, onTime: d.onTime, delayed: d.delayed }))}
+              data={onTimeByMonth.map((d, i) => ({ label: monthTooltipLabel(d.month, today), axisLabel: onTimeMonthLabels[i] as string, onTime: d.onTime, delayed: d.delayed }))}
               ariaLabel="On-time vs delayed shipments by month"
               valueFormat={(n) => n.toLocaleString('en-US')}
             />
@@ -404,7 +419,7 @@ export function DashboardPage() {
             <Figure
               label="Total shipping cost"
               value={displayMoneySummary(kpis.totalShippingCostCents)}
-              detail={`Avg ${kpis.averageShippingCostCents === null ? '—' : displayMoneySummary(kpis.averageShippingCostCents)} per shipment`}
+              detail={`Avg ${kpis.averageShippingCostCents === null ? '—' : displayMoneyTable(kpis.averageShippingCostCents, 'price')} per shipment`}
             />
             <Figure label="Average delivery time" value={formatDays(kpis.averageDeliveryDays)} />
           </div>
@@ -414,11 +429,11 @@ export function DashboardPage() {
               title="Shipping cost over time"
               subtitle={`Range: ${rangeLabel}`}
               isEmpty={costByMonth.length === 0}
-              note={monthAxisNote(costByMonth.map((d) => d.month), snapshot.today)}
-              table={{ columns: ['Month', 'Total cost', 'Shipments'], rows: costByMonth.map((d) => [formatMonthWithMtd(d.month, snapshot.today), displayMoneyTable(d.totalCents, 'amount'), d.count]) }}
+              note={partialMonthNote(costByMonth.map((d) => d.month), today)}
+              table={{ columns: ['Month', 'Total cost', 'Shipments'], rows: costByMonth.map((d) => [monthTableLabel(d.month, today), displayMoneyTable(d.totalCents, 'amount'), d.count]) }}
             >
               <CostChart
-                data={costByMonth.map((d, i) => ({ label: formatMonthWithMtd(d.month, snapshot.today), axisLabel: costMonthLabels[i] as string, cents: d.totalCents }))}
+                data={costByMonth.map((d, i) => ({ label: monthTooltipLabel(d.month, today), axisLabel: costMonthLabels[i] as string, cents: d.totalCents }))}
                 ariaLabel="Shipping cost by month"
                 valueFormat={displayMoneySummary}
               />
@@ -450,56 +465,59 @@ export function DashboardPage() {
           {activity.length === 0 ? (
             <p className="movement__empty">No shipment activity yet.</p>
           ) : (
-            <table className="activity" role="table">
-              <caption className="visually-hidden">Recent shipment activity</caption>
-              <thead role="rowgroup">
-                <tr role="row">
-                  <th role="columnheader" scope="col" className="activity__id">
-                    ID
-                  </th>
-                  <th role="columnheader" scope="col" className="activity__route">
-                    Route
-                  </th>
-                  <th role="columnheader" scope="col" className="activity__carrier">
-                    Carrier
-                  </th>
-                  <th role="columnheader" scope="col" className="activity__status">
-                    Status
-                  </th>
-                  <th role="columnheader" scope="col" className="activity__date">
-                    Activity date
-                  </th>
-                  <th role="columnheader" scope="col" className="activity__cost">
-                    Cost
-                  </th>
-                </tr>
-              </thead>
-              <tbody role="rowgroup">
-                {activity.map((s) => (
-                  <tr role="row" key={s.shipmentId}>
-                    <td role="cell" className="activity__id">
-                      {s.shipmentId}
-                    </td>
-                    <td role="cell" className="activity__route">
-                      <RouteLabel label={s.routeLabel} />
-                    </td>
-                    <td role="cell" className="activity__carrier">
-                      {s.carrier}
-                    </td>
-                    <td role="cell" className={`activity__status activity__status--${s.status}`}>
-                      <StatusMark status={s.status} />
-                      {statusLabel(s.status)}
-                    </td>
-                    <td role="cell" className="activity__date">
-                      {formatDay(s.actualDelivery ?? s.shipDate)}
-                    </td>
-                    <td role="cell" className="activity__cost">
-                      {displayMoneyTable(s.shippingCostCents, 'price')}
-                    </td>
+            <>
+              <MarkDefs />
+              <table className="activity" role="table">
+                <caption className="visually-hidden">Recent shipment activity</caption>
+                <thead role="rowgroup">
+                  <tr role="row">
+                    <th role="columnheader" scope="col" className="activity__id">
+                      ID
+                    </th>
+                    <th role="columnheader" scope="col" className="activity__route">
+                      Route
+                    </th>
+                    <th role="columnheader" scope="col" className="activity__carrier">
+                      Carrier
+                    </th>
+                    <th role="columnheader" scope="col" className="activity__status">
+                      Status
+                    </th>
+                    <th role="columnheader" scope="col" className="activity__date">
+                      Activity date
+                    </th>
+                    <th role="columnheader" scope="col" className="activity__cost">
+                      Cost
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody role="rowgroup">
+                  {activity.map((s) => (
+                    <tr role="row" key={s.shipmentId}>
+                      <td role="cell" className="activity__id">
+                        {s.shipmentId}
+                      </td>
+                      <td role="cell" className="activity__route">
+                        <RouteLabel label={s.routeLabel} />
+                      </td>
+                      <td role="cell" className="activity__carrier">
+                        {s.carrier}
+                      </td>
+                      <td role="cell" className={`activity__status activity__status--${s.status}`}>
+                        <StatusMark status={s.status} />
+                        {statusLabel(s.status)}
+                      </td>
+                      <td role="cell" className="activity__date">
+                        {formatDay(s.actualDelivery ?? s.shipDate)}
+                      </td>
+                      <td role="cell" className="activity__cost">
+                        {displayMoneyTable(s.shippingCostCents, 'price')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
         </div>
       </Chapter>

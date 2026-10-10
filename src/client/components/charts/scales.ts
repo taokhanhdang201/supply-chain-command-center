@@ -34,10 +34,15 @@ export function niceTicks(max: number, count = 5): number[] {
   return ticks;
 }
 
+/** Characters a label takes, for the width estimate: the month-to-date "*" ("Oct*") is a narrow glyph and counts as half. */
+function charUnits(text: string): number {
+  return text.length - (text.match(/\*/g)?.length ?? 0) / 2;
+}
+
 /** Estimated rendered width of `text` at `fontSize`, using the same `0.6 * fontSize` per-character heuristic as
  * `truncateAxisLabel`, so every estimate in the charts agrees. */
 export function labelWidth(text: string, fontSize: number): number {
-  return text.length * fontSize * 0.6;
+  return charUnits(text) * fontSize * 0.6;
 }
 
 /** How many ticks apart the *labelled* ticks must be so that labels never touch: every `stride`-th tick gets a
@@ -59,17 +64,20 @@ export function widestLabel(labels: readonly string[], fontSize: number): number
 /** Plans the labels of an evenly spaced category axis (`spacing` px between category centers): every label whole
  * when they fit; otherwise truncated, but never below a readable ~5 characters -- past that, every 2nd/3rd/... label
  * is shown instead (`null` for hidden ones, whose full text stays in tooltips and the data table). Two different
- * labels never show the same text. First/last labels are anchored inward, so they get budgets accordingly. */
+ * labels never show the same text. First/last labels are anchored inward, so they get budgets accordingly; with `centered`
+ * (labels centred under bars, which have half a band of room at each end) every label gets an interior budget. */
 export function planCategoryLabels(
   labels: readonly string[],
   spacing: number,
-  fontSize: number
+  fontSize: number,
+  centered = false
 ): Array<{ text: string; truncated: boolean } | null> {
   const readable = Math.min(widestLabel(labels, fontSize), 5 * 0.6 * fontSize);
   const stride = tickStride(spacing, readable, 6);
   const shownIdx = labels.map((_, i) => i).filter((i) => i % stride === 0);
   const shown = shownIdx.map((i) => labels[i] as string);
-  const planned = uniqueAxisLabels(shown, categoryLabelBudgets(shown, spacing * stride, fontSize), fontSize);
+  const budgets = centered ? shown.map(() => Math.max(0, spacing * stride - 6)) : categoryLabelBudgets(shown, spacing * stride, fontSize);
+  const planned = uniqueAxisLabels(shown, budgets, fontSize);
   const result: Array<{ text: string; truncated: boolean } | null> = labels.map(() => null);
   shownIdx.forEach((labelIndex, k) => {
     const p = planned[k] as { text: string; truncated: boolean };
@@ -154,7 +162,8 @@ export function categoryLabelBudgets(labels: readonly string[], spacing: number,
  * `truncateLabel`, so estimates stay consistent across every chart. The full text is never lost -- callers pass
  * it through a `<title>` tooltip when truncated is `true`. */
 export function truncateAxisLabel(label: string, maxWidth: number, fontSize: number): { text: string; truncated: boolean } {
-  const maxChars = Math.max(3, Math.floor(maxWidth / (fontSize * 0.6)));
-  if (label.length <= maxChars) return { text: label, truncated: false };
+  const room = maxWidth / (fontSize * 0.6);
+  const maxChars = Math.max(3, Math.floor(room));
+  if (charUnits(label) <= room || label.length <= maxChars) return { text: label, truncated: false };
   return { text: `${label.slice(0, maxChars - 1)}…`, truncated: true };
 }

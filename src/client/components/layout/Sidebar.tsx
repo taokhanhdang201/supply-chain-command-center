@@ -1,6 +1,8 @@
 // Main navigation (plan §8.1). Fixed at >=1024px; an off-canvas drawer below that, toggled by `Topbar`'s menu
 // button, with its own Close navigation button (the menu button is under the drawer, in the inert shell). The active link
-// carries `aria-current="page"`. Its foot credits the author, the same in the sidebar and the drawer.
+// carries `aria-current="page"`. Its foot credits the author, the same in the sidebar and the drawer; it sits outside the Main
+// navigation landmark (its two links leave SCC), as the page's content information. The id "sidebar" (the menu button's
+// aria-controls) is on the outer box, which holds the brand, the navigation and the foot.
 
 import type { RouteId } from '../../router';
 import { buildHash } from '../../router';
@@ -48,7 +50,7 @@ const CREDIT_LINKS: ReadonlyArray<{ label: string; href: string; name: string }>
 /** The app's main navigation sidebar / off-canvas drawer. */
 export function Sidebar({ activeRouteId, alertCount, open, onNavigate, onClose }: SidebarProps) {
   return (
-    <nav aria-label="Main" id="sidebar" className={open ? 'sidebar surface-stage is-open' : 'sidebar surface-stage'}>
+    <div id="sidebar" className={open ? 'sidebar surface-stage is-open' : 'sidebar surface-stage'}>
       <div className="sidebar__brand">
         <span className="sidebar__brand-mark" aria-hidden="true" />
         <span className="sidebar__brand-name">SCC</span> <span className="sidebar__brand-sub">Command Center</span>
@@ -58,42 +60,44 @@ export function Sidebar({ activeRouteId, alertCount, open, onNavigate, onClose }
           <span className="visually-hidden">Close navigation</span>
         </button>
       </div>
-      <ul className="sidebar__nav">
-        {NAV_GROUPS.map((group) => (
-          <li key={group.id} className="sidebar__group">
-            {group.label !== null && (
-              <span className="sidebar__group-label" id={`nav-group-${group.id}`}>
-                {group.label}
-              </span>
-            )}
-            <ul aria-labelledby={group.label !== null ? `nav-group-${group.id}` : undefined}>
-              {group.items.map((item) => {
-                const isActive = item.id === activeRouteId;
-                const isAlerts = item.id === 'alerts';
-                return (
-                  <li key={item.id}>
-                    <a
-                      href={buildHash(item.id)}
-                      className="sidebar__link"
-                      aria-current={isActive ? 'page' : undefined}
-                      onClick={() => onNavigate(item.id)}
-                    >
-                      <Icon name={item.icon} size={16} />
-                      <span>{item.label}</span>
-                      {isAlerts && alertCount !== null && alertCount > 0 && (
-                        <span className="sidebar__badge" aria-label={`Alerts, ${alertCount} need attention`}>
-                          {alertCount}
-                        </span>
-                      )}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </li>
-        ))}
-      </ul>
-      <div className="sidebar__footer">
+      <nav aria-label="Main">
+        <ul className="sidebar__nav">
+          {NAV_GROUPS.map((group) => (
+            <li key={group.id} className="sidebar__group">
+              {group.label !== null && (
+                <span className="sidebar__group-label" id={`nav-group-${group.id}`}>
+                  {group.label}
+                </span>
+              )}
+              <ul aria-labelledby={group.label !== null ? `nav-group-${group.id}` : undefined}>
+                {group.items.map((item) => {
+                  const isActive = item.id === activeRouteId;
+                  const isAlerts = item.id === 'alerts';
+                  return (
+                    <li key={item.id}>
+                      <a
+                        href={buildHash(item.id)}
+                        className="sidebar__link"
+                        aria-current={isActive ? 'page' : undefined}
+                        onClick={() => onNavigate(item.id)}
+                      >
+                        <Icon name={item.icon} size={16} />
+                        <span>{item.label}</span>
+                        {isAlerts && alertCount !== null && alertCount > 0 && (
+                          <span className="sidebar__badge" aria-label={`Alerts, ${alertCount} need attention`}>
+                            {alertCount}
+                          </span>
+                        )}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <footer className="sidebar__footer">
         <p className="sidebar__credit">Built by Đăng Tạo</p>
         <p className="sidebar__credit-links">
           {CREDIT_LINKS.map((link) => (
@@ -103,7 +107,7 @@ export function Sidebar({ activeRouteId, alertCount, open, onNavigate, onClose }
             </a>
           ))}
         </p>
-      </div>
-    </nav>
+      </footer>
+    </div>
   );
 }

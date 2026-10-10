@@ -96,8 +96,8 @@ describe('AnalyticsPage: range in the URL, charts in system colours', () => {
     const inTransit = makeShipmentRecord({ status: 'in_transit', shipDate: '2026-06-10', estimatedDelivery: '2026-06-20', actualDelivery: null });
     const { container } = await renderWithData(<AnalyticsPage />, { snapshot: makeSnapshot([], [...shipments(9, 0), inTransit], { today: TODAY }) });
     const bar = screen.getByRole('img', { name: /^Shipments by status:/ });
-    expect(bar.getAttribute('aria-label')).toContain('Delivered 9 (90%)');
-    expect(bar.getAttribute('aria-label')).toContain('In transit 1 (10%)');
+    expect(bar.getAttribute('aria-label')).toContain('Delivered 9 (90.0%)');
+    expect(bar.getAttribute('aria-label')).toContain('In transit 1 (10.0%)');
     // The status bar reads the shared status tones (statusTones.ts): delivered good, in transit neutral.
     expect((container.querySelector('.share-bar__track .share-bar__segment--good') as HTMLElement).style.background).toBe('var(--good)');
     expect((container.querySelector('.share-bar__track .share-bar__segment--neutral') as HTMLElement).style.background).toBe('var(--neutral)');

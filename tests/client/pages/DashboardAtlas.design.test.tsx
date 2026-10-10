@@ -49,8 +49,9 @@ describe('Dashboard V2: the hero and its gauge', () => {
     expect(gauge).toHaveAttribute('aria-hidden', 'true');
     expect(gauge.textContent).toBe('');
     expect(gauge.style.getPropertyValue('--rate')).toBe('75.00%');
-    // The value itself is plain ink: the tone lives only on the gauge's remainder.
-    expect(screen.getByText('75.0%').className).toBe('hero__value');
+    expect(gauge.style.getPropertyValue('--target')).toBe('90%');
+    // Below its target only the number carries the tone (75% is under the floor: red); the gauge keeps its colours.
+    expect(screen.getByText('75.0%').className).toBe('hero__value hero__value--critical');
     expect(screen.getByText('On-time delivery rate')).toHaveClass('hero__label');
     // 75% is below the floor (critical): the colour is decoration, so being under target is also said in words.
     expect(screen.getByText('3 of 4 delivered on time · below the 90% target')).toHaveClass('hero__detail');
@@ -60,7 +61,7 @@ describe('Dashboard V2: the hero and its gauge', () => {
     [10, 0, 'good'],
     [8, 1, 'warning'],
     [3, 1, 'critical']
-  ])('%i on time and %i late colours the remainder with the existing tone (%s)', async (onTime, late, tone) => {
+  ])('%i on time and %i late marks the gauge with the existing tone (%s)', async (onTime, late, tone) => {
     await renderWithData(<DashboardPage />, { snapshot: withRate(onTime, late) });
     expect(document.querySelector('.hero__gauge')).toHaveClass(`hero__gauge--${tone}`);
   });

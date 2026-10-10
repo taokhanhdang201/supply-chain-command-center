@@ -9,25 +9,37 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { DesignPage } from '../../../src/client/pages/DesignPage';
 
+// Foundations, then components, then patterns; each newer block sits in its group.
 const BLOCKS = [
   'Type',
   'Type roles',
+  'Number formats',
   'Color',
+  'Target tone',
+  'Marks',
   'Spacing',
   'Grid',
   'Buttons',
   'States',
   'Fields',
+  'Filter bar',
   'Links',
   'Table',
+  'Table variants',
+  'Stacked rows',
   'Pagination',
   'Section header',
   'Empty state',
   'Loading and error',
   'Figures',
   'Badges',
+  'Badge title',
   'Shipment status',
+  'Chart card',
+  'Explanation line and terms',
+  'Display names',
   'Page band',
+  'Frame',
   'Chip'
 ];
 const block = (name: string) => screen.getByRole('region', { name });
@@ -202,28 +214,31 @@ describe('DesignPage', () => {
     expect(states.querySelectorAll('select:disabled')).toHaveLength(1);
   });
 
-  it('buttons: five variants at two sizes, each default, disabled and busy', () => {
+  // Unavailable is shown once, in States; Buttons keeps each variant at rest and busy.
+  it('buttons: five variants at two sizes, each at rest and busy', () => {
     render(<DesignPage />);
     const buttons = within(block('Buttons')).getAllByRole('button') as HTMLButtonElement[];
-    expect(buttons).toHaveLength(30);
-    for (const v of ['primary', 'ghost', 'danger', 'link']) expect(buttons.filter((b) => b.classList.contains(`button--${v}`)), v).toHaveLength(6);
-    expect(buttons.filter((b) => !/button--(primary|ghost|danger|link)\b/.test(b.className)), 'secondary').toHaveLength(6);
-    expect(buttons.filter((b) => b.classList.contains('button--sm'))).toHaveLength(15);
+    expect(buttons).toHaveLength(20);
+    for (const v of ['primary', 'ghost', 'danger', 'link']) expect(buttons.filter((b) => b.classList.contains(`button--${v}`)), v).toHaveLength(4);
+    expect(buttons.filter((b) => !/button--(primary|ghost|danger|link)\b/.test(b.className)), 'secondary').toHaveLength(4);
+    expect(buttons.filter((b) => b.classList.contains('button--sm'))).toHaveLength(10);
     expect(buttons.filter((b) => b.getAttribute('aria-busy') === 'true')).toHaveLength(10);
-    expect(buttons.filter((b) => b.getAttribute('aria-disabled') === 'true')).toHaveLength(20); // aria-disabled, not disabled
+    expect(buttons.filter((b) => b.getAttribute('aria-disabled') === 'true')).toHaveLength(10); // busy is unavailable too
     expect(buttons.filter((b) => b.disabled)).toHaveLength(0);
   });
 
-  it('fields: a select, a disabled one and one with its label hidden; a search empty and one with text', () => {
+  it('fields: a select, a disabled one and one with its label hidden; a search empty and one with text; the same on the band', () => {
     render(<DesignPage />);
     const fields = block('Fields');
     expect(fields.querySelector('.filter-bar')).not.toBeNull();
     const selects = within(fields).getAllByRole('combobox') as HTMLSelectElement[];
-    expect(selects).toHaveLength(3);
-    expect(selects.filter((s) => s.disabled)).toHaveLength(1);
+    // Three in the filter bar; on the band a select at rest, hovered, focused and disabled.
+    expect(selects).toHaveLength(7);
+    expect(selects.filter((s) => s.disabled)).toHaveLength(2);
+    expect(fields.querySelectorAll('.surface-stage .select-field__control')).toHaveLength(4);
     expect(within(fields).getByText('Sort by, label hidden')).toHaveClass('visually-hidden');
     expect(within(fields).getByRole('combobox', { name: 'Sort by, label hidden' })).toBeInTheDocument();
-    expect(within(fields).getAllByRole('searchbox')).toHaveLength(2);
+    expect(within(fields).getAllByRole('searchbox')).toHaveLength(5);
     expect(within(fields).getAllByRole('button', { name: 'Clear search' })).toHaveLength(1);
   });
 
@@ -252,8 +267,9 @@ describe('DesignPage', () => {
     expect(navs).toHaveLength(2);
     expect(within(navs[0] as HTMLElement).getByRole('button', { name: 'Previous' })).toHaveAttribute('aria-disabled', 'true');
     expect(within(navs[1] as HTMLElement).getByRole('button', { name: 'Previous' })).not.toHaveAttribute('aria-disabled');
-    expect(block('Section header').querySelectorAll('.section-bar')).toHaveLength(3); // the block's own and two samples
+    expect(block('Section header').querySelectorAll('.section-bar')).toHaveLength(4); // the block's own and three samples
     expect(block('Section header').querySelectorAll('.section-bar__actions')).toHaveLength(1);
+    expect(block('Section header').querySelectorAll('.section-bar__subtitle')).toHaveLength(1);
     const states = within(block('Empty state')).getAllByRole('status');
     expect(states).toHaveLength(2);
     expect(within(states[1] as HTMLElement).getByRole('button', { name: 'Clear filters' })).toBeInTheDocument();
@@ -290,16 +306,16 @@ describe('DesignPage', () => {
     render(<DesignPage />);
     const status = block('Shipment status');
     expect(cellsOf(within(status).getByRole('table', { name: 'Shipment status tones' }))).toEqual([
-      ['Pending', '--neutral', 'Pending'],
-      ['In transit', '--neutral', 'In transit'],
-      ['Delivered', '--good', 'Delivered'],
-      ['Cancelled', '--neutral', 'Cancelled']
+      ['Pending', '--neutral', 'hatched', 'Pending'],
+      ['In transit', '--neutral', 'solid', 'In transit'],
+      ['Delivered', '--good', 'solid', 'Delivered'],
+      ['Cancelled', '--neutral', 'hollow', 'Cancelled']
     ]);
     expect([...status.querySelectorAll('tbody .badge')].map((b) => b.className)).toEqual([
-      'badge badge--neutral',
+      'badge badge--neutral badge--hatched',
       'badge badge--neutral',
       'badge badge--good',
-      'badge badge--neutral'
+      'badge badge--neutral badge--hollow'
     ]);
     expect([...status.querySelectorAll('.share-bar__track .share-bar__segment')].map((s) => (s as HTMLElement).style.background)).toEqual([
       'var(--neutral)',

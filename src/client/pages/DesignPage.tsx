@@ -1,6 +1,8 @@
-// The design reference at #/_design: the six type sizes and the type roles, the colors with their contrast on paper and on
-// the band, the spacing scale, the 12-column grid, the shared components most pages use, with their states, and the tone of
-// each shipment status. The hover, pressed and focus samples are static copies of the live rules (design.css;
+// The design reference at #/_design: the six type sizes and the type roles, the number formats, the colors with their
+// contrast on paper and on the band, the target tone and the one mark, the spacing scale, the 12-column grid, the shared
+// components most pages use, with their states, the tone of each shipment status, the chart card, the explanation line and
+// terms, the display names and the frame. Foundations first, then components, then patterns; the newer blocks live in
+// DesignPatterns.tsx. The hover, pressed and focus samples are static copies of the live rules (design.css;
 // DesignPage.test.tsx compares them).
 // Development builds only: AppLayout loads it at #/_design when import.meta.env.DEV, so neither this module nor design.css
 // reaches the production bundle (tests/tester/designPage.browser.test.ts reads dist/). It is not one of ROUTES, reads no
@@ -11,32 +13,46 @@ import { formatNumber, statusLabel } from '../../shared/format';
 import type { ShipmentStatus } from '../../shared/types';
 import { PageStage } from '../components/layout/PageStage';
 import { ShareBar } from '../components/charts/ShareBar';
-import { STATUS_TONE } from '../components/charts/statusTones';
+import { STATUS_MARK, STATUS_TONE } from '../components/charts/statusTones';
 import { Badge, type BadgeTone } from '../components/ui/Badge';
 import { Button, type ButtonVariant } from '../components/ui/Button';
 import { DataTable, type Column } from '../components/ui/DataTable';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { Figure, type FigureTone } from '../components/ui/Figure';
+import { IdText } from '../components/ui/IdText';
 import { LoadingState } from '../components/ui/LoadingState';
 import { Pagination } from '../components/ui/Pagination';
 import { SearchInput } from '../components/ui/SearchInput';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { SelectField, type SelectOption } from '../components/ui/SelectField';
 import { displayMoneyTable } from '../lib/displayMoney';
+import {
+  BadgeTitleBlock,
+  Block,
+  ChartCardBlock,
+  DisplayNamesBlock,
+  FieldsOnTheBand,
+  FilterBarBlock,
+  FrameBlock,
+  MarksBlock,
+  noop,
+  NumberFormatsBlock,
+  StackedRowsBlock,
+  TableVariantsBlock,
+  TargetToneBlock,
+  TermsBlock
+} from './DesignPatterns';
 import '../styles/design.css';
 
-/** The controls on this page show a state; they do not change it. */
-const noop = (): void => {};
-
-/** DESIGN.md §8: six sizes, each the size of one type role. */
-const TYPE_SIZES: ReadonlyArray<{ token: string; px: string; role: string }> = [
-  { token: '--text-xs', px: '12px', role: 'label' },
-  { token: '--text-sm', px: '14px', role: 'control, detail line' },
-  { token: '--text-md', px: '16px', role: 'body' },
-  { token: '--text-lg', px: '24px', role: 'title: the page h1; a section h2 at 500' },
-  { token: '--text-xl', px: '36px', role: 'figure' },
-  { token: '--text-display', px: '56–88px', role: 'display: the Dashboard on-time rate' }
+/** DESIGN.md §8: six sizes, each the size of one type role, drawn at that role's weight (the table of roles below). */
+const TYPE_SIZES: ReadonlyArray<{ token: string; px: string; role: string; weight: number }> = [
+  { token: '--text-xs', px: '12px', role: 'label', weight: 600 },
+  { token: '--text-sm', px: '14px', role: 'control, detail line', weight: 400 },
+  { token: '--text-md', px: '16px', role: 'body', weight: 400 },
+  { token: '--text-lg', px: '24px', role: 'title: the page h1; a section h2 at 500', weight: 600 },
+  { token: '--text-xl', px: '36px', role: 'figure', weight: 600 },
+  { token: '--text-display', px: '56–88px', role: 'display: the Dashboard on-time rate', weight: 600 }
 ];
 
 /** One type role as its stylesheet rule sets it (DESIGN.md "Type roles"). DesignPage.test.tsx checks that the rule still
@@ -91,7 +107,7 @@ const TYPE_ROLES: TypeRole[] = [
   },
   {
     role: 'Display (the Dashboard on-time rate)',
-    at16: '56–88px on 0.86, 600',
+    at16: '56–88px, 600, lines 0.86 of the size',
     css: ['font: 600 var(--fs-display) / 0.86 var(--font-display)', 'letter-spacing: -0.045em'],
     selector: '.atlas-page .hero__value',
     file: 'atlas.css'
@@ -222,7 +238,16 @@ const STATUS_SAMPLE: StatusRow[] = [
 const STATUS_COLUMNS: Column<StatusRow>[] = [
   { key: 'status', header: 'Status', render: (r) => statusLabel(r.status) },
   { key: 'tone', header: 'Tone', render: (r) => `--${STATUS_TONE[r.status]}` },
-  { key: 'badge', header: 'Badge', render: (r) => <Badge tone={STATUS_TONE[r.status]}>{statusLabel(r.status)}</Badge> }
+  { key: 'mark', header: 'Mark', render: (r) => STATUS_MARK[r.status] },
+  {
+    key: 'badge',
+    header: 'Badge',
+    render: (r) => (
+      <Badge tone={STATUS_TONE[r.status]} mark={STATUS_MARK[r.status]}>
+        {statusLabel(r.status)}
+      </Badge>
+    )
+  }
 ];
 
 /** The options of the select samples below. */
@@ -308,7 +333,8 @@ const STATE_COLUMNS: Column<StateRow>[] = [
   { key: 'off', header: 'Unavailable', render: (r) => r.off }
 ];
 
-/** A few stock rows for the table sample: a unit price keeps its cents, a value rounds to the dollar (DESIGN.md "Money"). */
+/** A few stock rows for the table sample: a unit price keeps its cents, a value rounds to the dollar (DESIGN.md "Money"). The
+ *  SKU is text (IdText): SCC has no item page to link to. */
 interface StockRow {
   sku: string;
   product: string;
@@ -323,22 +349,12 @@ const STOCK: StockRow[] = [
 ];
 
 const STOCK_COLUMNS: Column<StockRow>[] = [
-  { key: 'sku', header: 'SKU', sortable: true, render: (r) => <a href="#/_design">{r.sku}</a> },
+  { key: 'sku', header: 'SKU', sortable: true, render: (r) => <IdText text={r.sku} /> },
   { key: 'product', header: 'Product', render: (r) => r.product },
   { key: 'qty', header: 'Qty', sortable: true, align: 'right', render: (r) => formatNumber(r.qty) },
   { key: 'unit', header: 'Unit cost', align: 'right', render: (r) => displayMoneyTable(r.unitCents, 'price') },
   { key: 'value', header: 'Value', align: 'right', render: (r) => displayMoneyTable(r.qty * r.unitCents, 'amount') }
 ];
-
-/** One part of the system: a section named by its h2. */
-function Block({ id, title, children }: { id: string; title: string; children: ReactNode }) {
-  return (
-    <section className="design-sheet__block" aria-labelledby={id}>
-      <SectionHeader id={id} title={title} />
-      {children}
-    </section>
-  );
-}
 
 /** The design reference page. */
 export function DesignPage() {
@@ -355,7 +371,7 @@ export function DesignPage() {
             <ul className="design-sheet__list">
               {TYPE_SIZES.map((t) => (
                 <li key={t.token}>
-                  <span style={{ fontSize: `var(${t.token})` }}>Lanes 32</span>
+                  <span style={{ fontSize: `var(${t.token})`, fontWeight: t.weight }}>Lanes 32</span>
                   <span className="design-sheet__note">{`${t.token} · ${t.px} · ${t.role}`}</span>
                 </li>
               ))}
@@ -367,8 +383,10 @@ export function DesignPage() {
               No role tokens: each rule sets a size step and, beside it, its line height, weight and tracking. Line heights are rem
               or unitless, never px, so a larger default font grows the line with its text. Each row is checked against its rule.
             </p>
-            <DataTable caption="Type roles" columns={ROLE_COLUMNS} rows={TYPE_ROLES} rowKey={(r) => r.selector} />
+            <DataTable caption="Type roles" columns={ROLE_COLUMNS} rows={TYPE_ROLES} rowKey={(r) => r.selector} stackedRows />
           </Block>
+
+          <NumberFormatsBlock />
 
           <Block id="design-color" title="Color">
             <p className="design-sheet__note">
@@ -384,8 +402,12 @@ export function DesignPage() {
                 </li>
               ))}
             </ul>
-            <DataTable caption="Colors and their contrast" columns={COLOR_COLUMNS} rows={COLORS} rowKey={(c) => c.token} />
+            <DataTable caption="Colors and their contrast" columns={COLOR_COLUMNS} rows={COLORS} rowKey={(c) => c.token} stackedRows />
           </Block>
+
+          <TargetToneBlock />
+
+          <MarksBlock />
 
           <Block id="design-spacing" title="Spacing">
             <ul className="design-sheet__list">
@@ -414,9 +436,8 @@ export function DesignPage() {
 
           <Block id="design-buttons" title="Buttons">
             <p className="design-sheet__note">
-              Each variant at md (36px) and sm (32px): default, unavailable (aria-disabled at opacity 0.45: it keeps the focus and
-              ignores clicks) and busy (aria-busy, unavailable too; the caller changes the label). States shows hover, pressed and
-              focus.
+              Each variant at md (36px) and sm (32px), at rest and busy (aria-busy, unavailable too: it keeps the focus and ignores
+              clicks; the caller changes the label). States shows hover, pressed, focus and unavailable.
             </p>
             {VARIANTS.map(({ variant, name }) => (
               <div key={variant} className="design-sheet__row">
@@ -424,9 +445,6 @@ export function DesignPage() {
                   <Fragment key={size}>
                     <Button variant={variant} size={size}>
                       {`${name} ${size}`}
-                    </Button>
-                    <Button variant={variant} size={size} disabled>
-                      {`${name} ${size}, disabled`}
                     </Button>
                     <Button variant={variant} size={size} busy>
                       Saving…
@@ -443,10 +461,14 @@ export function DesignPage() {
               (data-state, design.css), so one screenshot shows them all; a pressed control is hovered too. Unavailable: a button says
               it with aria-disabled and keeps its focus; a select is disabled. A dash: no style of its own for that state.
             </p>
-            <DataTable caption="Interactive states" columns={STATE_COLUMNS} rows={STATE_ROWS} rowKey={(r) => r.name} />
+            <DataTable caption="Interactive states" columns={STATE_COLUMNS} rows={STATE_ROWS} rowKey={(r) => r.name} stackedRows />
           </Block>
 
           <Block id="design-fields" title="Fields">
+            <p className="design-sheet__note">
+              Fields sit in a filter bar, as on Inventory, Shipments and Alerts (on the grid: Filter bar, below). The third select
+              hides its label from sight only: it stays the accessible name. A search with text offers Clear search.
+            </p>
             <div className="filter-bar">
               <SelectField label="Range" value="180d" options={RANGE_OPTIONS} onChange={noop} />
               <SelectField label="Range, disabled" value="180d" options={RANGE_OPTIONS} onChange={noop} disabled />
@@ -454,12 +476,10 @@ export function DesignPage() {
               <SearchInput label="Search" value="" onChange={noop} placeholder="SKU or product" />
               <SearchInput label="Search, with text" value="ELC-0015" onChange={noop} />
             </div>
-            <p className="design-sheet__note">
-              Fields sit in a filter bar, as on Inventory, Shipments and Alerts: below 768px it is two columns and a search takes the
-              whole row. The third select hides its label from sight only: it stays the accessible name. A search with text offers
-              Clear search.
-            </p>
+            <FieldsOnTheBand />
           </Block>
+
+          <FilterBarBlock />
 
           <Block id="design-links" title="Links">
             <p className="design-sheet__note">
@@ -510,8 +530,9 @@ export function DesignPage() {
           <Block id="design-table" title="Table">
             <p className="design-sheet__note">
               Number columns align right in tabular figures, header included; a sorted column says its direction (aria-sort) and shows
-              its arrow. A unit price keeps its cents, an amount rounds to the dollar. Below 768px the first column stays put while the
-              table scrolls sideways; a ledger stacks its rows instead, laid out by its page.
+              its arrow. A price keeps its cents: a unit price, one shipment&apos;s cost and an average per shipment; an amount (a
+              value, a total) rounds to the dollar. Below 768px the first column stays put while the table scrolls sideways, or the
+              rows stack (Stacked rows).
             </p>
             <DataTable
               caption="Stock, a sample"
@@ -523,14 +544,25 @@ export function DesignPage() {
             />
           </Block>
 
+          <TableVariantsBlock />
+
+          <StackedRowsBlock />
+
           <Block id="design-pagination" title="Pagination">
             <Pagination page={1} pageCount={15} pageSize={25} total={360} start={1} end={25} onPageChange={noop} onPageSizeChange={noop} />
             <Pagination page={8} pageCount={15} pageSize={25} total={360} start={176} end={200} onPageChange={noop} onPageSizeChange={noop} />
           </Block>
 
           <Block id="design-section" title="Section header">
+            <p className="design-sheet__note">
+              The one section heading: the h2 at 24/500 over a 1px ink rule, 12px above it; actions at the right end; at most one
+              subtitle, under the rule and before the content (14px, muted, at most 72ch). Over a table, the results title says what
+              it holds, in the type of the h2.
+            </p>
             <SectionHeader title="A section" />
             <SectionHeader title="A section with an action" actions={<Button size="sm">Export</Button>} />
+            <SectionHeader title="A section with a subtitle" subtitle="What the section holds, in one line." />
+            <p className="table-summary">360 items · $32.6M</p>
           </Block>
 
           <Block id="design-empty" title="Empty state">
@@ -548,6 +580,7 @@ export function DesignPage() {
           </Block>
 
           <Block id="design-figures" title="Figures">
+            <p className="design-sheet__note">A figure with a link shows it at rest: its label is underlined in a quiet line that darkens on hover.</p>
             <div className="surface-stage design-sheet__stage">
               <ul className="figure-stage__figures">
                 {FIGURES.map((f) => (
@@ -570,20 +603,29 @@ export function DesignPage() {
             </div>
           </Block>
 
+          <BadgeTitleBlock />
+
           <Block id="design-status" title="Shipment status">
             <p className="design-sheet__note">
               One table gives each shipment status its tone (statusTones.ts), and every page that draws a status reads it: the badge
               on Shipments, the mark beside a status in the Dashboard&apos;s recent activity and the status bar on Analytics. Pending
               and in transit are neutral (normal, in progress), and so is cancelled (ended, nothing left to do); delivered is good
-              (done). Late is a flag, not a status: the Delayed badge is critical.
+              (done). The three neutral ones differ by the form of their mark: pending hatched, in transit solid, cancelled hollow.
+              Late is a flag, not a status: the Delayed badge is critical.
             </p>
             <DataTable caption="Shipment status tones" columns={STATUS_COLUMNS} rows={STATUS_SAMPLE} rowKey={(r) => r.status} />
             <ShareBar
-              data={STATUS_SAMPLE.map((r) => ({ key: r.status, label: statusLabel(r.status), value: r.count, tone: STATUS_TONE[r.status] }))}
+              data={STATUS_SAMPLE.map((r) => ({ key: r.status, label: statusLabel(r.status), value: r.count, tone: STATUS_TONE[r.status], mark: STATUS_MARK[r.status] }))}
               valueFormat={formatNumber}
               ariaLabel="Shipments by status, a sample"
             />
           </Block>
+
+          <ChartCardBlock />
+
+          <TermsBlock />
+
+          <DisplayNamesBlock />
 
           <Block id="design-band" title="Page band">
             <p className="design-sheet__note">
@@ -599,16 +641,18 @@ export function DesignPage() {
             </div>
           </Block>
 
+          <FrameBlock />
+
           <Block id="design-chip" title="Chip">
-            <div className="surface-stage design-sheet__stage design-sheet__row">
-              <span className="topbar__chip">Sample data</span>
-              <span className="topbar__chip">Imported data</span>
-            </div>
             <p className="design-sheet__note">
               The top bar shows one chip at every width, a button that opens a note. While both sources are the generated sample it
               reads Sample data (this page&apos;s top bar has it); once a file is imported it reads Imported data, and its note names
               each source.
             </p>
+            <div className="surface-stage design-sheet__stage design-sheet__row">
+              <span className="topbar__chip">Sample data</span>
+              <span className="topbar__chip">Imported data</span>
+            </div>
           </Block>
         </div>
       </div>

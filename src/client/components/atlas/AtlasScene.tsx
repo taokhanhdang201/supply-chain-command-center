@@ -80,7 +80,7 @@ export function AtlasScene({ routes, locations, warehouseValueCents, dots, focus
   const overdueDots = dots.filter((d) => d.overdue).length;
   const criticalLanes = drawable.filter((r) => laneTone(r.delayedShare) === 'critical').length;
   const focusLane = focusRouteKey === null ? undefined : drawable.find((r) => r.routeKey === focusRouteKey);
-  const focusSentence = focusLane === undefined ? '' : `${focusLane.label}: ${focusLane.delayedCount} of ${focusLane.count} shipments delayed (${formatPercent(focusLane.delayedShare, 0)})`;
+  const focusSentence = focusLane === undefined ? '' : `${focusLane.label}: ${focusLane.delayedCount} of ${focusLane.count} shipments delayed (${formatPercent(focusLane.delayedShare)})`;
   const description =
     `Schematic network: ${warehouses.length} warehouses, ${cities.length} cities, ${drawable.length} lanes with shipments. ` +
     `${dots.length} shipments in transit are placed along their lanes; ${overdueDots} are past their estimated delivery. ` +

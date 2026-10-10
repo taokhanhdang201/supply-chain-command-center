@@ -56,11 +56,12 @@ describe('V1.6 redesign (real Chromium)', () => {
   it('dashboard keeps every V1.5 value (money shown as DESIGN.md "Money" says)', async () => {
     const { ctx, page, errors } = await open(1440, '');
     const t = (await text(page)).toLowerCase();
-    for (const v of ['$32.6m', '$8.0m', '258,475 units in 360 records', '480', '34 active · 13 cancelled', '85.6%', '364 of 425 delivered on time', '73', '12 overdue · 61 delivered late', '20', '6 out of stock', '$600.1k', 'avg $1,285 per shipment', '3.1 days', '57', '67 total · 10 info', 'pending 14', 'in transit 20', 'delivered 433', 'cancelled 13', 'shp-100065', '$908.19'])
+    for (const v of ['$32.6m', '$8.0m', '258,475 units in 360 records', '480', '34 active · 13 cancelled', '85.6%', '364 of 425 delivered on time', '73', '12 overdue · 61 delivered late', '20', '6 out of stock', '$600.1k', 'avg $1,285.04 per shipment', '3.1 days', '57', '67 total · 10 info', 'pending 14', 'in transit 20', 'delivered 433', 'cancelled 13', 'shp-100065', '$908.19'])
       expect(t, v).toContain(v);
-    // DESIGN.md "Money": the same cents as summaries ($32.6M, the $8.0M rack, avg $1,285) and a shipment cost to the cent
-    // ($908.19); tests/client/lib/displayMoney.test.ts proves the cents. The old strings are gone.
-    for (const v of ['$32.64m', 'avg $1,285.04']) expect(t, `no ${v}`).not.toContain(v);
+    // DESIGN.md "Money": the same cents as summaries ($32.6M, the $8.0M rack) and, as prices, the average cost per shipment
+    // (avg $1,285.04) and a shipment cost ($908.19), to the cent; tests/client/lib/displayMoney.test.ts proves the cents. The
+    // old strings are gone.
+    for (const v of ['$32.64m', 'avg $1,285 per']) expect(t, `no ${v}`).not.toContain(v);
     expect(await page.getByLabel('Range').inputValue()).toBe('180d');
     expect(errors).toEqual([]);
     await ctx.close();
@@ -348,14 +349,14 @@ describe('V1.6 redesign (real Chromium)', () => {
       ['inventory', ['360 items · $32.6M', 'ELC-0015', '$1,403,217', '$617.07', 'Showing 1–25 of 360']],
       ['shipments', ['480 shipments', 'SHP-100200', '$545.08', 'Page 1 of 20']],
       ['alerts', ['Showing 1–25 of 67', 'Out of stock: APP-0005']],
-      ['analytics', ['11.17×', 'DIO 32.7 days · 356 of 360 items have usage data', 'avg $1,285 per shipment', '3.1 days', '85.6%', '76.9%', '63.5%', '56.5%', '85.1%', '92.4%']],
+      ['analytics', ['11.17×', 'DIO 32.7 days · 356 of 360 items have usage data', 'avg $1,285.04 per shipment', '3.1 days', '85.6%', '76.9%', '63.5%', '56.5%', '85.1%', '92.4%']],
       // G1: Data Import opens on the waiting state (the "Current data sources" figures were removed, G0 §4; the top bar
       // names each source, checked below)
       ['import', ['Drop your file', 'CSV, TSV, TXT or GZ file. Up to 2 MB.', 'No file? Try one.']]
     ];
     // DESIGN.md "Money": summaries compact, table amounts to the dollar, unit prices and shipment costs to the cent. The
     // old strings must be gone too: "$1,403,217" is the start of "$1,403,217.18".
-    const gone: Record<string, string[]> = { inventory: ['$32,643,371.48', '$1,403,217.18'], analytics: ['avg $1,285.04 per shipment'] };
+    const gone: Record<string, string[]> = { inventory: ['$32,643,371.48', '$1,403,217.18'], analytics: ['avg $1,285 per shipment'] };
     for (const [hash, vals] of checks) {
       const { ctx, page } = await open(1440, hash);
       const t = await text(page);

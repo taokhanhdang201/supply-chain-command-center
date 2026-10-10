@@ -430,26 +430,30 @@ describe('App: the "Someone imported a file." banner', () => {
     expect(resetSampleData).toHaveBeenCalledTimes(1);
   });
 
-  // The reset fails (no network): the banner turns into a warning with the error's message and Try again, on the same button.
+  // The reset fails (no network): the same banner, the same region, turns amber; the error is said in its live region, there
+  // from the first render, and Try again is the same button.
   it('when the reset fails it says "Could not restore sample data" with the message, keeps the focus, and Try again calls it once more', async () => {
     const resetSampleData = vi.fn().mockRejectedValueOnce(apiError()).mockResolvedValue(undefined);
     const getSnapshot = vi.fn().mockResolvedValueOnce(imported()).mockResolvedValue(sample());
     const user = userEvent.setup();
     render(<App api={makeApi({ getSnapshot, resetSampleData })} />);
     await screen.findByRole('heading', { level: 1, name: 'Dashboard' });
-    const button = within(banner() as HTMLElement).getByRole('button', { name: 'Restore sample data' });
+    const region = banner() as HTMLElement;
+    const live = region.querySelector('[aria-live]') as HTMLElement;
+    expect(live).toHaveTextContent('');
+    const button = within(region).getByRole('button', { name: 'Restore sample data' });
     await user.click(button);
-    const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent('Could not restore sample data');
-    expect(alert).toHaveTextContent('Could not reach the server. Check that it is running and try again.');
-    expect(alert).toHaveClass('banner--warning');
-    expect(banner()).toBeNull();
-    const retry = within(alert).getByRole('button', { name: 'Try again' });
+    await waitFor(() => expect(live).toHaveTextContent('Could not restore sample data'));
+    expect(live).toHaveTextContent('Could not reach the server. Check that it is running and try again.');
+    expect(banner()).toBe(region);
+    expect(region).toHaveClass('banner--warning');
+    expect(screen.queryByRole('alert')).toBeNull();
+    const retry = within(region).getByRole('button', { name: 'Try again' });
     expect(retry).toBe(button);
     expect(retry).toHaveFocus();
     expect(getSnapshot).toHaveBeenCalledTimes(1);
     await user.click(retry);
-    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+    await waitFor(() => expect(banner()).toBeNull());
     expect(resetSampleData).toHaveBeenCalledTimes(2);
     await waitFor(() => expect(politeWords()).toBe('Sample data restored.'));
   });

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ReactElement } from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FlowFigure } from '../../../src/client/components/atlas/FlowCharts';
 import { ChartFrame } from '../../../src/client/components/charts/ChartFrame';
@@ -111,11 +111,12 @@ describe('number columns', () => {
     cells: ['', 'data-table__cell--right', 'data-table__cell--right']
   };
 
-  /** The class names of the data table's header cells and cells, once "Show data table" is pressed. */
-  async function dataTableClasses(ui: ReactElement) {
+  /** The class names of the data table's header cells and cells, once its toggle is pressed ("Table" on a chart card,
+   *  "Show data table" on the Dashboard's Flow figures). */
+  async function dataTableClasses(ui: ReactElement, toggle = 'Table') {
     const user = userEvent.setup();
     render(ui);
-    await user.click(screen.getByRole('button', { name: 'Show data table' }));
+    await user.click(screen.getByRole('button', { name: toggle }));
     return {
       headers: screen.getAllByRole('columnheader').map((h) => h.className),
       cells: screen.getAllByRole('cell').map((c) => c.className)
@@ -171,7 +172,8 @@ describe('number columns', () => {
     const classes = await dataTableClasses(
       <FlowFigure title="Shipping cost" isEmpty={false} table={TABLE}>
         <div>chart</div>
-      </FlowFigure>
+      </FlowFigure>,
+      'Show data table'
     );
     expect(classes.headers).toEqual(RIGHT.headers);
     expect(classes.cells).toEqual(RIGHT.cells);
@@ -205,5 +207,105 @@ describe('number columns', () => {
     expect(screen.getByText('quantity')).not.toHaveClass('data-table__cell--right');
     expect(screen.getByText('Not a number.')).toHaveClass('data-table__cell--wrap');
     expect(screen.getByText('Not a number.')).not.toHaveClass('data-table__cell--right');
+  });
+});
+
+describe('table variants', () => {
+  it('renders no sort button in a static table even for a sortable column, and a click on the header does nothing', async () => {
+    const user = userEvent.setup();
+    const onSortChange = vi.fn();
+    const { container } = render(
+      <DataTable caption="Recent" columns={columns} rows={rows} rowKey={(r) => r.id} variant="static" sort={{ key: 'name', direction: 'asc' }} onSortChange={onSortChange} />
+    );
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(container.querySelector('.data-table__sort-button')).toBeNull();
+    expect(container.querySelector('table')).toHaveClass('data-table--static');
+    // A header that cannot be sorted does not claim a sort order either.
+    for (const th of container.querySelectorAll('th')) expect(th).not.toHaveAttribute('aria-sort');
+    await user.click(screen.getByRole('columnheader', { name: 'Name' }));
+    expect(onSortChange).not.toHaveBeenCalled();
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+  });
+
+  it('keeps the plain table as it was: no variant class, sort buttons on sortable columns', () => {
+    const { container } = render(<DataTable caption="Items" columns={columns} rows={rows} rowKey={(r) => r.id} />);
+    expect(container.querySelector('table')?.className).toBe('data-table');
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Name', 'Qty']);
+  });
+
+  it('marks a compact table and only a compact one', () => {
+    const compact = render(<DataTable caption="Items" columns={columns} rows={rows} rowKey={(r) => r.id} density="compact" />);
+    expect(compact.container.querySelector('table')).toHaveClass('data-table--compact');
+    compact.unmount();
+    const regular = render(<DataTable caption="Items" columns={columns} rows={rows} rowKey={(r) => r.id} density="regular" />);
+    expect(regular.container.querySelector('table')).not.toHaveClass('data-table--compact');
+  });
+
+  it('combines the static and compact variants without losing either class', () => {
+    const { container } = render(<DataTable caption="Items" columns={columns} rows={rows} rowKey={(r) => r.id} variant="static" density="compact" />);
+    const cls = container.querySelector('table')?.className.split(' ');
+    expect(cls).toEqual(expect.arrayContaining(['data-table', 'data-table--static', 'data-table--compact']));
+  });
+});
+
+describe('stacked rows', () => {
+  interface Cell {
+    id: string;
+    token: string;
+    value: string | null;
+  }
+  const cols: Column<Cell>[] = [
+    { key: 'token', header: 'Token', render: (r) => r.token },
+    { key: 'value', header: 'Value', render: (r) => r.value }
+  ];
+  const cells: Cell[] = [
+    { id: 'a', token: '--text-lg', value: '20px' },
+    { id: 'b', token: '--text-sm', value: null },
+    { id: 'c', token: '--text-xs', value: '' }
+  ];
+
+  it('gives the table, rows and cells explicit roles and puts the column header on each cell as its label', () => {
+    render(<DataTable caption="Type roles" columns={cols} rows={cells} rowKey={(r) => r.id} stackedRows />);
+    expect(screen.getByRole('table', { name: 'Type roles' })).toHaveClass('data-table--stacked');
+    expect(screen.getAllByRole('row')).toHaveLength(4);
+    const first = screen.getAllByRole('row')[1] as HTMLElement;
+    const [token, value] = within(first).getAllByRole('cell');
+    expect(token).toHaveAttribute('data-label', 'Token');
+    expect(value).toHaveAttribute('data-label', 'Value');
+  });
+
+  it('keeps the visible label out of the cell text, so a screen reader hears the column header once', () => {
+    render(<DataTable caption="Type roles" columns={cols} rows={cells} rowKey={(r) => r.id} stackedRows />);
+    const first = screen.getAllByRole('row')[1] as HTMLElement;
+    expect(first).toHaveTextContent('--text-lg20px');
+    expect(first.textContent).not.toContain('Token');
+    expect(first.textContent).not.toContain('Value');
+  });
+
+  it('shows a dash for an empty cell and says "No value" to a screen reader', () => {
+    render(<DataTable caption="Type roles" columns={cols} rows={cells} rowKey={(r) => r.id} stackedRows />);
+    const rowsAll = screen.getAllByRole('row');
+    for (const row of [rowsAll[2], rowsAll[3]] as HTMLElement[]) {
+      const empty = within(row).getAllByRole('cell')[1] as HTMLElement;
+      const dash = empty.querySelector('[aria-hidden="true"]');
+      expect(dash?.textContent).toBe('—');
+      expect(empty.querySelector('.visually-hidden')?.textContent).toBe('No value');
+    }
+    // A cell with a value shows neither.
+    const full = within(rowsAll[1] as HTMLElement).getAllByRole('cell')[1] as HTMLElement;
+    expect(full.textContent).toBe('20px');
+    expect(full.querySelector('.visually-hidden')).toBeNull();
+  });
+
+  it('draws the empty state across all columns when there are no rows', () => {
+    render(<DataTable caption="Type roles" columns={cols} rows={[]} rowKey={(r) => r.id} stackedRows emptyState={<span>Nothing here</span>} />);
+    expect(screen.getByText('Nothing here').closest('td')).toHaveAttribute('colspan', '2');
+  });
+
+  it('adds no labels, roles or dashes to a table that is not stacked', () => {
+    const { container } = render(<DataTable caption="Type roles" columns={cols} rows={cells} rowKey={(r) => r.id} />);
+    expect(container.querySelector('[data-label]')).toBeNull();
+    expect(container.querySelector('table')).not.toHaveAttribute('role');
+    expect(container.querySelector('.data-table__no-value')).toBeNull();
   });
 });

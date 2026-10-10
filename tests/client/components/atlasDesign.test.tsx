@@ -62,8 +62,8 @@ describe('AtlasScene is a quiet drawing', () => {
     const late = { actualDelivery: '2026-06-09' };
     const { container } = render(scene([makeShipmentRecord({ ...late }), makeShipmentRecord()], 'first'));
     const label = container.querySelector('svg')?.getAttribute('aria-label') ?? '';
-    expect(label).toMatch(/Most delayed lane, Dallas-Fort Worth DC → Houston, TX: 1 of 2 shipments delayed \(50%\)\./);
-    expect(container.querySelector('.atlas__lane title')?.textContent).toBe('Dallas-Fort Worth DC → Houston, TX: 1 of 2 shipments delayed (50%)');
+    expect(label).toMatch(/Most delayed lane, Dallas-Fort Worth DC → Houston, TX: 1 of 2 shipments delayed \(50\.0%\)\./);
+    expect(container.querySelector('.atlas__lane title')?.textContent).toBe('Dallas-Fort Worth DC → Houston, TX: 1 of 2 shipments delayed (50.0%)');
   });
 });
 
@@ -131,6 +131,7 @@ describe('WarehouseRacks are five copies of one bay', () => {
     wh('WH-EWR', { units: 57_288, capacityUnits: 62_000, utilization: 0.924 })
   ];
 
+  // The percent of a bay from 90% full turns amber (rack__pct--warning), as on Analytics: the one class a bay may add.
   it('gives every bay identical markup and class, whatever its capacity: no per-bay width, height or flex style', () => {
     const { container } = render(<WarehouseRacks warehouses={five} />);
     const items = [...container.querySelectorAll('.racks__item')];
@@ -144,7 +145,7 @@ describe('WarehouseRacks are five copies of one bay', () => {
       // The single thing that differs between bays is the fill level custom property.
       expect((rack.querySelector('.rack__fill') as HTMLElement).getAttribute('style')).toMatch(/^--fill: [\d.]+%;?$/);
     }
-    const shape = (el: Element): string => [...el.querySelectorAll('*')].map((n) => n.tagName + '.' + n.className).join('|');
+    const shape = (el: Element): string => [...el.querySelectorAll('*')].map((n) => n.tagName + '.' + n.className.replace(' rack__pct--warning', '')).join('|');
     expect(new Set(items.map(shape)).size).toBe(1);
   });
 
